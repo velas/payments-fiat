@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title> Buy VLX</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="author" content="html.design">
+	<meta name="description" content="Buy VLX">
+	<meta name="keywords"
+		content="velas, vlx, cryptocurrency, wallet, cryptocurrency wallet, wallet secure, web wallets, ai, artificial intelligence, dapp, blockchain">
+	<link rel="shortcut icon" href="images/velas-icon.png">
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+
+	<div class="wizard-main">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-6 login-sec">
+					<div class="login-sec-bg">
+						<h2 class="text-center">Buy VLX</h2>
+						<form id="buy-form" action="#" style="display: none;">
+							<h3>Choose</h3>
+							<fieldset class="form-input">
+								<h4>Providers:</h4>
+								<input id="provider" value="Simplex" name="chooseProvider" onclick="onlyOneChoice(this)"
+									type="checkbox" class="required"> <label for="provider">
+									<div><img class="provider-style" src="images/simplex_logo.png" /></div>
+								</label><br />
+								<input id="provider1" value="Ramp" name="chooseProvider" onclick="onlyOneChoice(this)"
+									type="checkbox" class="required"> <label for="provider1">
+									<div><img class="provider-style1" src="images/ramp-logo.png" /></div>
+								</label>
+								<p id="notice" />
+							</fieldset>
+
+							<h3>Amount</h3>
+							<fieldset class="form-input">
+								<h4>Enter Amount:</h4>
+								<label for="amount">Amount</label>
+								<input id="amount" name="amount" type="number" pattern="^\d*(\.\d{0,2})?$"
+									class="form-control required number" placeholder="0.00" value=""
+									onkeyup="trackChange(this.value)">
+
+								<div class="subtitle-input">
+									<p>Current Price:</p>
+									<p class='price_usd' />
+								</div>
+
+								<div class="subtitle-input">
+									<p>Your Address:</p>
+									<p class="address" onclick="openAddress()">
+										2aKpGt3AjY3cJnZtstDrt3bjhEPoTrQcydtwgTxRH8uPyDFNZQ9kgWfuX6Qy4dy6MRZhx3XSCd8DNkNhzGZPakdA
+									</p>
+								</div>
+								<div class="subtitle-input">
+									<p>Your Provider:</p>
+									<p id="checkedValue" />
+								</div>
+								<div class="subtitle-input">
+									<p>Fee:</p>
+									<p>0.00044 VLX</p>
+								</div>
+								<div class="subtitle-input">
+									<p>Total:</p>
+									<p id="yourAmount">0.00 VLX</p>
+								</div>
+								<input id="acceptTerms-2" name="acceptTerms" type="checkbox" class="required"> <label
+									for="acceptTerms-2" class="required">I agree with the Terms and Conditions.</label>
+
+							</fieldset>
+							<h3>Confirm</h3>
+							<fieldset class="form-input">
+								<h4>Some Wireframe</h4>
+							</fieldset>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/popper.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src='/js/jquery.validate.js'></script>
+	<script src="/js/jquery.steps.js"></script>
+
+
+	<script>
+
+		var address = '2aKpGt3AjY3cJnZtstDrt3bjhEPoTrQcydtwgTxRH8uPyDFNZQ9kgWfuX6Qy4dy6MRZhx3XSCd8DNkNhzGZPakdA';
+		var currency = 'VLX'
+		var order_number = '78fe90a4-1980-b82f-c1af-58cf92fd3a9e'
+		function onlyOneChoice(checkbox) {
+			var checkboxes = document.getElementsByName('chooseProvider')
+			checkboxes.forEach((item) => {
+				if (item !== checkbox) item.checked = false
+			})
+			var checkedValue = document.querySelector('.required:checked').value;
+			document.getElementById("checkedValue").innerHTML = checkedValue;
+			var notice = `You are about to receive funds, your address <b>${address}</b>, cryptocurrency: <b>${currency}</b>, provider: <b>${checkedValue}</b>, using fiat funds. Click Next to continue.`
+			if (checkedValue) return document.getElementById("notice").innerHTML = notice;
+		}
+		function openAddress() {
+			window.open(`https://native.velas.com/tx/${address}`);
+		}
+		function selectProvider() {
+			form.steps("next");
+		}
+
+		function getCurrensies() {
+			$.getJSON("https://explorer.velas.com/ticker", function (data) {
+				var price_usd = $('.price_usd').text(`$ ${data.price_usd} / 1 ${currency}`)
+			});
+		}
+		getCurrensies();
+
+		function trackChange(value) {
+			document.getElementById("yourAmount").innerHTML = `${value ? value : '0.00'} ${currency}`;
+		}
+
+		var form = $("#buy-form").show();
+
+		form.steps({
+			headerTag: "h3",
+			bodyTag: "fieldset",
+			transitionEffect: "slideLeft",
+			labels:
+			{
+				finish: "Confirm",
+			},
+			onStepChanging: function (event, currentIndex, newIndex) {
+				if (currentIndex > newIndex) {
+					return true;
+				}
+
+				if (currentIndex < newIndex) {
+					form.find(".body:eq(" + newIndex + ") label.error").remove();
+					form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+				}
+				form.validate().settings.ignore = ":disabled,:hidden";
+				return form.valid();
+			},
+			onFinishing: function (event, currentIndex) {
+				form.validate().settings.ignore = ":disabled";
+				return form.valid();
+			},
+			onFinished: function (event, currentIndex) {
+				// alert(`You will be redirected to Simplex to complete your purchase. Please save your order number. Your personal order number: ${order_number}`),
+				window.open('https://www.simplex.com/');
+			}
+		}).validate({
+			errorPlacement: function errorPlacement(error, element) { element.before(error); },
+			rules: {
+				confirm: {
+					equalTo: "#password"
+				}
+			}
+		});
+		$(document).on('keydown', 'input[pattern]', function (e) {
+			var input = $(this);
+			var oldVal = input.val();
+			var regex = new RegExp(input.attr('pattern'), 'g');
+
+			setTimeout(function () {
+				var newVal = input.val();
+				if (!regex.test(newVal)) {
+					input.val(oldVal);
+				}
+			}, 1);
+		});
+	</script>
+</body>
+
+</html>
