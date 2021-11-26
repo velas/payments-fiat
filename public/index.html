@@ -17,7 +17,16 @@
 </head>
 
 <body>
+  <script src="https://cdn.socket.io/4.4.0/socket.io.js"></script>
+  <script>
+      const socket = io("/", {
+        reconnectionDelayMax: 10000,
+        query: {
+          "endpoint": "v1/simplex/status"
+        }
+      });
 
+  </script>
 	<div class="wizard-main">
 		<div class="container">
 			<div class="row">

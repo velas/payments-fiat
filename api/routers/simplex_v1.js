@@ -1,6 +1,7 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const { SIMPLEX_API, SIMPLEX_API_KEY } = require('../consts');
+const { v4: uuidv4 } = require('uuid');
 
 const apiv1 = express.Router();
 const SUPPORTED_CRYPTO_CURRENCIES = ['BTC', 'ETH', 'VLX'];
@@ -25,7 +26,7 @@ apiv1.post('/quote', async (req, res) => {
       throw new Error('fiat_currency unsupported');
     }
 
-    var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
     const fetchBody = {
       "end_user_id": address,
       "digital_currency": crypto_currency,
@@ -65,7 +66,53 @@ apiv1.post('/quote', async (req, res) => {
   }
 });
 
-apiv1.post('/payment', function(req, res) {
+apiv1.post('/payment', async (req, res) => {
+  try {
+    const { quote_id, address, payment_id, crypto_currency, debug } = req.body;
+    const order_id = uuidv4();
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+    const fetchBody = {
+      "account_details": {
+        "app_provider_id": "velas",
+        "app_version_id": process.version,
+        "app_end_user_id": address,
+        "signup_login": {
+          "ip": ip,
+          "accept_language": req.headers["accept-language"],
+          "http_accept_language": req.headers["accept-language"],
+          "user_agent": req.get('User-Agent'),
+          "timestamp": new Date().toISOString()
+        }
+      },
+      "transaction_details": {
+        "payment_details": {
+                "quote_id": quote_id,
+                "payment_id": payment_id,
+                "order_id": order_id,
+                "destination_wallet": {
+                    "currency": crypto_currency,
+                    "address": address,
+                    "tag": ""
+                },
+                "original_http_ref_url": req.get('Referrer')
+            }
+      }
+    };
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `ApiKey ${SIMPLEX_API_KEY}`
+    };
+    const fetchOpts = {
+      method: 'post',
+      body: JSON.stringify(fetchBody),
+      headers
+    };
+    const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/payments/partner/data`, fetchOpts);
+    res.json(await fetchResponse.json()).end();
+  } catch(e) {
+    console.error(e);
+    res.status(500).send(e.message);
+  }
 });
 
 module.exports = apiv1;
