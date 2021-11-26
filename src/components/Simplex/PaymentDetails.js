@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { Form, Button } from "react-bootstrap";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { BASE_API_URL } from "../../utils/constants";
 import queryString from 'query-string';
- 
+import { v4 as uuidv4 } from 'uuid';
+
 const { address, crypto_currency } = queryString.parse(global.location.search);
+const partner_name = 'velas';
+const checkout_url = 'http://localhost:3000/simplex/checkout';
+const error_url = 'http://localhost:3000//simplex/error'; //add page with error component!!!!
 
 const PaymentDetails = (props) => {
+  const payment_id = useMemo(uuidv4, []);
+
   const { user } = props;
   const { register, handleSubmit, errors } = useForm({
     defaultValues: {
@@ -17,8 +23,16 @@ const PaymentDetails = (props) => {
     },
   });
   const [amount, setAmount] = useState("");
+  const formRef = useRef(null);
 
-  const onSubmit = () => {
+  const onSubmit = (event) => {
+    event.returnValue = false;
+    onSubmit_();
+    return false;
+  }
+  const onSubmit_ = async () => {
+  console.log('payment_id', payment_id)
+
     const frmdetails = {
       amount: amount,
     };
@@ -30,17 +44,31 @@ const PaymentDetails = (props) => {
       crypto_amount: Number(amount),
       address: address,
     };
-    axios.post(`${BASE_API_URL}`, params).then((res) => {
-      console.log(res);
-      console.log(res.data);
-    });
+    const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
 
-    props.history.push("/third");
+    if (quoteResult.error) throw new Error(quoteResult.error);
+    const paramsPayment = {
+      quote_id: quoteResult.data.quote_id,
+      address: address,
+      payment_id: payment_id,
+      crypto_currency: crypto_currency
+    }
+    const paymentResult = await axios.post(`${BASE_API_URL}/payment`, paramsPayment);
+    if (paymentResult.error) throw new Error(paymentResult.error);
+
+    formRef.current.submit();
+    // props.history.push("/third");
   };
   if (!address || !crypto_currency) return null;
 
   return (
-    <Form className="input-form" onSubmit={handleSubmit(onSubmit)}>
+    <Form 
+      className="input-form" 
+      method="POST"
+      ref={formRef} 
+      onSubmit={handleSubmit(onSubmit)} 
+      action="https://sandbox.test-simplexcc.com/payments/new"
+    >
       <motion.div
         className="col-md-8 offset-md-2"
         initial={{ x: "-100vw" }}
@@ -57,6 +85,15 @@ const PaymentDetails = (props) => {
             autoComplete="off"
           />
         </Form.Group>
+
+
+        <input type='hidden' name='version' value='1'/>  
+        <input type='hidden' name='partner' value={partner_name}/>
+        <input type='hidden' name='payment_flow_type' value='wallet'/>
+        <input type='hidden' name='return_url_success' value={checkout_url}/>
+        <input type='hidden' name='return_url_fail' value={error_url}/>
+        <input type='hidden' name='payment_id' value={payment_id}/>
+
 
         {/* <Form.Group controlId="password">
           <Form.Label>Password</Form.Label>

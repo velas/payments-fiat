@@ -55,9 +55,9 @@ const AppRouter = () => {
                 resetUser={resetUser}
               />
             )}
-            path="/third"
+            path="/simplex/checkout"
           />
-          {/* <Route component={Login} path="/login" /> */}
+          <Route component={Error} path="/simplex/error" />
           <Route render={() => <Redirect to="/" />} />
         </Switch>
       </div>

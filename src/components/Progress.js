@@ -4,7 +4,7 @@ import { Link, withRouter } from 'react-router-dom';
 const Progress = ({ location: { pathname } }) => {
   const isFirstStep = pathname === '/';
   const isSecondStep = pathname === '/simplex/2';
-  const isThirdStep = pathname === '/third';
+  const isThirdStep = pathname === 'simplex/checkout';
   const isLoginPage = pathname === '/login';
 
   return (
@@ -27,7 +27,7 @@ const Progress = ({ location: { pathname } }) => {
               {isThirdStep ? <Link to="/simplex/2">Step 2</Link> : 'Step 2'}
             </div>
           </div>
-          <div className={`${pathname === '/third' ? 'step active' : 'step'}`}>
+          <div className={`${pathname === 'simplex/checkout' ? 'step active' : 'step'}`}>
             <div>3</div>
             <div>Step 3</div>
           </div>
