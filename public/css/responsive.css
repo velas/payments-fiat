@@ -107,4 +107,10 @@
 		word-break: break-all;
 		margin-left: 10px;
 	}
+	#row_right_side {
+		width: 100px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 }

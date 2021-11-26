@@ -53,24 +53,37 @@ button:focus {
 #myElement {
     border: none;
 }
-
+#row_right_side {
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.title_notice {
+    margin-top: 15px;
+}
 .provider-style {
     background-color: #3d4045;
-    width: 200px;
-    height: 70px;
+    width: 180px;
+    height: 60px;
     border: none;
     margin-left: 10px;
 }
 .provider-style1 {
     background-color: #f6f6f6;
-    width: 200px;
-    height: 70px;
+    width: 180px;
+    height: 60px;
     border: none;
     margin-left: 10px;
 }
-#notice {
+#title_notice, #title1_notice {
     text-align: left;
-    padding: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+#row_notice {
+    display: flex;
+    justify-content: space-between;
     font-size: 12px;
 }
 img {
