@@ -55,6 +55,7 @@ apiv1.post('/quote', async (req, res) => {
       digital_money: simplexResponse.digital_money,
       fiat_money: simplexResponse.fiat_money,
       valid_until: simplexResponse.valid_until,
+      error: simplexResponse.error,
     };
     if (debug) {
       returnValue.ip = ip;
