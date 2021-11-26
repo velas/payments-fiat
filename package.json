@@ -1,24 +1,57 @@
 {
-  "name": "payments-fiat",
+  "name": "buy-vlx",
   "version": "0.1.0",
-  "description": "Fiat payments web interface and api",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/velas/payments-fiat.git"
-  },
-  "author": "kpogromskiy@gmail.com",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/velas/payments-fiat/issues"
-  },
-  "homepage": "https://github.com/velas/payments-fiat#readme",
+  "private": true,
   "dependencies": {
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "axios": "0.21.1",
     "body-parser": "^1.19.0",
-    "express": "^4.17.1",
-    "node-fetch": "^2.6.6"
-  }
+    "bootstrap": "4.6.0",
+    "country-state-city": "2.0.0",
+    "framer-motion": "3.7.0",
+    "http": "^0.0.1-security",
+    "node-fetch": "^2.6.6",
+    "node-sass": "4.14.1",
+    "query-string": "^7.0.1",
+    "react": "^17.0.1",
+    "react-bootstrap": "1.5.0",
+    "react-dom": "^17.0.1",
+    "react-hook-form": "6.15.4",
+    "react-native-dropdown-picker": "^5.2.3",
+    "react-router-dom": "5.2.0",
+    "react-scripts": "4.0.3",
+    "react-select": "^5.2.1",
+    "socket.io": "^4.4.0",
+    "sweetalert2": "10.15.5",
+    "uuid": "^8.3.2",
+    "web-vitals": "^1.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "server": "node server"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:3001/"
 }
