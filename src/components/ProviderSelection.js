@@ -9,7 +9,7 @@ import queryString from 'query-string';
 import EmptyView from './EmptyView';
  
 const { address, crypto_currency } = queryString.parse(global.location.search);
-const feeSimplex = 5;
+const feeSimplex = 10;
 const feeRamp = 10;
 
 const ProviderSelection = (props) => {
@@ -28,7 +28,7 @@ const ProviderSelection = (props) => {
 
   const options = [
     { value: 'Simplex', label: `Simplex (fee: ${feeSimplex} USD)` },
-    { value: 'Ramp', label: `Ramp (fee: ${feeRamp} USD)` }
+    // { value: 'Ramp', label: `Ramp (fee: ${feeRamp} USD)` }
   ];
 
   const [selectedOption, setSelectedOption] = useState(null);
