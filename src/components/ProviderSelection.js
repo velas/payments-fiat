@@ -8,7 +8,7 @@ import axios from "axios";
 import queryString from 'query-string';
 import EmptyView from './EmptyView';
  
-const { address, crypto_currency } = queryString.parse(global.location.search);
+const { address, crypto_currency, env } = queryString.parse(global.location.search);
 const feeSimplex = 5;
 const feeRamp = 10;
 
@@ -22,7 +22,7 @@ const ProviderSelection = (props) => {
   });
  
   const onSubmit = () => {
-    props.history.push(`/simplex/2?address=${encodeURIComponent(address)}&crypto_currncy=${encodeURIComponent(crypto_currency)}`)
+    props.history.push(`/simplex/2?address=${encodeURIComponent(address)}&crypto_currncy=${encodeURIComponent(crypto_currency)}&env=${encodeURIComponent(env)}`)
   };
   
 
@@ -47,7 +47,7 @@ const ProviderSelection = (props) => {
   }
   
   
-  if (!address || !crypto_currency) return <EmptyView/>;
+  if (!address || !crypto_currency || !env) return <EmptyView/>;
 
   return (
     <Form className="input-form" onSubmit={handleSubmit(onSubmit)}>

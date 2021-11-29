@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Form, Button } from "react-bootstrap";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { BASE_API_URL } from "../../utils/constants";
+import { BASE_API_URL, TICKER_URL } from "../../utils/constants";
 import queryString from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
@@ -14,15 +14,21 @@ const { address, crypto_currency, env } = queryString.parse(global.location.sear
 const partner_name = 'velas';
 
 const fee = 0.00;
-const total_amount = 0.00;
 const broker_rate = 0.43021295;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
   const checkout_url = `http://localhost:3000/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
   const error_url = `http://localhost:3000/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
-  
+  const [tickerData, setTickerData] = useState(null);
   const { user } = props;
+  useEffect(() => {
+    async function fetchData() {
+      const result = await fetch(TICKER_URL);
+      setTickerData(await result.json());
+    }
+    fetchData();
+  }, []);
   const { register, handleSubmit, errors } = useForm({
     defaultValues: {
       user_email: user.user_email,
@@ -30,6 +36,13 @@ const PaymentDetails = (props) => {
     },
   });
   const [amount, setAmount] = useState("");
+  let total_amount = null;
+  if (tickerData) {
+    const rate = tickerData[crypto_currency === 'VLX' ? 'price_usd' : `${crypto_currency}_price`];
+    if (rate) {
+      total_amount = amount * rate + 10;
+    }
+  }
   const formRef = useRef(null);
 
   const onSubmit = (event) => {
@@ -38,37 +51,44 @@ const PaymentDetails = (props) => {
     return false;
   }
   const onSubmit_ = async () => {
-  console.log('payment_id', payment_id)
+    console.log('payment_id', payment_id)
+    try {
+      const frmdetails = {
+        amount: amount,
+      };
+      console.log(frmdetails);
 
-    const frmdetails = {
-      amount: amount,
-    };
-    console.log(frmdetails);
+      const params = {
+        crypto_currency: crypto_currency,
+        fiat_currency: selectedOption.value,
+        crypto_amount: Number(amount),
+        address: address,
+      };
+      const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
+      
+      if (quoteResult.data.error) throw new Error(quoteResult.data.error);
+          
+      const paramsPayment = {
+        quote_id: quoteResult.data.quote_id,
+        address: address,
+        payment_id: payment_id,
+        crypto_currency: crypto_currency
+      }
+      const paymentResult = await axios.post(`${BASE_API_URL}/payment`, paramsPayment);
+      if (paymentResult.data.error) throw new Error(paymentResult.data.error);
 
-    const params = {
-      crypto_currency: crypto_currency,
-      fiat_currency: selectedOption.value,
-      crypto_amount: Number(amount),
-      address: address,
-    };
-    const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
-    
-    if (quoteResult.error) throw new Error(quoteResult.error);
-        
-    const paramsPayment = {
-      quote_id: quoteResult.data.quote_id,
-      address: address,
-      payment_id: payment_id,
-      crypto_currency: crypto_currency
+      formRef.current.submit();
+    } catch (e) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: e.message,
+      });
     }
-    const paymentResult = await axios.post(`${BASE_API_URL}/payment`, paramsPayment);
-    if (paymentResult.error) throw new Error(paymentResult.error);
-
-    formRef.current.submit();
   };
   const options = [
     { value: 'USD', label: "USD" },
-    { value: 'EUR', label: "EUR" }
+    // { value: 'EUR', label: "EUR" }
   ];
 
   const [selectedOption, setSelectedOption] = useState(null);
@@ -124,10 +144,12 @@ const PaymentDetails = (props) => {
             <p>Fee:</p>
             <p>10 {selectedOption.value}</p>
           </div>
-          <div class="row_notice">
-            <p>You will send:</p>
-            <p>{total_amount} {selectedOption.value}</p>
-          </div>
+          { !!total_amount &&
+            <div class="row_notice">
+              <p>You will send:</p>
+              <p>~{total_amount} {selectedOption.value}</p>
+            </div>
+          }
         <Button variant="primary" 
         // type="submit"
         onClick={onSubmit}
