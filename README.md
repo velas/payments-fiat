@@ -2,8 +2,9 @@
 
 Receive fiat payments service
 
-Use PORT env variable to select listening port. `3000` by default.
+It uses 3000 port to listen to incomming http connections.
 
+It is configured for sandbox environment by default. For production use, declare SIMPLEX_API and SIMPLEX_API_KEY environment variables.
 
 Use node version 15. 
 
