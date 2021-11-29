@@ -32,10 +32,17 @@ async function queryEvents() {
   }
 }
 
+async function processEvent(socket, event) {
+  socket.emit('update', event);
+}
+
 module.exports.init = (io) => {
   io.on('connection', (socket) => {
     if (socket.handshake.query !== 'v1/simplex/status' || !socket.handshake.payment_id) return;
     listeningPayments.set(socket.handshake.payment_id, (event) => processEvent(socket, event));
+    socket.on("disconnect", () => {
+      listeningPayments.delete(socket.handshake.payment_id);
+    });  
   });
-  
+  void queryEvents();
 };
