@@ -5,6 +5,7 @@ import DropDown from '../components/DropDown';
 import ProviderSelection from '../components/ProviderSelection';
 import Header from '../components/Header';
 import Login from '../components/Login';
+import EmptyView from '../components/EmptyView';
 import PaymentDetails from '../components/Simplex/PaymentDetails';
 import ThirdStep from '../components/ThirdStep';
 import { motion } from 'framer-motion';
@@ -57,7 +58,11 @@ const AppRouter = () => {
             )}
             path="/simplex/checkout"
           />
-          <Route component={Error} path="/simplex/error" />
+          <Route render={(props) => (
+              <EmptyView
+                {...props}
+              />
+            )} path="/simplex/error" />
           <Route render={() => <Redirect to="/" />} />
         </Switch>
       </div>
