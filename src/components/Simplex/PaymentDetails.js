@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import Select from "react-select";
 
-const { address, crypto_currency } = queryString.parse(global.location.search);
+const { address, crypto_currency, env } = queryString.parse(global.location.search);
 const partner_name = 'velas';
 
 const fee = 0.00;
@@ -19,8 +19,8 @@ const broker_rate = 0.43021295;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
-  const checkout_url = `http://localhost:3000/simplex/checkout?payment_id=${encodeURIComponent(payment_id)}&address=${address}`;
-  const error_url = `http://localhost:3000/simplex/error?payment_id=${encodeURIComponent(payment_id)}&address=${address}`;
+  const checkout_url = `http://localhost:3000/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
+  const error_url = `http://localhost:3000/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
   
   const { user } = props;
   const { register, handleSubmit, errors } = useForm({

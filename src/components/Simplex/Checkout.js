@@ -6,9 +6,9 @@ import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import queryString from 'query-string';
 import io from "socket.io-client";
-import { BASE_API_URL } from "../../utils/constants";
+import { BASE_API_URL, REDIRECT_URIS } from "../../utils/constants";
 
-const { address, payment_id, env } = queryString.parse(global.location.search);
+const [payment_id, env] = global.location.pathname.split('/').slice(3);
 const socket = io("/", {
   query: {
     "query": "v1/simplex/status",
@@ -16,10 +16,15 @@ const socket = io("/", {
   }
 });
 const Checkout = (props) => {
+  // waiting
+  // payment_request_submitted
+  // payment_simplexcc_approved
+
   const [status, setStatus] = useState("waiting");
   useEffect(() => {
     const onPaymentUpdate = (event) => {
-      
+      setStatus(event.name);
+      socket.emit("processed", { event_id: event.event_id });
     };
     socket.on("update", onPaymentUpdate);
     return () => {
@@ -29,7 +34,7 @@ const Checkout = (props) => {
 
   return (
     <>
-      <Form className="input-form" action="https://wallet.velas.com/">
+      <Form className="input-form" action={REDIRECT_URIS[env]}>
       <motion.div
         className="col-md-8 offset-md-2"
         initial={{ x: '-100vw' }}
@@ -38,7 +43,7 @@ const Checkout = (props) => {
       >
           <Form.Group>
             <div className="empty-view">
-              <p className="wrong-txt">Congratulations!</p>
+              <p className="wrong-txt">Congratulations! {status}</p>
               <p className="wrong-txt">
                 Go back to the wallet to check your balance!
               </p>
