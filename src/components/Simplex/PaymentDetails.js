@@ -18,8 +18,8 @@ const broker_rate = 0.43021295;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
-  const checkout_url = `http://localhost:3000/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
-  const error_url = `http://localhost:3000/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
+  const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
+  const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
   const [tickerData, setTickerData] = useState(null);
   const { user } = props;
   useEffect(() => {

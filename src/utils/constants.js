@@ -1,4 +1,4 @@
-export const BASE_API_URL = 'http://localhost:3000/api/v1/simplex';
+export const BASE_API_URL = '/api/v1/simplex';
 export const TICKER_URL = 'https://explorer.velas.com/ticker';
 export const REDIRECT_URIS = {
   wallet_mainnet: 'https://wallet.velas.com/',
