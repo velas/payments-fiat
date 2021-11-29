@@ -14,7 +14,7 @@ app.use(bodyParser.json())
 
 app.use(express.static('public'))
 
-app.use('/', simplexv1);
+app.use('/api/v1/simplex', simplexv1);
 
 simplexv1sockets.init(io);
 

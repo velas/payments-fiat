@@ -7,7 +7,7 @@ import Header from '../components/Header';
 import Login from '../components/Login';
 import EmptyView from '../components/EmptyView';
 import PaymentDetails from '../components/Simplex/PaymentDetails';
-import ThirdStep from '../components/ThirdStep';
+import ThirdStep from '../components/Simplex/Checkout';
 import { motion } from 'framer-motion';
 
 

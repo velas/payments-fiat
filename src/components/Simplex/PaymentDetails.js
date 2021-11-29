@@ -11,12 +11,12 @@ import EmptyView from "../EmptyView";
 
 const { address, crypto_currency } = queryString.parse(global.location.search);
 const partner_name = 'velas';
-const checkout_url = 'http://localhost:3000/simplex/checkout';
-const error_url = 'http://localhost:3000/simplex/error'; //add page with error component!!!!
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
-
+  const checkout_url = `http://localhost:3000/simplex/checkout?payment_id=${encodeURIComponent(payment_id)}&address=${address}`;
+  const error_url = `http://localhost:3000/simplex/error?payment_id=${encodeURIComponent(payment_id)}&address=${address}`;
+  
   const { user } = props;
   const { register, handleSubmit, errors } = useForm({
     defaultValues: {
