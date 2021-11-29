@@ -4,22 +4,30 @@ import csc from "country-state-city";
 import axios from "axios";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-import queryString from 'query-string';
+import queryString from "query-string";
 import io from "socket.io-client";
 import { BASE_API_URL, REDIRECT_URIS } from "../../utils/constants";
 
-const [payment_id, env] = global.location.pathname.split('/').slice(3);
+const [payment_id, env] = global.location.pathname.split("/").slice(3);
 const socket = io("/", {
   query: {
-    "query": "v1/simplex/status",
-    "payment_id": payment_id,
-  }
+    query: "v1/simplex/status",
+    payment_id: payment_id,
+  },
 });
 const Checkout = (props) => {
-  // waiting
-  // payment_request_submitted
-  // payment_simplexcc_approved
-
+  const checkStatus = (status) => {
+    switch (status) {
+      case "waiting":
+        return "Waiting..";
+      case "payment_request_submitted":
+        return "Payment Submitted!";
+      case "payment_simplexcc_approved":
+        return "Payment Approved!";
+      default:
+        return null;
+    }
+  };
   const [status, setStatus] = useState("waiting");
   useEffect(() => {
     const onPaymentUpdate = (event) => {
@@ -35,24 +43,23 @@ const Checkout = (props) => {
   return (
     <>
       <Form className="input-form" action={REDIRECT_URIS[env]}>
-      <motion.div
-        className="col-md-8 offset-md-2"
-        initial={{ x: '-100vw' }}
-        animate={{ x: 0 }}
-        transition={{ stiffness: 150 }}
-      >
+        <motion.div
+          className="col-md-8 offset-md-2"
+          initial={{ x: "-100vw" }}
+          animate={{ x: 0 }}
+          transition={{ stiffness: 150 }}
+        >
           <Form.Group>
-            <div className="empty-view">
-              <p className="wrong-txt">Congratulations! {status}</p>
-              <p className="wrong-txt">
+            <div className="block-txt">
+              <p className="row-txt">{checkStatus(status)}</p>
+              <p className="row-txt">
                 Go back to the wallet to check your balance!
               </p>
             </div>
-
           </Form.Group>
-            <Button variant="primary" type="submit">
-              Go Back
-            </Button>
+          <Button variant="primary" type="submit">
+            Go Back
+          </Button>
         </motion.div>
       </Form>
     </>
