@@ -15,4 +15,4 @@ Run `yarn start`.
 
 Application which uses this service must build URL to receive fiat payment and convert it to crypto.
 
-Example: /simplex/2?address=DAWxo9UT6jCfCWZSoJGaU14Fjjr5boCKyNe8J6SWmcTC&crypto_currncy=VLX&env=wallet_mainnet
+Example: /?address=DAWxo9UT6jCfCWZSoJGaU14Fjjr5boCKyNe8J6SWmcTC&crypto_currency=VLX&env=wallet_mainnet
