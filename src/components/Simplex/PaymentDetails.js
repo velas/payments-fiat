@@ -8,9 +8,14 @@ import queryString from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
+import Select from "react-select";
 
 const { address, crypto_currency } = queryString.parse(global.location.search);
 const partner_name = 'velas';
+
+const fee = 0.00;
+const total_amount = 0.00;
+const broker_rate = 0.43021295;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
@@ -42,7 +47,7 @@ const PaymentDetails = (props) => {
 
     const params = {
       crypto_currency: crypto_currency,
-      fiat_currency: "USD",
+      fiat_currency: selectedOption.value,
       crypto_amount: Number(amount),
       address: address,
     };
@@ -61,6 +66,25 @@ const PaymentDetails = (props) => {
 
     formRef.current.submit();
   };
+  const options = [
+    { value: 'USD', label: "USD" },
+    { value: 'EUR', label: "EUR" }
+  ];
+
+  const [selectedOption, setSelectedOption] = useState(null);
+  // console.log('selectedOption', selectedOption.value)
+  const SelectFiat = () => {
+    return (
+      <div className="App">
+        <Select
+          defaultValue={selectedOption}
+          onChange={setSelectedOption}
+          options={options}
+          isSearchable
+        />
+      </div>
+    );
+  }
   if (!address || !crypto_currency) return <EmptyView/>;
 
   return (
@@ -86,8 +110,32 @@ const PaymentDetails = (props) => {
             placeholder="0.00"
             autoComplete="off"
           />
+          <Form.Label style={{marginTop: "10px"}}>Select a fiat:</Form.Label>
+        <SelectFiat/>
         </Form.Group>
-        
+        {selectedOption && (
+          <>
+          {/* <p class="title_notice">You are about to receive funds using fiat funds:</p> */}
+          <div class="row_notice">
+            <p>You will receive:</p>
+            <p>{amount} {crypto_currency}</p>
+          </div>
+          <div class="row_notice">
+            <p>Fee:</p>
+            <p>10 {selectedOption.value}</p>
+          </div>
+          <div class="row_notice">
+            <p>You will send:</p>
+            <p>{total_amount} {selectedOption.value}</p>
+          </div>
+        <Button variant="primary" 
+        // type="submit"
+        onClick={onSubmit}
+        >
+          Next
+        </Button>
+        </>
+        )}
 
         <input type='hidden' name='version' value='1'/>  
         <input type='hidden' name='partner' value={partner_name}/>
@@ -118,9 +166,9 @@ const PaymentDetails = (props) => {
           )}
         </Form.Group> */}
 
-        <Button variant="primary" type="submit">
+        {/* <Button variant="primary" type="submit">
           Next
-        </Button>
+        </Button> */}
       </motion.div>
     </Form>
   );
