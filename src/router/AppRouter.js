@@ -9,8 +9,10 @@ import EmptyView from '../components/EmptyView';
 import PaymentDetails from '../components/Simplex/PaymentDetails';
 import ThirdStep from '../components/Simplex/Checkout';
 import { motion } from 'framer-motion';
+import queryString from 'query-string';
 
 
+const { crypto_currency } = queryString.parse(global.location.search);
 
 const AppRouter = () => {
   const [user, setUser] = useState({});
@@ -32,7 +34,7 @@ const AppRouter = () => {
         transition={{ stiffness: 150 }}
       >
       <div className="container">
-        <Header class="form"/>
+        <Header class="form" crypto={crypto_currency}/>
         <Switch>
           <Route
             render={(props) => (
