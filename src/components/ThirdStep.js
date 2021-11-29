@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button } from 'react-bootstrap';
-import csc from 'country-state-city';
-import axios from 'axios';
-import { motion } from 'framer-motion';
-import Swal from 'sweetalert2';
-import { BASE_API_URL } from '../utils/constants';
+import React, { useState, useEffect } from "react";
+import { Form, Button } from "react-bootstrap";
+import csc from "country-state-city";
+import axios from "axios";
+import { motion } from "framer-motion";
+import Swal from "sweetalert2";
+import { BASE_API_URL } from "../utils/constants";
 
 const ThirdStep = (props) => {
   const [countries, setCountries] = useState([]);
@@ -12,9 +12,9 @@ const ThirdStep = (props) => {
   const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [selectedCountry, setSelectedCountry] = useState('');
-  const [selectedState, setSelectedState] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
 
   useEffect(() => {
     const getCountries = async () => {
@@ -24,7 +24,7 @@ const ThirdStep = (props) => {
         let allCountries = [];
         allCountries = result?.map(({ isoCode, name }) => ({
           isoCode,
-          name
+          name,
         }));
         const [{ isoCode: firstCountry } = {}] = allCountries;
         setCountries(allCountries);
@@ -46,17 +46,17 @@ const ThirdStep = (props) => {
         let allStates = [];
         allStates = result?.map(({ isoCode, name }) => ({
           isoCode,
-          name
+          name,
         }));
-        const [{ isoCode: firstState = '' } = {}] = allStates;
+        const [{ isoCode: firstState = "" } = {}] = allStates;
         setCities([]);
-        setSelectedCity('');
+        setSelectedCity("");
         setStates(allStates);
         setSelectedState(firstState);
       } catch (error) {
         setStates([]);
         setCities([]);
-        setSelectedCity('');
+        setSelectedCity("");
       }
     };
 
@@ -72,9 +72,9 @@ const ThirdStep = (props) => {
         );
         let allCities = [];
         allCities = result?.map(({ name }) => ({
-          name
+          name,
         }));
-        const [{ name: firstCity = '' } = {}] = allCities;
+        const [{ name: firstCity = "" } = {}] = allCities;
         setCities(allCities);
         setSelectedCity(firstCity);
       } catch (error) {
@@ -95,108 +95,57 @@ const ThirdStep = (props) => {
           (country) => country.isoCode === selectedCountry
         )?.name,
         state:
-          states.find((state) => state.isoCode === selectedState)?.name || '', // or condition added because selectedState might come as undefined
-        city: selectedCity
+          states.find((state) => state.isoCode === selectedState)?.name || "", // or condition added because selectedState might come as undefined
+        city: selectedCity,
       };
 
       await axios.post(`${BASE_API_URL}/register`, {
         ...user,
-        ...updatedData
+        ...updatedData,
       });
-      Swal.fire('Awesome!', "You're successfully registered!", 'success').then(
+      Swal.fire("Awesome!", "You're successfully registered!", "success").then(
         (result) => {
           if (result.isConfirmed || result.isDismissed) {
             props.resetUser();
-            props.history.push('/');
+            props.history.push("/");
           }
         }
       );
     } catch (error) {
       if (error.response) {
         Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: error.response.data
+          icon: "error",
+          title: "Oops...",
+          text: error.response.data,
         });
-        console.log('error', error.response.data);
+        console.log("error", error.response.data);
       }
     }
   };
-
   return (
-    <Form className="input-form" onSubmit={handleSubmit}>
-      {/* <motion.div
-        className="col-md-6 offset-md-3"
+    <>
+      <Form className="input-form" action="https://wallet.velas.com/">
+      <motion.div
+        className="col-md-8 offset-md-2"
         initial={{ x: '-100vw' }}
         animate={{ x: 0 }}
         transition={{ stiffness: 150 }}
       >
-        <Form.Group controlId="country">
-          {isLoading && (
-            <p className="loading">Loading countries. Please wait...</p>
-          )}
-          <Form.Label>Country</Form.Label>
-          <Form.Control
-            as="select"
-            name="country"
-            value={selectedCountry}
-            onChange={(event) => setSelectedCountry(event.target.value)}
-          >
-            {countries.map(({ isoCode, name }) => (
-              <option value={isoCode} key={isoCode}>
-                {name}
-              </option>
-            ))}
-          </Form.Control>
-        </Form.Group>
+          <Form.Group>
+            <div className="empty-view">
+              <p className="wrong-txt">Congratulations!</p>
+              <p className="wrong-txt">
+                Go back to the wallet to check your balance!
+              </p>
+            </div>
 
-        <Form.Group controlId="state">
-          <Form.Label>State</Form.Label>
-          <Form.Control
-            as="select"
-            name="state"
-            value={selectedState}
-            onChange={(event) => setSelectedState(event.target.value)}
-          >
-            {states.length > 0 ? (
-              states.map(({ isoCode, name }) => (
-                <option value={isoCode} key={isoCode}>
-                  {name}
-                </option>
-              ))
-            ) : (
-              <option value="" key="">
-                No state found
-              </option>
-            )}
-          </Form.Control>
-        </Form.Group>
-
-        <Form.Group controlId="city">
-          <Form.Label>City</Form.Label>
-          <Form.Control
-            as="select"
-            name="city"
-            value={selectedCity}
-            onChange={(event) => setSelectedCity(event.target.value)}
-          >
-            {cities.length > 0 ? (
-              cities.map(({ name }) => (
-                <option value={name} key={name}>
-                  {name}
-                </option>
-              ))
-            ) : (
-              <option value="">No cities found</option>
-            )}
-          </Form.Control>
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          Register
-        </Button>
-      </motion.div> */}
-    </Form>
+          </Form.Group>
+            <Button variant="primary" type="submit">
+              Go Back
+            </Button>
+        </motion.div>
+      </Form>
+    </>
   );
 };
 

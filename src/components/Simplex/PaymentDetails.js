@@ -6,11 +6,13 @@ import axios from "axios";
 import { BASE_API_URL } from "../../utils/constants";
 import queryString from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
+import Swal from "sweetalert2";
+import EmptyView from "../EmptyView";
 
 const { address, crypto_currency } = queryString.parse(global.location.search);
 const partner_name = 'velas';
 const checkout_url = 'http://localhost:3000/simplex/checkout';
-const error_url = 'http://localhost:3000//simplex/error'; //add page with error component!!!!
+const error_url = 'http://localhost:3000/simplex/error'; //add page with error component!!!!
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
@@ -45,8 +47,9 @@ const PaymentDetails = (props) => {
       address: address,
     };
     const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
-
+    
     if (quoteResult.error) throw new Error(quoteResult.error);
+        
     const paramsPayment = {
       quote_id: quoteResult.data.quote_id,
       address: address,
@@ -57,9 +60,8 @@ const PaymentDetails = (props) => {
     if (paymentResult.error) throw new Error(paymentResult.error);
 
     formRef.current.submit();
-    // props.history.push("/third");
   };
-  if (!address || !crypto_currency) return null;
+  if (!address || !crypto_currency) return <EmptyView/>;
 
   return (
     <Form 
@@ -85,7 +87,7 @@ const PaymentDetails = (props) => {
             autoComplete="off"
           />
         </Form.Group>
-
+        
 
         <input type='hidden' name='version' value='1'/>  
         <input type='hidden' name='partner' value={partner_name}/>

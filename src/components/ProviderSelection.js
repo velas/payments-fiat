@@ -6,8 +6,11 @@ import CheckBox from './CheckBox';
 import Select from "react-select";
 import axios from "axios";
 import queryString from 'query-string';
+import EmptyView from './EmptyView';
  
 const { address, crypto_currency } = queryString.parse(global.location.search);
+const feeSimplex = 5;
+const feeRamp = 10;
 
 const ProviderSelection = (props) => {
   const { user } = props;
@@ -19,15 +22,17 @@ const ProviderSelection = (props) => {
   });
  
   const onSubmit = () => {
-    props.history.push(`/simplex/2?address=${encodeURIComponent(address)}&crypto_currncy=${encodeURIComponent(crypto_currency)}`);
+    props.history.push(`/simplex/2?address=${encodeURIComponent(address)}&crypto_currncy=${encodeURIComponent(crypto_currency)}`)
   };
-
+  
 
   const options = [
-    { value: 'Simplex', label: 'Simplex' },
-    { value: 'Ramp', label: 'Ramp' }
+    { value: 'Simplex', label: `Simplex (fee: ${feeSimplex} USD)` },
+    { value: 'Ramp', label: `Ramp (fee: ${feeRamp} USD)` }
   ];
+
   const [selectedOption, setSelectedOption] = useState(null);
+  // console.log('selectedOption', selectedOption.value)
   const SelectProvider = () => {
     return (
       <div className="App">
@@ -42,7 +47,7 @@ const ProviderSelection = (props) => {
   }
   
   
-  if (!address || !crypto_currency) return null;
+  if (!address || !crypto_currency) return <EmptyView/>;
 
   return (
     <Form className="input-form" onSubmit={handleSubmit(onSubmit)}>
@@ -72,7 +77,10 @@ const ProviderSelection = (props) => {
             <p>Provider:</p>
             <p>{selectedOption.value}</p>
           </div>
-        <Button variant="primary" type="submit">
+        <Button variant="primary" 
+        // type="submit"
+        onClick={onSubmit}
+        >
           Next
         </Button>
         </>
