@@ -8,4 +8,4 @@ COPY ./api ./api
 COPY ./server.js ./server.js
 RUN yarn build
 RUN npm install -g serve 
-CMD serve -s build -l 80
+CMD serve -s build -l 3000
