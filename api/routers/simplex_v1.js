@@ -49,7 +49,7 @@ apiv1.post('/quote', async (req, res) => {
     };
     const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/quote`, fetchOpts);
     const simplexResponse = await fetchResponse.json();
-
+    if (simplexResponse.error) throw new Error(simplexResponse.error);
     const returnValue = {
       quote_id: simplexResponse.quote_id,
       digital_money: simplexResponse.digital_money,
