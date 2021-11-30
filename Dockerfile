@@ -6,6 +6,6 @@ COPY ./src ./src
 COPY ./public ./public
 COPY ./api ./api
 COPY ./server.js ./server.js
-CMD yarn build
-CMD npm install -g serve
+RUN yarn build
+RUN npm install -g serve 
 CMD serve -s build -l ${PORT}
