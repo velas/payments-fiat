@@ -12,15 +12,7 @@ const { address, crypto_currency, env } = queryString.parse(global.location.sear
 const feeSimplex = 10;
 const feeRamp = 10;
 
-const ProviderSelection = (props) => {
-  const { user } = props;
-  const { register, handleSubmit, errors } = useForm({
-    defaultValues: {
-      first_name: user.first_name,
-      last_name: user.last_name
-    }
-  });
- 
+const ProviderSelection = (props) => { 
   const onSubmit = () => {
     props.history.push(`/simplex/2?address=${encodeURIComponent(address)}&crypto_currncy=${encodeURIComponent(crypto_currency)}&env=${encodeURIComponent(env)}`)
   };
@@ -28,9 +20,9 @@ const ProviderSelection = (props) => {
 
   const options = [
     { value: 'Simplex', label: `Simplex (fee: ${feeSimplex} USD)` },
-    // { value: 'Ramp', label: `Ramp (fee: ${feeRamp} USD)` }
+    { value: 'Ramp', label: "Ramp", disabled: true }
   ];
-
+  
   const [selectedOption, setSelectedOption] = useState(null);
   // console.log('selectedOption', selectedOption.value)
   const SelectProvider = () => {
@@ -41,6 +33,7 @@ const ProviderSelection = (props) => {
           onChange={setSelectedOption}
           options={options}
           isSearchable
+          isOptionDisabled={(option) => option.disabled}
         />
       </div>
     );
@@ -50,7 +43,7 @@ const ProviderSelection = (props) => {
   if (!address || !crypto_currency || !env) return <EmptyView/>;
 
   return (
-    <Form className="input-form" onSubmit={handleSubmit(onSubmit)}>
+    <Form className="input-form" onSubmit={onSubmit}>
       <motion.div
         className="col-md-8 offset-md-2"
         initial={{ x: '-100vw' }}
@@ -78,7 +71,6 @@ const ProviderSelection = (props) => {
             <p>{selectedOption.value}</p>
           </div>
         <Button variant="primary" 
-        // type="submit"
         onClick={onSubmit}
         >
           Next

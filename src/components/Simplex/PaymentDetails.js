@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Form, Button } from "react-bootstrap";
+import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { BASE_API_URL, TICKER_URL } from "../../utils/constants";
@@ -9,6 +9,8 @@ import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import Select from "react-select";
+import InputAmount from "../InputAmount";
+import { formatBalance } from "../../utils/format-value";
 
 const { address, crypto_currency, env } = queryString.parse(global.location.search);
 const partner_name = 'velas';
@@ -21,7 +23,6 @@ const PaymentDetails = (props) => {
   const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
   const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
   const [tickerData, setTickerData] = useState(null);
-  const { user } = props;
   useEffect(() => {
     async function fetchData() {
       const result = await fetch(TICKER_URL);
@@ -29,13 +30,9 @@ const PaymentDetails = (props) => {
     }
     fetchData();
   }, []);
-  const { register, handleSubmit, errors } = useForm({
-    defaultValues: {
-      user_email: user.user_email,
-      user_password: user.user_password,
-    },
-  });
-  const [amount, setAmount] = useState("");
+// debugger;
+  const [amount, setAmount] = React.useState('');
+  // console.log('amount', amount)
   let total_amount = null;
   if (tickerData) {
     const rate = tickerData[crypto_currency === 'VLX' ? 'price_usd' : `${crypto_currency}_price`];
@@ -74,6 +71,7 @@ const PaymentDetails = (props) => {
         payment_id: payment_id,
         crypto_currency: crypto_currency
       }
+
       const paymentResult = await axios.post(`${BASE_API_URL}/payment`, paramsPayment);
       if (paymentResult.data.error) throw new Error(paymentResult.data.error);
 
@@ -88,7 +86,7 @@ const PaymentDetails = (props) => {
   };
   const options = [
     { value: 'USD', label: "USD" },
-    // { value: 'EUR', label: "EUR" }
+    { value: 'EUR', label: "EUR", disabled: true }
   ];
 
   const [selectedOption, setSelectedOption] = useState(null);
@@ -101,6 +99,7 @@ const PaymentDetails = (props) => {
           onChange={setSelectedOption}
           options={options}
           isSearchable
+          isOptionDisabled={(option) => option.disabled}
         />
       </div>
     );
@@ -112,7 +111,7 @@ const PaymentDetails = (props) => {
       className="input-form" 
       method="POST"
       ref={formRef} 
-      onSubmit={handleSubmit(onSubmit)} 
+      onSubmit={onSubmit} 
       action="https://sandbox.test-simplexcc.com/payments/new"
     >
       <motion.div
@@ -122,23 +121,24 @@ const PaymentDetails = (props) => {
         transition={{ stiffness: 150 }}
       >
         <Form.Group controlId="first_name">
-          <Form.Label>Amount:</Form.Label>
-          <Form.Control
-            type="number"
-            name="amount"
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-            autoComplete="off"
-          />
+          <Form.Label htmlFor="inlineFormInputGroup">Amount:</Form.Label>
+            <InputGroup className="mb-2">
+            <InputAmount
+            value={amount}
+            onChangeText={(value) => setAmount(value)}
+            placeholder={"0.00"}
+            />
+            <InputGroup.Text>{crypto_currency}</InputGroup.Text>
+      </InputGroup>
+
           <Form.Label style={{marginTop: "10px"}}>Select a fiat:</Form.Label>
         <SelectFiat/>
         </Form.Group>
         {selectedOption && (
           <>
-          {/* <p class="title_notice">You are about to receive funds using fiat funds:</p> */}
           <div class="row_notice">
             <p>You will receive:</p>
-            <p>{amount} {crypto_currency}</p>
+            <p>{formatBalance(Number(amount))} {crypto_currency}</p>
           </div>
           <div class="row_notice">
             <p>Fee:</p>
@@ -150,47 +150,18 @@ const PaymentDetails = (props) => {
               <p>~{total_amount} {selectedOption.value}</p>
             </div>
           }
-        <Button variant="primary" 
-        // type="submit"
-        onClick={onSubmit}
-        >
+        
+        <Button variant="primary" onClick={onSubmit}>
           Next
         </Button>
         </>
         )}
-
         <input type='hidden' name='version' value='1'/>  
         <input type='hidden' name='partner' value={partner_name}/>
         <input type='hidden' name='payment_flow_type' value='wallet'/>
         <input type='hidden' name='return_url_success' value={checkout_url}/>
         <input type='hidden' name='return_url_fail' value={error_url}/>
         <input type='hidden' name='payment_id' value={payment_id}/>
-
-
-        {/* <Form.Group controlId="password">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            name="user_password"
-            placeholder="Choose a password"
-            autoComplete="off"
-            ref={register({
-              required: 'Password is required.',
-              minLength: {
-                value: 6,
-                message: 'Password should have at-least 6 characters.'
-              }
-            })}
-            className={`${errors.user_password ? 'input-error' : ''}`}
-          />
-          {errors.user_password && (
-            <p className="errorMsg">{errors.user_password.message}</p>
-          )}
-        </Form.Group> */}
-
-        {/* <Button variant="primary" type="submit">
-          Next
-        </Button> */}
       </motion.div>
     </Form>
   );
