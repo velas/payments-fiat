@@ -9,6 +9,8 @@ import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import Select from "react-select";
+import InputAmount from "../InputAmount";
+import { formatBalance } from "../../utils/format-value";
 
 const { address, crypto_currency, env } = queryString.parse(global.location.search);
 const partner_name = 'velas';
@@ -28,8 +30,9 @@ const PaymentDetails = (props) => {
     }
     fetchData();
   }, []);
-
-  const [amount, setAmount] = useState("");
+// debugger;
+  const [amount, setAmount] = React.useState('');
+  // console.log('amount', amount)
   let total_amount = null;
   if (tickerData) {
     const rate = tickerData[crypto_currency === 'VLX' ? 'price_usd' : `${crypto_currency}_price`];
@@ -120,13 +123,10 @@ const PaymentDetails = (props) => {
         <Form.Group controlId="first_name">
           <Form.Label htmlFor="inlineFormInputGroup">Amount:</Form.Label>
             <InputGroup className="mb-2">
-          <Form.Control
-            type="number"
-            name="amount"
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-            autoComplete="off"
-            id="inlineFormInputGroup" 
+            <InputAmount
+            value={amount}
+            onChangeText={(value) => setAmount(value)}
+            placeholder={"0.00"}
             />
             <InputGroup.Text>{crypto_currency}</InputGroup.Text>
       </InputGroup>
@@ -134,11 +134,11 @@ const PaymentDetails = (props) => {
           <Form.Label style={{marginTop: "10px"}}>Select a fiat:</Form.Label>
         <SelectFiat/>
         </Form.Group>
-        {amount && selectedOption && (
+        {selectedOption && (
           <>
           <div class="row_notice">
             <p>You will receive:</p>
-            <p>{amount} {crypto_currency}</p>
+            <p>{formatBalance(Number(amount))} {crypto_currency}</p>
           </div>
           <div class="row_notice">
             <p>Fee:</p>
