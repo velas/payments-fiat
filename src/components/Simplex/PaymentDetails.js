@@ -23,6 +23,7 @@ const PaymentDetails = (props) => {
   const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
   const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
   const [tickerData, setTickerData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     async function fetchData() {
       const result = await fetch(TICKER_URL);
@@ -44,17 +45,18 @@ const PaymentDetails = (props) => {
 
   const onSubmit = (event) => {
     event.returnValue = false;
+    setIsLoading(false);
     onSubmit_();
     return false;
   }
   const onSubmit_ = async () => {
     console.log('payment_id', payment_id)
+    setIsLoading(true);
     try {
       const frmdetails = {
         amount: amount,
       };
       console.log(frmdetails);
-
       const params = {
         crypto_currency: crypto_currency,
         fiat_currency: selectedOption.value,
@@ -74,7 +76,7 @@ const PaymentDetails = (props) => {
 
       const paymentResult = await axios.post(`${BASE_API_URL}/payment`, paramsPayment);
       if (paymentResult.data.error) throw new Error(paymentResult.data.error);
-
+      
       formRef.current.submit();
     } catch (e) {
       Swal.fire({
@@ -134,7 +136,7 @@ const PaymentDetails = (props) => {
           <Form.Label style={{marginTop: "10px"}}>Select a fiat:</Form.Label>
         <SelectFiat/>
         </Form.Group>
-        {selectedOption && (
+        {amount && selectedOption && (
           <>
           <div class="row_notice">
             <p>You will receive:</p>
@@ -152,7 +154,7 @@ const PaymentDetails = (props) => {
           }
         
         <Button variant="primary" onClick={onSubmit}>
-          Next
+          {isLoading ? "Loading...":"Next"}
         </Button>
         </>
         )}
