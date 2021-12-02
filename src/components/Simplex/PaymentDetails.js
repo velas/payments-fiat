@@ -17,6 +17,7 @@ const partner_name = 'velas';
 
 const fee = 0.00;
 const broker_rate = 0.43021295;
+const validate_amount = 50;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
@@ -82,8 +83,9 @@ const PaymentDetails = (props) => {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: e.message,
+        text: e.response.data,
       });
+    setIsLoading(false);
     }
   };
   const options = [
@@ -122,8 +124,8 @@ const PaymentDetails = (props) => {
         animate={{ x: 0 }}
         transition={{ stiffness: 150 }}
       >
-        <Form.Group controlId="first_name">
-          <Form.Label htmlFor="inlineFormInputGroup">Amount:</Form.Label>
+        <Form.Group>
+          <Form.Label>Want to get:</Form.Label>
             <InputGroup className="mb-2">
             <InputAmount
             value={amount}
@@ -133,7 +135,7 @@ const PaymentDetails = (props) => {
             <InputGroup.Text>{crypto_currency}</InputGroup.Text>
       </InputGroup>
 
-          <Form.Label style={{marginTop: "10px"}}>Select a fiat:</Form.Label>
+          <Form.Label style={{marginTop: "10px"}}>Want to spend currency:</Form.Label>
         <SelectFiat/>
         </Form.Group>
         {amount && selectedOption && (
@@ -144,7 +146,7 @@ const PaymentDetails = (props) => {
           </div>
           <div class="row_notice">
             <p>Fee:</p>
-            <p>10 {selectedOption.value}</p>
+            <p>3.5% - 5%, min 10 {selectedOption.value}</p>
           </div>
           { !!total_amount &&
             <div class="row_notice">
@@ -152,12 +154,12 @@ const PaymentDetails = (props) => {
               <p>~{total_amount} {selectedOption.value}</p>
             </div>
           }
-        
-        <Button variant="primary" onClick={onSubmit}>
-          {isLoading ? "Loading...":"Next"}
-        </Button>
+        {total_amount < validate_amount && <p className="errorMsg">Transaction amount too low. Please enter a value of {validate_amount} {selectedOption.value} or more.</p> }
         </>
         )}
+        <Button variant="primary" onClick={onSubmit} disabled={!amount || !selectedOption && true}>
+          {isLoading ? "Loading...":"Next"}
+        </Button>
         <input type='hidden' name='version' value='1'/>  
         <input type='hidden' name='partner' value={partner_name}/>
         <input type='hidden' name='payment_flow_type' value='wallet'/>

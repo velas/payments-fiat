@@ -7,8 +7,8 @@ const Header = (props) => (
   <div className='header_style'>
     <h1>Buy {props.crypto || "crypto"} fast and easy</h1>
   </div>
-  <div>
-    <Progress />
+  <div className="width-progress">
+    <Progress/>
   </div>
   </>
   
