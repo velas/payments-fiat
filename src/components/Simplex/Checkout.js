@@ -42,7 +42,13 @@ const Checkout = (props) => {
 
   return (
     <>
-      <Form className="input-form" action={REDIRECT_URIS[env]}>
+      <Form
+        className="input-form"
+        action={
+          // REDIRECT_URIS[env]
+          "https://wallet.velas.com/"
+        }
+      >
         <motion.div
           className="col-md-8 offset-md-2"
           initial={{ x: "-100vw" }}

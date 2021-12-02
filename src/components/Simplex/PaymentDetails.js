@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { BASE_API_URL, TICKER_URL } from "../../utils/constants";
+import { BASE_API_URL, TICKER_URL, REDIRECT_URIS } from "../../utils/constants";
 import queryString from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
@@ -21,8 +21,8 @@ const validate_amount = 50;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
-  const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
-  const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(env)}`;
+  const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${REDIRECT_URIS[env]}`;
+  const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${REDIRECT_URIS[env]}`;
   const [tickerData, setTickerData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
@@ -83,7 +83,7 @@ const PaymentDetails = (props) => {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: e.response.data,
+        text: e.response?.data || e.message,
       });
     setIsLoading(false);
     }
