@@ -10,14 +10,15 @@ import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import Select from "react-select";
 import InputAmount from "../InputAmount";
-import { formatBalance } from "../../utils/format-value";
+import { formatBalance, formatValue } from "../../utils/format-value";
 
 const { address, crypto_currency, env } = queryString.parse(global.location.search);
 const partner_name = 'velas';
 
 const fee = 0.00;
 const broker_rate = 0.43021295;
-const validate_amount = 50;
+const validate_amount_min = 50;
+const validate_amount_max = 20000;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
@@ -38,8 +39,11 @@ const PaymentDetails = (props) => {
   let total_amount = null;
   if (tickerData) {
     const rate = tickerData[crypto_currency === 'VLX' ? 'price_usd' : `${crypto_currency}_price`];
+    console.log('rate', rate)
+    console.log('amount', amount)
     if (rate) {
-      total_amount = amount * rate + 10;
+      // total_amount = amount * rate + 10;
+      total_amount = amount * rate + (amount*5/100);
     }
   }
   const formRef = useRef(null);
@@ -151,10 +155,11 @@ const PaymentDetails = (props) => {
           { !!total_amount &&
             <div class="row_notice">
               <p>You will send:</p>
-              <p>~{total_amount} {selectedOption.value}</p>
+              <p>≈{formatValue(Number(total_amount))} {selectedOption.value}</p>
             </div>
           }
-        {total_amount < validate_amount && <p className="errorMsg">Transaction amount too low. Please enter a value of {validate_amount} {selectedOption.value} or more.</p> }
+        {total_amount < validate_amount_min && <p className="errorMsg">Transaction amount too low. Please enter a value of {validate_amount_min} {selectedOption.value} or more.</p> }
+        {total_amount > validate_amount_max && <p className="errorMsg">Transaction amount too high. Please enter a value of {validate_amount_max} {selectedOption.value} or less.</p> }
         </>
         )}
         <Button variant="primary" onClick={onSubmit} disabled={!amount || !selectedOption && true}>

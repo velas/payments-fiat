@@ -22,7 +22,7 @@ const ProviderSelection = (props) => {
     props.history.push(
       `/simplex/2?address=${encodeURIComponent(
         address
-      )}&crypto_currncy=${encodeURIComponent(
+      )}&crypto_currency=${encodeURIComponent(
         crypto_currency
       )}&env=${encodeURIComponent(env)}`
     );
@@ -152,34 +152,6 @@ const ProviderSelection = (props) => {
         <Button variant="primary" onClick={onSubmit} disabled={!selectedOption && true}>
           Continue
         </Button>
-
-        {/* <Form.Group>
-        <Form.Label>Select a provider:</Form.Label>
-        <SelectProvider/>
-        
-        </Form.Group>
-        {selectedOption && (
-          <>
-          <p class="title_notice">You are about to receive funds using fiat funds:</p>
-          <div class="row_notice">
-            <p>Your address:</p>
-            <p class="row_address">{address}</p>
-          </div>
-          <div class="row_notice">
-            <p>Cryptocurrency:</p>
-            <p>{crypto_currency}</p>
-          </div>
-          <div class="row_notice">
-            <p>Provider:</p>
-            <p>{selectedOption.value}</p>
-          </div>
-        <Button variant="primary" 
-        onClick={onSubmit}
-        >
-          Next
-        </Button>
-        </>
-        )} */}
       </motion.div>
     </Form>
   );
