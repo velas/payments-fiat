@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import queryString from "query-string";
 import io from "socket.io-client";
-import { BASE_API_URL, REDIRECT_URIS } from "../../utils/constants";
+import { REDIRECT_URIS } from "../../utils/constants";
+
 
 const [payment_id, env] = global.location.pathname.split("/").slice(3);
 const socket = io("/", {
@@ -41,7 +42,6 @@ const Checkout = (props) => {
   }, []);
 
   return (
-    <>
       <Form
         className="input-form"
         action={
@@ -67,7 +67,6 @@ const Checkout = (props) => {
           </Button>
         </motion.div>
       </Form>
-    </>
   );
 };
 

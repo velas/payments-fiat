@@ -1,4 +1,5 @@
 const http = require('http');
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser')
 const { PORT } = require('./api/consts');
@@ -15,6 +16,10 @@ app.use(bodyParser.json())
 app.use(express.static('build'))
 
 app.use('/api/v1/simplex', simplexv1);
+
+app.get('*', function(req, res) {
+  res.sendFile(path.join(__dirname, 'build/index.html'));
+});
 
 simplexv1sockets.init(io);
 
