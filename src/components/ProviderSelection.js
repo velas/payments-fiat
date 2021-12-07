@@ -2,30 +2,35 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Form, Button } from "react-bootstrap";
 import { motion } from "framer-motion";
-import CheckBox from "./CheckBox";
-import Select from "react-select";
-import axios from "axios";
 import queryString from "query-string";
 import EmptyView from "./EmptyView";
 import SimplexLogo from "../images/simplex.svg";
 import RampLogo from "../images/ramp.svg";
 import MoonPay from "../images/moonpay.svg";
+import Swal from "sweetalert2";
+import { BsInfoCircle } from "react-icons/bs";
 
 const { address, crypto_currency, env } = queryString.parse(
   global.location.search
 );
-const feeSimplex = 10;
-const feeRamp = 10;
+
+const body_info = (info) => {
+  switch (info) {
+    case "Simplex":
+      return `<p class="info-style">The minimum transaction is $50 , and the maximum is $2,000.<br> These limits are set by the provider. We does not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% of the transaction value. The provider do apply a minimum fee of 10 USD, which means that if your transaction is for a lower amount, the fee % will be higher than that.</p>`;
+    case "Ramp":
+      return "Ramp empty info";
+    case "Moonpay":
+      return "Moonpay empty info";
+    default:
+      return null;
+  }
+};
+const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`
 
 const ProviderSelection = (props) => {
   const onSubmit = () => {
-    props.history.push(
-      `/simplex/2?address=${encodeURIComponent(
-        address
-      )}&crypto_currency=${encodeURIComponent(
-        crypto_currency
-      )}&env=${encodeURIComponent(env)}`
-    );
+      props.history.push(`/simplex/2?address=${encodeURIComponent(address)}&crypto_currency=${encodeURIComponent(crypto_currency)}&env=${encodeURIComponent(env)}`);
   };
 
   const [selectedOption, setSelectedOption] = useState(null);
@@ -35,6 +40,14 @@ const ProviderSelection = (props) => {
     console.log("Provider", event.target.value);
     setSelectedOption(event.target.value);
   };
+
+  const onInfo = () => {
+    Swal.fire({
+      icon: 'info',
+      title: title_info,
+      html: body_info(selectedOption)
+    });
+  }
 
 
   const iconProvider = (status) => {
@@ -65,13 +78,12 @@ const ProviderSelection = (props) => {
   return (
     <Form className="input-form" onSubmit={onSubmit}>
       <motion.div
-        className="col-md-8 offset-md-2"
-        initial={{ x: "-100vw" }}
-        animate={{ x: 0 }}
-        transition={{ stiffness: 150 }}
+      className="col-md-8 offset-md-2"
+      initial={{ x: "-5vw" }}
+      animate={{ x: 0 }}
       >
         <div class="row_notice">
-          <p>Currency to deposit:</p>
+          <p>Currency to buy:</p>
           <p>{crypto_currency}</p>
         </div>
         <div class="row_notice">
@@ -79,6 +91,7 @@ const ProviderSelection = (props) => {
           <span className="icon_provider">
           <p>{iconProvider(selectedOption)}</p>
           <p>{selectedOption}</p>
+          {selectedOption && <BsInfoCircle onClick={onInfo} className='info-icon'/>}
           </span>
         </div>
         <div style={{ display: "grid", marginTop: 10, marginBottom: 10 }}>

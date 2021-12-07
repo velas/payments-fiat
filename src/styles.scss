@@ -486,6 +486,19 @@ div.checkbox {
 .icon_provider {
   display: flex;
 }
+.info-icon {
+  cursor: pointer;
+  margin: 3px 0 0 10px;
+}
+.info-icon:hover {
+  color: $base-color;
+}
+.info-style {
+  font-size: 14px;
+}
+.info-style-title {
+  font-size: 22px;
+}
 .errorMsg {
   color: #f21e08;
   font-size: 14px;

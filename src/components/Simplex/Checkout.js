@@ -45,15 +45,14 @@ const Checkout = (props) => {
       <Form
         className="input-form"
         action={
-          // REDIRECT_URIS[env]
-          "https://wallet.velas.com/"
+          REDIRECT_URIS[env]
+          // "https://wallet.velas.com/"
         }
       >
         <motion.div
           className="col-md-8 offset-md-2"
-          initial={{ x: "-100vw" }}
+          initial={{ x: "-5vw" }}
           animate={{ x: 0 }}
-          transition={{ stiffness: 150 }}
         >
           <Form.Group>
             <div className="block-txt">

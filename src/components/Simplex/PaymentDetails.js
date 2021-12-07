@@ -22,6 +22,8 @@ const validate_amount_max = 20000;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
+  // payment_id
+  console.log('payment_id', payment_id)
   const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${REDIRECT_URIS[env]}`;
   const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${REDIRECT_URIS[env]}`;
   const [tickerData, setTickerData] = useState(null);
@@ -35,7 +37,6 @@ const PaymentDetails = (props) => {
   }, []);
 // debugger;
   const [amount, setAmount] = React.useState('');
-  // console.log('amount', amount)
   let total_amount = null;
   if (tickerData) {
     const rate = tickerData[crypto_currency === 'VLX' ? 'price_usd' : `${crypto_currency}_price`];
@@ -58,10 +59,6 @@ const PaymentDetails = (props) => {
     console.log('payment_id', payment_id)
     setIsLoading(true);
     try {
-      const frmdetails = {
-        amount: amount,
-      };
-      console.log(frmdetails);
       const params = {
         crypto_currency: crypto_currency,
         fiat_currency: selectedOption.value,
@@ -104,6 +101,8 @@ const PaymentDetails = (props) => {
       <div className="App">
         <Select
           defaultValue={selectedOption}
+          // isDisabled
+          // placeholder
           onChange={setSelectedOption}
           options={options}
           isSearchable
@@ -124,9 +123,8 @@ const PaymentDetails = (props) => {
     >
       <motion.div
         className="col-md-8 offset-md-2"
-        initial={{ x: "-100vw" }}
+        initial={{ x: "-5vw" }}
         animate={{ x: 0 }}
-        transition={{ stiffness: 150 }}
       >
         <Form.Group>
           <Form.Label>Want to get:</Form.Label>
@@ -152,17 +150,14 @@ const PaymentDetails = (props) => {
             <p>Fee:</p>
             <p>3.5% - 5%, min 10 {selectedOption.value}</p>
           </div>
-          { !!total_amount &&
-            <div class="row_notice">
-              <p>You will send:</p>
-              <p>≈{formatValue(Number(total_amount))} {selectedOption.value}</p>
-            </div>
-          }
+          
         {total_amount < validate_amount_min && <p className="errorMsg">Transaction amount too low. Please enter a value of {validate_amount_min} {selectedOption.value} or more.</p> }
         {total_amount > validate_amount_max && <p className="errorMsg">Transaction amount too high. Please enter a value of {validate_amount_max} {selectedOption.value} or less.</p> }
         </>
         )}
-        <Button variant="primary" onClick={onSubmit} disabled={!amount || !selectedOption && true}>
+        <Button variant="primary" onClick={onSubmit} 
+        disabled={!amount || !selectedOption && true}
+        >
           {isLoading ? "Loading...":"Next"}
         </Button>
         <input type='hidden' name='version' value='1'/>  
