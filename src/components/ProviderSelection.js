@@ -17,7 +17,7 @@ const { address, crypto_currency, env } = queryString.parse(
 const body_info = (info) => {
   switch (info) {
     case "Simplex":
-      return `<p class="info-style">The minimum transaction is $50 , and the maximum is $2,000.<br> These limits are set by the provider. We does not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% of the transaction value. The provider do apply a minimum fee of 10 USD, which means that if your transaction is for a lower amount, the fee % will be higher than that.</p>`;
+      return `<p class="info-style">The minimum transaction is $50 , and the maximum is $2,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
     case "Ramp":
       return "Ramp empty info";
     case "Moonpay":
