@@ -12,11 +12,11 @@ import Select from "react-select";
 import InputAmount from "../InputAmount";
 import { formatBalance, formatValue } from "../../utils/format-value";
 
-const { address, crypto_currency, env } = queryString.parse(global.location.search);
+const parsed = queryString.parse(global.location.search);
+console.log('parsed', parsed)
+
 const partner_name = 'velas';
 
-const fee = 0.00;
-const broker_rate = 0.43021295;
 const validate_amount_min = 50;
 const validate_amount_max = 20000;
 
@@ -24,8 +24,8 @@ const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
   // payment_id
   console.log('payment_id', payment_id)
-  const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${REDIRECT_URIS[env]}`;
-  const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${REDIRECT_URIS[env]}`;
+  const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(parsed.env)}`;
+  const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(parsed.env)}`;
   const [tickerData, setTickerData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
@@ -36,10 +36,10 @@ const PaymentDetails = (props) => {
     fetchData();
   }, []);
 // debugger;
-  const [amount, setAmount] = React.useState('');
+  const [amount, setAmount] = React.useState(parsed.crypto_amount ? parsed.crypto_amount : "");
   let total_amount = null;
   if (tickerData) {
-    const rate = tickerData[crypto_currency === 'VLX' ? 'price_usd' : `${crypto_currency}_price`];
+    const rate = tickerData[parsed.crypto_currency === 'VLX' ? 'price_usd' : `${parsed.crypto_currency}_price`];
     console.log('rate', rate)
     console.log('amount', amount)
     if (rate) {
@@ -60,10 +60,10 @@ const PaymentDetails = (props) => {
     setIsLoading(true);
     try {
       const params = {
-        crypto_currency: crypto_currency,
-        fiat_currency: selectedOption.value,
+        crypto_currency: parsed.crypto_currency,
+        fiat_currency: selectedOption.value || parsed.fiat_currency,
         crypto_amount: Number(amount),
-        address: address,
+        address: parsed.address,
       };
       const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
       
@@ -71,9 +71,9 @@ const PaymentDetails = (props) => {
           
       const paramsPayment = {
         quote_id: quoteResult.data.quote_id,
-        address: address,
+        address: parsed.address,
         payment_id: payment_id,
-        crypto_currency: crypto_currency
+        crypto_currency: parsed.crypto_currency
       }
 
       const paymentResult = await axios.post(`${BASE_API_URL}/payment`, paramsPayment);
@@ -94,15 +94,16 @@ const PaymentDetails = (props) => {
     { value: 'EUR', label: "EUR", disabled: true }
   ];
 
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(parsed.fiat_currency ? parsed.fiat_currency : null);
   // console.log('selectedOption', selectedOption.value)
+  console.log('parsed.fiat_currency', parsed.fiat_currency)
   const SelectFiat = () => {
     return (
       <div className="App">
         <Select
           defaultValue={selectedOption}
-          // isDisabled
-          // placeholder
+          isDisabled={parsed.fiat_currency && true}
+          placeholder={parsed.fiat_currency && parsed.fiat_currency}
           onChange={setSelectedOption}
           options={options}
           isSearchable
@@ -111,7 +112,7 @@ const PaymentDetails = (props) => {
       </div>
     );
   }
-  if (!address || !crypto_currency) return <EmptyView/>;
+  if (!parsed.address || !parsed.crypto_currency) return <EmptyView/>;
 
   return (
     <Form 
@@ -134,7 +135,7 @@ const PaymentDetails = (props) => {
             onChangeText={(value) => setAmount(value)}
             placeholder={"0.00"}
             />
-            <InputGroup.Text>{crypto_currency}</InputGroup.Text>
+            <InputGroup.Text>{parsed.crypto_currency}</InputGroup.Text>
       </InputGroup>
 
           <Form.Label style={{marginTop: "10px"}}>Want to spend currency:</Form.Label>
@@ -144,15 +145,15 @@ const PaymentDetails = (props) => {
           <>
           <div class="row_notice">
             <p>You will receive:</p>
-            <p>{formatBalance(Number(amount))} {crypto_currency}</p>
+            <p>{formatBalance(Number(amount))} {parsed.crypto_currency}</p>
           </div>
           <div class="row_notice">
             <p>Fee:</p>
-            <p>3.5% - 5%, min 10 {selectedOption.value}</p>
+            <p>3.5% - 5%, min 10 {selectedOption.value || parsed.fiat_currency}</p>
           </div>
           
-        {total_amount < validate_amount_min && <p className="errorMsg">Transaction amount too low. Please enter a value of {validate_amount_min} {selectedOption.value} or more.</p> }
-        {total_amount > validate_amount_max && <p className="errorMsg">Transaction amount too high. Please enter a value of {validate_amount_max} {selectedOption.value} or less.</p> }
+        {tickerData && total_amount < validate_amount_min && <p className="errorMsg">Transaction amount too low. Please enter a value of {validate_amount_min} {selectedOption.value || parsed.fiat_currency} or more.</p> }
+        {tickerData && total_amount > validate_amount_max && <p className="errorMsg">Transaction amount too high. Please enter a value of {validate_amount_max} {selectedOption.value || parsed.fiat_currency} or less.</p> }
         </>
         )}
         <Button variant="primary" onClick={onSubmit} 

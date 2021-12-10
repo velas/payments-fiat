@@ -467,6 +467,7 @@ div.checkbox {
 }
 .step.active {
   background-color: $green-color;
+  transition: all 1s ease-out;
 }
 .css-1s2u09g-control, .form-control {
       border-radius: 0px !important;

@@ -10,10 +10,9 @@ import MoonPay from "../images/moonpay.svg";
 import Swal from "sweetalert2";
 import { BsInfoCircle } from "react-icons/bs";
 
-const { address, crypto_currency, env } = queryString.parse(
-  global.location.search
-);
-
+const parsed = queryString.parse(global.location.search);
+const stringified = queryString.stringify(parsed);
+  
 const body_info = (info) => {
   switch (info) {
     case "Simplex":
@@ -30,12 +29,12 @@ const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit 
 
 const ProviderSelection = (props) => {
   const onSubmit = () => {
-      props.history.push(`/simplex/2?address=${encodeURIComponent(address)}&crypto_currency=${encodeURIComponent(crypto_currency)}&env=${encodeURIComponent(env)}`);
+      props.history.push(`/simplex/2?${stringified}`);
   };
 
   const [selectedOption, setSelectedOption] = useState(null);
 
-  if (!address || !crypto_currency || !env) return <EmptyView />;
+  if (!parsed.address || !parsed.crypto_currency || !parsed.env) return <EmptyView />;
   const onlyOne = (event) => {
     console.log("Provider", event.target.value);
     setSelectedOption(event.target.value);
@@ -84,7 +83,7 @@ const ProviderSelection = (props) => {
       >
         <div class="row_notice">
           <p>Currency to buy:</p>
-          <p>{crypto_currency}</p>
+          <p>{parsed.crypto_currency}</p>
         </div>
         <div class="row_notice">
           <p>Pay with:</p>

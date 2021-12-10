@@ -8,8 +8,8 @@ import queryString from "query-string";
 import io from "socket.io-client";
 import { REDIRECT_URIS } from "../../utils/constants";
 
-
 const [payment_id, env] = global.location.pathname.split("/").slice(3);
+
 const socket = io("/", {
   query: {
     query: "v1/simplex/status",
@@ -46,7 +46,6 @@ const Checkout = (props) => {
         className="input-form"
         action={
           REDIRECT_URIS[env]
-          // "https://wallet.velas.com/"
         }
       >
         <motion.div
