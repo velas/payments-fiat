@@ -343,7 +343,23 @@ body {
   cursor: pointer;
   }
 .row-txt {
-  color: $black-blue-color
+  color: $black-blue-color;
+  font-size: 14px;
+}
+.row-txt.payment_id, .row-txt.status {
+  color: $black-blue-color;
+  font-weight: bold;
+  font-size: 14px;
+}
+.row-txt.payment_id:last-child {
+  cursor: pointer;
+}
+.row-txt.payment_id:hover {
+  text-decoration: underline;
+}
+.copyIcon {
+  width: 14px;
+  margin-left: 6px;
 }
 .row_notice {
   display: flex;

@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import queryString from "query-string";
 import io from "socket.io-client";
 import { REDIRECT_URIS } from "../../utils/constants";
+import Copy from "../../images/copy.svg"
 
 const [payment_id, env] = global.location.pathname.split("/").slice(3);
 
@@ -29,6 +30,14 @@ const Checkout = (props) => {
         return null;
     }
   };
+  const statusColor = (status) => {
+    switch (status) {
+      case "waiting":
+        return "orange";
+      default:
+        return "#0bffbf";
+    }
+  };
   const [status, setStatus] = useState("waiting");
   useEffect(() => {
     const onPaymentUpdate = (event) => {
@@ -40,7 +49,14 @@ const Checkout = (props) => {
       socket.off("update", onPaymentUpdate);
     };
   }, []);
-
+  const copyPaymentId = () => {
+    navigator.clipboard.writeText(payment_id)
+    Swal.fire({
+      icon: "success",
+      title: "Copied",
+      text: payment_id,
+    });
+  }
   return (
       <Form
         className="input-form"
@@ -55,9 +71,21 @@ const Checkout = (props) => {
         >
           <Form.Group>
             <div className="block-txt">
-              <p className="row-txt">{checkStatus(status)}</p>
+              <p className="row-txt status" style={{color: statusColor(status)}}>{checkStatus(status)}</p>
               <p className="row-txt">
                 Go back to the wallet to check your balance!
+              </p>
+            </div>
+            <div className="block-txt">
+              <p className="row-txt">Your payment id:</p>
+              <p className="row-txt payment_id" onClick={copyPaymentId}>
+                {payment_id} 
+                <img 
+                  src={Copy} 
+                  alt="Copy" 
+                  id="copy"
+                  className="copyIcon" 
+                />
               </p>
             </div>
           </Form.Group>
