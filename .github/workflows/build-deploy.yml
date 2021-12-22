@@ -37,6 +37,8 @@ jobs:
     name: Deploy via Helmfile
     runs-on: deployer
     needs: docker-build
+    container:
+      image: cablespaghetti/helmfile-docker:3.5.4
     steps:
       - name: Configure AWS credentials
         id: checkout
