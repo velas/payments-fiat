@@ -67,10 +67,9 @@ jobs:
         env:
           ECR_REPOSITORY: ${{ needs.docker-build.outputs.repository }}
           IMAGE_TAG: ${{ needs.docker-build.outputs.image_tag }}
+          ECR_REGION: ${{ secrets.AWS_REGION }}
         run: |
           cd deploy
           account_id=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId)
-          region=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
-          ECR_REGISTRY=${account_id}.dkr.ecr.${region}.amazonaws.com/
+          ECR_REGISTRY=${account_id}.dkr.ecr.${ECR_REGION}.amazonaws.com/
           helmfile -e prod -l namespace=testnet,name=velas-payments-fiat apply --set image.tag=$IMAGE_TAG,image.repository=$ECR_REGISTRY/$ECR_REPOSITORY --skip-deps
-
