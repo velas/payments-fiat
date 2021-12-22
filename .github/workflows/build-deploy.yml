@@ -10,6 +10,7 @@ jobs:
     outputs:
       repository: ${{ steps.build.outputs.repository }}
       image_tag: ${{ steps.build.outputs.image_tag }}
+      registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
       - uses: actions/checkout@v2
       - name: Configure AWS credentials
@@ -65,10 +66,9 @@ jobs:
       - name: Deploy via helmfile
         id: deploy
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ needs.docker-build.outputs.registry }}
           ECR_REPOSITORY: ${{ needs.docker-build.outputs.repository }}
           IMAGE_TAG: ${{ needs.docker-build.outputs.image_tag }}
-          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_AWS }}
         run: |
           cd deploy
           helmfile -e prod -l namespace=testnet,name=velas-payments-fiat apply --set image.tag=$IMAGE_TAG,image.repository=$ECR_REGISTRY/$ECR_REPOSITORY --skip-deps
