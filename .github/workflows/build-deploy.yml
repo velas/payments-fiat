@@ -10,7 +10,6 @@ jobs:
     outputs:
       repository: ${{ steps.build.outputs.repository }}
       image_tag: ${{ steps.build.outputs.image_tag }}
-      registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
       - uses: actions/checkout@v2
       - name: Configure AWS credentials
@@ -66,10 +65,12 @@ jobs:
       - name: Deploy via helmfile
         id: deploy
         env:
-          ECR_REGISTRY: ${{ needs.docker-build.outputs.registry }}
           ECR_REPOSITORY: ${{ needs.docker-build.outputs.repository }}
           IMAGE_TAG: ${{ needs.docker-build.outputs.image_tag }}
         run: |
           cd deploy
+          account_id=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId)
+          region=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
+          ECR_REGISTRY=${account_id}.dkr.ecr.${region}.amazonaws.com/
           helmfile -e prod -l namespace=testnet,name=velas-payments-fiat apply --set image.tag=$IMAGE_TAG,image.repository=$ECR_REGISTRY/$ECR_REPOSITORY --skip-deps
 
