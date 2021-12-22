@@ -57,6 +57,11 @@ jobs:
           repository: velas/velas-infra
           ref: master
           token: ${{ secrets.PULL_TOKEN }}
+      - uses: azure/k8s-set-context@v2
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA_AWS_RAW }}
+          context: "eks_prod-prod"
       - name: Deploy via helmfile
         id: deploy
         env:
@@ -64,9 +69,7 @@ jobs:
           ECR_REPOSITORY: ${{ needs.docker-build.outputs.repository }}
           IMAGE_TAG: ${{ needs.docker-build.outputs.image_tag }}
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_AWS }}
-          KUBECONFIG: ~/.kube/config
         run: |
-          mkdir -p ~/.kube && echo $KUBE_CONFIG_DATA|base64 --decode > ~/.kube/config && chmod 600 ~/.kube/config
           cd deploy
           helm plugin install https://github.com/databus23/helm-diff
           helmfile -e prod -l namespace=testnet,name=velas-payments-fiat apply --set image.tag=$IMAGE_TAG,image.repository=$ECR_REGISTRY/$ECR_REPOSITORY --skip-deps
