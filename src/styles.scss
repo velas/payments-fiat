@@ -15,6 +15,12 @@ $black-color: #000;
   font-family: "NexaRegular";
   src: url('./fonts/NexaRegular.ttf?raw=true');
 }
+@font-face {
+  font-family: "Nexa-Bold";
+  src: url("./fonts/Nexa-Bold.ttf");
+  font-weight: bold;
+}
+
 
 body {
   font-family: $font-main;
@@ -159,7 +165,6 @@ body {
     &:focus,
     &:active {
       color: $base-color;
-      font-weight: bolder;
       transition: all 0.3s ease;
       outline: none;
 
@@ -198,7 +203,7 @@ body {
       content: '';
       background-color: $base-color;
       color: #ffffff;
-      border: solid 1px rgb(255, 255, 255);
+      border: solid 1px $base-color;
       box-shadow: inset 0 0 0 1px #ffffff, inset 0 0 0 0 #ffffff,
         inset 0 0 0 16px $base-color;
     }
@@ -263,6 +268,10 @@ body {
 }
 .label-provider {
   display: inline-grid;
+}
+.label-provider:hover {
+  font-family: 'Nexa-Bold';
+  font-weight: bold;
 }
 .form-control:focus {
   outline: none;
@@ -349,6 +358,7 @@ body {
 .row-txt.payment_id, .row-txt.status {
   color: $black-blue-color;
   font-weight: bold;
+  font-family: 'Nexa-Bold';
   font-size: 14px;
 }
 .row-txt.payment_id:last-child {
@@ -365,7 +375,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 14px;
-  color: $black-color
+  color: $black-color;
 }
 .container:before {
   content: "";
@@ -505,7 +515,7 @@ div.checkbox {
 }
 .info-icon {
   cursor: pointer;
-  margin: 3px 0 0 10px;
+  margin: 0 10px 0 10px;
 }
 .info-icon:hover {
   color: $base-color;
