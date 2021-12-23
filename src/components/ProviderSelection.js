@@ -5,36 +5,25 @@ import { motion } from "framer-motion";
 import queryString from "query-string";
 import EmptyView from "./EmptyView";
 import SimplexLogo from "../images/simplex.svg";
-import RampLogo from "../images/ramp.svg";
-import MoonPay from "../images/moonpay.svg";
+import UtorgLogo from "../images/utorg.svg";
 import Swal from "sweetalert2";
 import { BsInfoCircle } from "react-icons/bs";
 
 const parsed = queryString.parse(global.location.search);
 const stringified = queryString.stringify(parsed);
-  
-const body_info = (info) => {
-  switch (info) {
-    case "Simplex":
-      return `<p class="info-style">The minimum transaction is $50 , and the maximum is $2,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
-    case "Ramp":
-      return "Ramp empty info";
-    case "Moonpay":
-      return "Moonpay empty info";
-    default:
-      return null;
-  }
-};
-const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`
+
+const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
+const body = `<p class="info-style">The minimum transaction is $50 , and the maximum is $2,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`
 
 const ProviderSelection = (props) => {
   const onSubmit = () => {
-      props.history.push(`/simplex/2?${stringified}`);
+    props.history.push(`/simplex/2?${stringified}`);
   };
 
   const [selectedOption, setSelectedOption] = useState(null);
 
-  if (!parsed.address || !parsed.crypto_currency || !parsed.env) return <EmptyView />;
+  if (!parsed.address || !parsed.crypto_currency || !parsed.env)
+    return <EmptyView />;
   const onlyOne = (event) => {
     console.log("Provider", event.target.value);
     setSelectedOption(event.target.value);
@@ -42,62 +31,53 @@ const ProviderSelection = (props) => {
 
   const onInfo = () => {
     Swal.fire({
-      icon: 'info',
+      icon: "info",
       title: title_info,
-      html: body_info(selectedOption)
+      html: body,
     });
-  }
-
+  };
 
   const iconProvider = (status) => {
     switch (status) {
       case "Simplex":
-        return <img
-        src={SimplexLogo}
-        alt="Simplex Logo"
-        className="partnerLogo"
-      />;
-      case "Ramp":
-        return <img 
-        src={RampLogo} 
-        alt="Ramp Logo" 
-        className="partnerLogo" 
-      />;
-      case "Moonpay":
-        return <img 
-        src={MoonPay} 
-        alt="MoonPay Logo" 
-        className="partnerLogo" 
-      />;
+        return (
+          <img src={SimplexLogo} alt="Simplex Logo" className="partnerLogo" />
+        );
+      case "Utorg":
+        return <img src={UtorgLogo} alt="Utorg Logo" className="partnerLogo" />;
       default:
         return null;
     }
   };
-
+  var address = parsed.address;
+  const addressCut = address.substring(0, 8) + "..." + address.substring(35)
   return (
     <Form className="input-form" onSubmit={onSubmit}>
       <motion.div
-      className="col-md-8 offset-md-2"
-      initial={{ x: "-5vw" }}
-      animate={{ x: 0 }}
+        className="col-md-8 offset-md-2"
+        initial={{ x: "-5vw" }}
+        animate={{ x: 0 }}
       >
         <div class="row_notice">
           <p>Currency to buy:</p>
           <p>{parsed.crypto_currency}</p>
         </div>
         <div class="row_notice">
+          <p>Your address:</p>
+          <p title={address}>{addressCut}</p>
+        </div>
+        <div class="row_notice">
           <p>Pay with:</p>
           <span className="icon_provider">
-          <p>{iconProvider(selectedOption)}</p>
-          <p>{selectedOption}</p>
-          {selectedOption && <BsInfoCircle onClick={onInfo} className='info-icon'/>}
+            <p>{iconProvider(selectedOption)}</p>
+            <p>{selectedOption}</p>
           </span>
         </div>
         <div style={{ display: "grid", marginTop: 10, marginBottom: 10 }}>
           <div>
             <input
               className="custom-radio"
-              type="radio"
+              type="checkbox"
               name="check"
               value="Simplex"
               onClick={onlyOne}
@@ -111,57 +91,39 @@ const ProviderSelection = (props) => {
                 className="partnerLogo"
               />
               <div className="label-provider">
-              <span>Simplex(Visa/MC)</span>
-              <span className="subtitle-label">(fee 3.5% - 5%, min fee 10 usd)</span>
+                <span>Simplex(Visa/MC)</span>
+                <span className="subtitle-label">
+                  (fee 3.5% - 5%, min fee 10 usd)
+                  <BsInfoCircle onClick={onInfo} className="info-icon" />
+                </span>
               </div>
             </label>
           </div>
-          <div style={{filter: 'sepia(0.6) opacity(0.4)'}}>
-            <input disabled
+          <div style={{ filter: "sepia(0.6) opacity(0.4)" }}>
+            <input
+              disabled
               className="disabled"
-              type="radio"
+              type="checkbox"
               name="check"
-              value="Ramp"
+              value="Utorg"
               onClick={onlyOne}
-              checked={selectedOption === "Ramp" ? true : false}
-              id={"ramp"}
+              checked={selectedOption === "Utorg" ? true : false}
+              id={"utorg"}
             />
-            <label htmlFor={"ramp"}>
-              <img 
-                src={RampLogo} 
-                alt="Ramp Logo" 
-                className="partnerLogo" 
-              />
+            <label htmlFor={"utorg"}>
+              <img src={UtorgLogo} alt="Utorg Logo" className="partnerLogo" />
               <div className="label-provider">
-              <span title="Not connected">Ramp</span>
-              <span className="subtitle-label">(fee 6%)</span>
-              </div>
-            </label>
-          </div>
-          <div style={{filter: 'sepia(0.6) opacity(0.4)'}}>
-            <input disabled
-              className="disabled"
-              type="radio"
-              name="check"
-              value="Moonpay"
-              onClick={onlyOne}
-              checked={selectedOption === "Moonpay" ? true : false}
-              id={"moonpay"}
-            />
-            <label htmlFor={"moonpay"}>
-              <img 
-                src={MoonPay} 
-                alt="MoonPay Logo" 
-                className="partnerLogo" 
-              />
-              <div className="label-provider">
-              <span title="Not connected">MoonPay</span>
-              <span className="subtitle-label">(fee 5%)</span>
+                <span title="Not connected">Utorg</span>
+                {/* <span className="subtitle-label"/>*/}
               </div>
             </label>
           </div>
         </div>
-        <Button variant="primary" onClick={onSubmit} disabled={!selectedOption && true}>
+        <Button
+          variant="primary"
+          onClick={onSubmit}
+          disabled={!selectedOption && true}
+        >
           Continue
         </Button>
       </motion.div>
