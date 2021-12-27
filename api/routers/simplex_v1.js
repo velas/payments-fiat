@@ -26,7 +26,7 @@ apiv1.post('/quote', async (req, res) => {
       throw new Error('fiat_currency unsupported');
     }
 
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
     const fetchBody = {
       "end_user_id": address,
       "digital_currency": crypto_currency,
@@ -35,7 +35,7 @@ apiv1.post('/quote', async (req, res) => {
       "requested_amount": crypto_amount,
       "wallet_id": 'velas',
       "client_ip": ip,
-      "payment_methods" : ["credit_card"] 
+      "payment_methods" : ["credit_card"]
     };
 
     const headers = {
@@ -48,7 +48,13 @@ apiv1.post('/quote', async (req, res) => {
       headers
     };
     const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/quote`, fetchOpts);
-    const simplexResponse = await fetchResponse.json();
+    let simplexResponse;
+    try {
+      simplexResponse = await fetchResponse.json();
+    } catch (e) {
+      console.error(await fetchResponse.text());
+      throw e;
+    }
     if (simplexResponse.error) throw new Error(simplexResponse.error);
     const returnValue = {
       quote_id: simplexResponse.quote_id,
@@ -71,7 +77,7 @@ apiv1.post('/payment', async (req, res) => {
   try {
     const { quote_id, address, payment_id, crypto_currency, debug } = req.body;
     const order_id = uuidv4();
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
     const fetchBody = {
       "account_details": {
         "app_provider_id": "velas",
@@ -109,7 +115,12 @@ apiv1.post('/payment', async (req, res) => {
       headers
     };
     const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/payments/partner/data`, fetchOpts);
-    res.json(await fetchResponse.json()).end();
+    try {
+      res.json(await fetchResponse.json()).end();
+    } catch (e) {
+      console.error(await fetchResponse.text());
+      throw e;
+    }
   } catch(e) {
     console.error(e);
     res.status(500).send(e.message);

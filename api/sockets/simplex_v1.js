@@ -18,7 +18,13 @@ async function queryEvents() {
       headers
     };
     const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/events`, fetchOpts);
-    const eventsJson = await fetchResponse.json();
+    let eventsJson;
+    try {
+       eventsJson = await fetchResponse.json();
+    } catch (e) {
+      console.error(await fetchResponse.text());
+      throw e;
+    }
     const { events } = eventsJson;
     for (let event of events) {
       if (!listeningPayments.has(event?.payment?.id)) continue;
