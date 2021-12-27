@@ -48,11 +48,12 @@ apiv1.post('/quote', async (req, res) => {
       headers
     };
     const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/quote`, fetchOpts);
+    const simplexResponseText = await fetchResponse.text();
     let simplexResponse;
     try {
-      simplexResponse = await fetchResponse.json();
+      simplexResponse = JSON.parse(simplexResponseText);
     } catch (e) {
-      console.error(await fetchResponse.text());
+      console.error(simplexResponseText);
       throw e;
     }
     if (simplexResponse.error) throw new Error(simplexResponse.error);
@@ -115,10 +116,11 @@ apiv1.post('/payment', async (req, res) => {
       headers
     };
     const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/payments/partner/data`, fetchOpts);
+    const responseText = await fetchResponse.text();
     try {
-      res.json(await fetchResponse.json()).end();
+      res.json(JSON.parse(responseText)).end();
     } catch (e) {
-      console.error(await fetchResponse.text());
+      console.error(responseText);
       throw e;
     }
   } catch(e) {

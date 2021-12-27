@@ -18,11 +18,12 @@ async function queryEvents() {
       headers
     };
     const fetchResponse = await fetch(`${SIMPLEX_API}/wallet/merchant/v2/events`, fetchOpts);
+    const eventsText = await fetchResponse.text();
     let eventsJson;
     try {
-       eventsJson = await fetchResponse.json();
+       eventsJson = JSON.parse(eventsText);
     } catch (e) {
-      console.error(await fetchResponse.text());
+      console.error(eventsText);
       throw e;
     }
     const { events } = eventsJson;
