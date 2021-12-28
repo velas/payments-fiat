@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { BASE_API_URL, TICKER_URL, REDIRECT_URIS } from "../../utils/constants";
+import { SIMPLEX_PAYMENT_URIS, BASE_API_URL, TICKER_URL, REDIRECT_URIS } from "../../utils/constants";
 import queryString from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
@@ -66,9 +66,9 @@ const PaymentDetails = (props) => {
         address: parsed.address,
       };
       const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
-      
+
       if (quoteResult.data.error) throw new Error(quoteResult.data.error);
-          
+
       const paramsPayment = {
         quote_id: quoteResult.data.quote_id,
         address: parsed.address,
@@ -78,7 +78,7 @@ const PaymentDetails = (props) => {
 
       const paymentResult = await axios.post(`${BASE_API_URL}/payment`, paramsPayment);
       if (paymentResult.data.error) throw new Error(paymentResult.data.error);
-      
+
       formRef.current.submit();
     } catch (e) {
       Swal.fire({
@@ -115,12 +115,12 @@ const PaymentDetails = (props) => {
   if (!parsed.address || !parsed.crypto_currency) return <EmptyView/>;
 
   return (
-    <Form 
-      className="input-form" 
+    <Form
+      className="input-form"
       method="POST"
-      ref={formRef} 
-      onSubmit={onSubmit} 
-      action="https://sandbox.test-simplexcc.com/payments/new"
+      ref={formRef}
+      onSubmit={onSubmit}
+      action={SIMPLEX_PAYMENT_URIS[window.location.host === 'buy.velas.com' ? 'mainnet' : 'testnet']}
     >
       <motion.div
         className="col-md-8 offset-md-2"
@@ -151,17 +151,17 @@ const PaymentDetails = (props) => {
             <p>Fee:</p>
             <p>3.5% - 5%, min 10 {selectedOption.value || parsed.fiat_currency}</p>
           </div>
-          
+
         {tickerData && total_amount < validate_amount_min && <p className="errorMsg">Transaction amount too low. Please enter a value of {validate_amount_min} {selectedOption.value || parsed.fiat_currency} or more.</p> }
         {tickerData && total_amount > validate_amount_max && <p className="errorMsg">Transaction amount too high. Please enter a value of {validate_amount_max} {selectedOption.value || parsed.fiat_currency} or less.</p> }
         </>
         )}
-        <Button variant="primary" onClick={onSubmit} 
+        <Button variant="primary" onClick={onSubmit}
         disabled={!amount || !selectedOption && true}
         >
           {isLoading ? "Loading...":"Next"}
         </Button>
-        <input type='hidden' name='version' value='1'/>  
+        <input type='hidden' name='version' value='1'/>
         <input type='hidden' name='partner' value={partner_name}/>
         <input type='hidden' name='payment_flow_type' value='wallet'/>
         <input type='hidden' name='return_url_success' value={checkout_url}/>
