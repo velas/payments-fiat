@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import React from "react";
 import { Form, Button } from "react-bootstrap";
 import { motion } from "framer-motion";
 import queryString from "query-string";
 import EmptyView from "./EmptyView";
-import SimplexLogo from "../images/simplex.svg";
-import UtorgLogo from "../images/utorg.svg";
 import Swal from "sweetalert2";
 import { BsInfoCircle } from "react-icons/bs";
 
@@ -13,21 +10,14 @@ const parsed = queryString.parse(global.location.search);
 const stringified = queryString.stringify(parsed);
 
 const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
-const body = `<p class="info-style">The minimum transaction is $50 , and the maximum is $2,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`
+const body = `<p class="info-style">The minimum transaction is $50 , and the maximum is $2,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
 
 const ProviderSelection = (props) => {
   const onSubmit = () => {
     props.history.push(`/simplex/2?${stringified}`);
   };
-
-  const [selectedOption, setSelectedOption] = useState(null);
-
   if (!parsed.address || !parsed.crypto_currency || !parsed.env)
     return <EmptyView />;
-  const onlyOne = (event) => {
-    console.log("Provider", event.target.value);
-    setSelectedOption(event.target.value);
-  };
 
   const onInfo = () => {
     Swal.fire({
@@ -36,94 +26,38 @@ const ProviderSelection = (props) => {
       html: body,
     });
   };
-
-  const iconProvider = (status) => {
-    switch (status) {
-      case "Simplex":
-        return (
-          <img src={SimplexLogo} alt="Simplex Logo" className="partnerLogo" />
-        );
-      case "Utorg":
-        return <img src={UtorgLogo} alt="Utorg Logo" className="partnerLogo" />;
-      default:
-        return null;
-    }
-  };
   var address = parsed.address;
-  const addressCut = address.substring(0, 8) + "..." + address.substring(35)
+  const addressCut = address.substring(0, 8) + "..." + address.substring(35);
   return (
-    <Form className="input-form" onSubmit={onSubmit}>
+    <Form className="form mt-5" onSubmit={onSubmit}>
       <motion.div
         className="col-md-8 offset-md-2"
         initial={{ x: "-5vw" }}
         animate={{ x: 0 }}
       >
-        <div class="row_notice">
-          <p>Currency to buy:</p>
-          <p>{parsed.crypto_currency}</p>
-        </div>
-        <div class="row_notice">
-          <p>Your address:</p>
-          <p title={address}>{addressCut}</p>
-        </div>
-        <div class="row_notice">
-          <p>Pay with:</p>
-          <span className="icon_provider">
-            <p>{iconProvider(selectedOption)}</p>
-            <p>{selectedOption}</p>
-          </span>
-        </div>
-        <div style={{ display: "grid", marginTop: 10, marginBottom: 10 }}>
-          <div>
-            <input
-              className="custom-radio"
-              type="checkbox"
-              name="check"
-              value="Simplex"
-              onClick={onlyOne}
-              checked={selectedOption === "Simplex" ? true : false}
-              id={"simplex"}
-            />
-            <label htmlFor={"simplex"}>
-              <img
-                src={SimplexLogo}
-                alt="Simplex Logo"
-                className="partnerLogo"
-              />
-              <div className="label-provider">
-                <span>Simplex(Visa/MC)</span>
-                <span className="subtitle-label">
-                  (fee 3.5% - 5%, min fee 10 usd)
-                  <BsInfoCircle onClick={onInfo} className="info-icon" />
-                </span>
-              </div>
-            </label>
+        <div class="container_info">
+          <div class="row_notice">
+            <p class="left-side-p">Currency to buy:</p>
+            <p>{parsed.crypto_currency}</p>
           </div>
-          <div style={{ filter: "sepia(0.6) opacity(0.4)" }}>
-            <input
-              disabled
-              className="disabled"
-              type="checkbox"
-              name="check"
-              value="Utorg"
-              onClick={onlyOne}
-              checked={selectedOption === "Utorg" ? true : false}
-              id={"utorg"}
-            />
-            <label htmlFor={"utorg"}>
-              <img src={UtorgLogo} alt="Utorg Logo" className="partnerLogo" />
-              <div className="label-provider">
-                <span title="Not connected">Utorg</span>
-                {/* <span className="subtitle-label"/>*/}
-              </div>
-            </label>
+          <div class="row_notice">
+            <p class="left-side-p">Payment currency:</p>
+            <p>USD</p>
+          </div>
+          <div class="row_notice">
+            <p class="left-side-p">Your address:</p>
+            <p title={address}>{addressCut}</p>
+          </div>
+          <div class="row_notice">
+            <p class="left-side-p">Pay with:</p>
+
+            <p>
+              Simplex (Visa/MC){" "}
+              <BsInfoCircle onClick={onInfo} className="info-icon" />
+            </p>
           </div>
         </div>
-        <Button
-          variant="primary"
-          onClick={onSubmit}
-          disabled={!selectedOption && true}
-        >
+        <Button variant="primary" onClick={onSubmit}>
           Continue
         </Button>
       </motion.div>

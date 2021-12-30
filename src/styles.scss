@@ -269,10 +269,6 @@ body {
 .label-provider {
   display: inline-grid;
 }
-.label-provider:hover {
-  font-family: 'Nexa-Bold';
-  font-weight: bold;
-}
 .form-control:focus {
   outline: none;
   box-shadow: none;
@@ -315,7 +311,7 @@ body {
     align-items: center;
     padding: 0.375rem 0.75rem;
     margin-bottom: 0;
-    font-size: 1rem;
+    font-size: 14px;
     font-weight: 400;
     line-height: 1.5;
     color: #99999a;
@@ -375,7 +371,13 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 14px;
-  color: $black-color;
+  color: $base-color;
+}
+.row_notice_sub {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: $base-color;
 }
 .container:before {
   content: "";
@@ -414,7 +416,12 @@ h1 {
 div.checkbox {
   color: #000;
 }
-
+.container_info {
+  margin-bottom: 1rem;
+}
+.left-side-p {
+  color: #000
+}
 .btn {
   letter-spacing: 1px;
   border-radius: 0;
@@ -439,7 +446,7 @@ div.checkbox {
 //   width: 575px;
 // }
 .form-group {
-  font-size: 12px;
+  font-size: 14px;
 }
 .steps {
   display: flex;
@@ -510,12 +517,16 @@ div.checkbox {
   width: 100%;
   margin: 20px auto;
 }
+.form {
+  width: 100%;
+  margin: 20px auto;
+}
 .icon_provider {
   display: flex;
 }
 .info-icon {
   cursor: pointer;
-  margin: 0 10px 0 10px;
+  margin: -2px 0px 0 10px;
 }
 .info-icon:hover {
   color: $base-color;
@@ -556,31 +567,14 @@ div.checkbox {
   margin-bottom: 1rem;
 }
 
-@media screen and (max-width: 1200px) {
-  .input-form {
-    width: 90%;
-  }
+.red {
+  color: red
 }
-
-// @media screen and (max-width: 900px) {
-//   .steps .step {
-//     margin: 0.5rem 2rem;
-//   }
-// }
 
 @media screen and (max-width: 600px) {
   h1 {
     font-size: 1.4rem;
   }
-
-  // .steps .step {
-  //   margin: 0.5rem 1rem;
-  //   font-size: 0.9rem;
-
-  //   div:first-of-type {
-  //     padding-top: 9%;
-  //   }
-  // }
 }
 
 @media screen and (max-width: 400px) {
