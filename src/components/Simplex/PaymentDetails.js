@@ -24,6 +24,7 @@ const partner_name = "velas";
 
 const validate_amount_min_usd = 50;
 const validate_amount_max_usd = 20000;
+const min_fee_usd = 10;
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
@@ -59,7 +60,7 @@ const PaymentDetails = (props) => {
   let total_amount_eur = null;
   let validate_amount_min_eur = null;
   let validate_amount_max_eur = null;
-  // let min_fee_eur = null;
+  let min_fee_eur = null;
   if (tickerData) {
     const rate = tickerData[parsed.crypto_currency === "VLX" ? "price_usd" : `${parsed.crypto_currency}_price`];
     if (rate) {
@@ -73,7 +74,7 @@ const PaymentDetails = (props) => {
         total_amount_eur = amount * rate / rate1;
         validate_amount_min_eur = validate_amount_min_usd / rate1;
         validate_amount_max_eur = validate_amount_max_usd / rate1;
-        // min_fee_eur = 10 / rate1;
+        min_fee_eur = 10 / rate1;
       }
     }
   }
@@ -160,7 +161,7 @@ const PaymentDetails = (props) => {
       }
     >
       <motion.div
-        className="col-md-8 offset-md-2"
+        className="col-md-10 offset-md-1"
         initial={{ x: "-5vw" }}
         animate={{ x: 0 }}
       >
@@ -195,7 +196,7 @@ const PaymentDetails = (props) => {
           <div class="row_notice_sub">
             <p class="left-side-p">Fee:</p>
             <p>
-              3.5% - 5%, min 10 USD
+              3.5% - 5%, min {selectedOption.value === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedOption.value}
             </p>
           </div>
           </>
