@@ -31,7 +31,7 @@ const ProviderSelection = (props) => {
   return (
     <Form className="form mt-5" onSubmit={onSubmit}>
       <motion.div
-        className="col-md-8 offset-md-2"
+        className="col-md-10 offset-md-1"
         initial={{ x: "-5vw" }}
         animate={{ x: 0 }}
       >
