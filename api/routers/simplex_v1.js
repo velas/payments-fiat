@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const apiv1 = express.Router();
 const SUPPORTED_CRYPTO_CURRENCIES = ['BTC', 'ETH', 'VLX'];
-const SUPPORTED_FIAT_CURRENCIES = ['USD'];
+const SUPPORTED_FIAT_CURRENCIES = ['USD', 'EUR'];
 
 apiv1.post('/quote', async (req, res) => {
   try {
