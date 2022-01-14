@@ -129,6 +129,9 @@ const PaymentDetails = (props) => {
     { value: 'USD', label: "USD" },
     { value: 'EUR', label: "EUR" }
   ];
+  const options_usd = [
+    { value: 'USD', label: "USD" }
+  ];
   const [selectedOption, setSelectedOption] = useState(parsed.fiat_currency ? parsed.fiat_currency : null);
 	  const SelectFiat = () => {		
     return (		
@@ -138,7 +141,7 @@ const PaymentDetails = (props) => {
 	          isDisabled={parsed.fiat_currency && true}		
 	          placeholder={parsed.fiat_currency && parsed.fiat_currency}		
 	          onChange={setSelectedOption}		
-	          options={options}
+	          options={parsed.eur_enable ? options : options_usd}
         />		
 	      </div>		
 	    );		
