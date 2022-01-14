@@ -141,14 +141,12 @@ const PaymentDetails = (props) => {
 	          isDisabled={parsed.fiat_currency && true}		
 	          placeholder={parsed.fiat_currency && parsed.fiat_currency}		
 	          onChange={setSelectedOption}		
-	          options={parsed.eur_enable ? options : options_usd}
+	          // options={parsed.eur_enable ? options : options_usd}
+	          options={options}
         />		
 	      </div>		
 	    );		
 	  }
-
-    // console.log('total_amount_eur', Math.round(total_amount_eur))
-    // console.log('validate_amount_min_eur', Math.round(validate_amount_min_eur))
   
   if (!parsed.address || !parsed.crypto_currency) return <EmptyView />;
   return (
