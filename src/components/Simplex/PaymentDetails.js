@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
+import { Form, Button, InputGroup, FormControl } from "react-bootstrap";
 import { motion } from "framer-motion";
 import axios from "axios";
 import {
@@ -14,13 +14,17 @@ import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import InputAmount from "../InputAmount";
-import { formatBalance, formatValue } from "../../utils/format-value";
 import Select from "react-select";
 
 const parsed = queryString.parse(global.location.search);
 console.log("parsed", parsed);
 
+let valid_address_evm = queryString.parse(parsed.address);
+const stringified_valid = queryString.stringify(valid_address_evm);
+valid_address_evm = stringified_valid.substr(0, 2);
+const vlx_evm = "VLX-EVM"
 const partner_name = "velas";
+const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
 
 const validate_amount_min_usd = 50;
 const validate_amount_max_usd = 20000;
@@ -56,13 +60,14 @@ const PaymentDetails = (props) => {
     fetchData();
   }, []);
   const [amount, setAmount] = React.useState(parsed.crypto_amount ? parsed.crypto_amount : "");
+  const [address, setAddress] = React.useState("");
   let total_amount = null;
   let total_amount_eur = null;
   let validate_amount_min_eur = null;
   let validate_amount_max_eur = null;
   let min_fee_eur = null;
   if (tickerData) {
-    const rate = tickerData[parsed.crypto_currency === "VLX" ? "price_usd" : `${parsed.crypto_currency}_price`];
+    const rate = tickerData[valid ? "price_usd" : parsed.crypto_currency === "VLX" ? "price_usd" : `${parsed.crypto_currency}_price`];
     if (rate) {
       total_amount = amount * rate;
       // min_amount = (40 / rate) * 1.1;
@@ -93,10 +98,10 @@ const PaymentDetails = (props) => {
     setIsLoading(true);
     try {
       const params = {
-        crypto_currency: parsed.crypto_currency,
+        crypto_currency: parsed.crypto_currency ? valid_address_evm === '0x' ? vlx_evm : parsed.crypto_currency : 'VLX',
         fiat_currency: selectedOption.value || parsed.fiat_currency,
         crypto_amount: Number(amount),
-        address: parsed.address,
+        address: valid ? address : parsed.address,
       };
       const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
 
@@ -104,9 +109,9 @@ const PaymentDetails = (props) => {
 
       const paramsPayment = {
         quote_id: quoteResult.data.quote_id,
-        address: parsed.address,
+        address: valid ? address : parsed.address,
         payment_id: payment_id,
-        crypto_currency: parsed.crypto_currency,
+        crypto_currency: parsed.crypto_currency ? valid_address_evm === '0x' ? vlx_evm : parsed.crypto_currency : 'VLX',
       };
 
       const paymentResult = await axios.post(
@@ -129,9 +134,6 @@ const PaymentDetails = (props) => {
     { value: 'USD', label: "USD" },
     { value: 'EUR', label: "EUR" }
   ];
-  const options_usd = [
-    { value: 'USD', label: "USD" }
-  ];
   const [selectedOption, setSelectedOption] = useState(parsed.fiat_currency ? parsed.fiat_currency : null);
 	  const SelectFiat = () => {		
     return (		
@@ -141,7 +143,6 @@ const PaymentDetails = (props) => {
 	          isDisabled={parsed.fiat_currency && true}		
 	          placeholder={parsed.fiat_currency && parsed.fiat_currency}		
 	          onChange={setSelectedOption}		
-	          // options={parsed.eur_enable ? options : options_usd}
 	          options={options}
         />		
 	      </div>		
@@ -169,7 +170,7 @@ const PaymentDetails = (props) => {
         <Form.Group>
         <Form.Label class="left-side-p">Want to spend currency:</Form.Label>
           <SelectFiat/>
-          <Form.Label class="left-side-p">Want to get:</Form.Label>
+          <Form.Label class="left-side-p">Amount of {parsed.crypto_currency ? parsed.crypto_currency : "VLX"}:</Form.Label>
           <InputGroup className="mb-3">
             <InputAmount
               value={amount}
@@ -197,7 +198,7 @@ const PaymentDetails = (props) => {
           <div class="row_notice_sub">
             <p class="left-side-p">Fee:</p>
             <p>
-              3.5% - 5%, min {selectedOption.value === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedOption.value}
+              3.5% - 5%, min {selectedOption.value === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedOption.value} {address}
             </p>
           </div>
           </>
