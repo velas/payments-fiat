@@ -60,10 +60,7 @@ const Checkout = (props) => {
   return (
       <Form
         className="input-form"
-        action={
-          REDIRECT_URIS[env]
-        }
-      >
+        action={env === 'undefined' ? REDIRECT_URIS.wallet_mainnet : REDIRECT_URIS[env]}>
         <motion.div
           className="col-md-8 offset-md-2"
           initial={{ x: "-5vw" }}
