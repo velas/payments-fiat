@@ -12,6 +12,10 @@ const stringified = queryString.stringify(parsed);
 const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
 const body = `<p class="info-style">The minimum transaction is $50 , and the maximum is $20,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
 
+let valid_address_evm = queryString.parse(parsed.address);
+const stringified_valid = queryString.stringify(valid_address_evm);
+valid_address_evm = stringified_valid.substr(0, 2) === '0x';
+
 const ProviderSelection = (props) => {
   const onSubmit = () => {
     props.history.push(`/simplex/2?${stringified}`);
@@ -38,7 +42,7 @@ const ProviderSelection = (props) => {
         <div class="container_info">
           <div class="row_notice">
             <p class="left-side-p">Currency to buy:</p>
-            <p>{parsed.crypto_currency}</p>
+            <p>{valid_address_evm ? "EVM" : parsed.crypto_currency}</p>
           </div>
           <div class="row_notice">
             <p class="left-side-p">Your address:</p>
