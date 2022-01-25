@@ -85,7 +85,7 @@ const PaymentDetails = (props) => {
     fetchData();
   }, []);
 
-  const [amount, setAmount] = useState(200); // default value
+  const [amount, setAmount] = useState(300); // default value
   const [amountFrom, setAmountFrom] = useState('');
   const [amountTo, setAmountTo] = useState('');
   const [address, setAddress] = useState('');
@@ -210,7 +210,7 @@ const PaymentDetails = (props) => {
       setIsLoading(false);
     }
   };
-
+    const valid_input = !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX-EVM" && address.length < 42 || selected === "VLX" && valid_address_evm === '0x' || selected === "VLX" && address.length < 44;
     const inputAddress = () => {
       return (
         <>
@@ -221,7 +221,7 @@ const PaymentDetails = (props) => {
                   value={address}
                   onChange={handleChange}
                   placeholder="Please enter the address"
-                  isInvalid={!address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX" && valid_address_evm === '0x'}
+                  isInvalid={valid_input}
                 />
               </InputGroup>
         </>
@@ -257,7 +257,7 @@ const PaymentDetails = (props) => {
       );		
 	  }
     
-  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid;
+  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX-EVM" && address.length < 42 || selected === "VLX" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || selected === "VLX" && address.length < 44;
   
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
   return (
