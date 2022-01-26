@@ -42,7 +42,7 @@ const ProviderSelection = (props) => {
         <div class="container_info">
           <div class="row_notice">
             <p class="left-side-p">Currency to buy:</p>
-            <p>{valid_address_evm ? "EVM" : parsed.crypto_currency}</p>
+            <p>{valid_address_evm ? "VLX-EVM" : parsed.crypto_currency}</p>
           </div>
           <div class="row_notice">
             <p class="left-side-p">Your address:</p>
