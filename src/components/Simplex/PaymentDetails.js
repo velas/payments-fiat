@@ -23,7 +23,7 @@ const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
 const link_wallet = 'https://wallet.velas.com/'
 
 const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
-const body = `<p class="info-style">The minimum transaction is $50 , and the maximum is $20,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
+const body = `<p class="info-style">The minimum transaction is $50, and the maximum is $20,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
 
 
 const CurrencyRow = ({
@@ -210,7 +210,7 @@ const PaymentDetails = (props) => {
       setIsLoading(false);
     }
   };
-    const valid_input = !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX-EVM" && address.length < 42 || selected === "VLX" && valid_address_evm === '0x' || selected === "VLX" && address.length < 44;
+    const valid_input = !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX" && valid_address_evm === '0x' || valid && selected === "VLX-EVM" && address.length < 42 || valid && selected === "VLX" && address.length < 44;
     const inputAddress = () => {
       return (
         <>
@@ -257,8 +257,10 @@ const PaymentDetails = (props) => {
       );		
 	  }
     
-  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX-EVM" && address.length < 42 || selected === "VLX" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || selected === "VLX" && address.length < 44;
+  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX-EVM" && address.length < 42 || valid && selected === "VLX" && address.length < 44;
   
+  
+
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
   return (
     <>

@@ -10,7 +10,7 @@ const parsed = queryString.parse(global.location.search);
 const stringified = queryString.stringify(parsed);
 
 const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
-const body = `<p class="info-style">The minimum transaction is $50 , and the maximum is $20,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
+const body = `<p class="info-style">The minimum transaction is $50, and the maximum is $20,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
 
 let valid_address_evm = queryString.parse(parsed.address);
 const stringified_valid = queryString.stringify(valid_address_evm);
