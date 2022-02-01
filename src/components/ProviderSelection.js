@@ -14,7 +14,7 @@ const body = `<p class="info-style">The minimum transaction is $50, and the maxi
 
 let valid_address_evm = queryString.parse(parsed.address);
 const stringified_valid = queryString.stringify(valid_address_evm);
-valid_address_evm = stringified_valid.substr(0, 2) === '0x';
+valid_address_evm = stringified_valid.substr(0, 2) === '0x' && parsed.address.length === 42;
 
 const ProviderSelection = (props) => {
   const onSubmit = () => {
@@ -42,7 +42,7 @@ const ProviderSelection = (props) => {
         <div class="container_info">
           <div class="row_notice">
             <p class="left-side-p">Currency to buy:</p>
-            <p>{valid_address_evm ? "VLX-EVM" : parsed.crypto_currency}</p>
+            <p>{valid_address_evm ? "VLX(EVM)" : "VLX(NATIVE)"}</p>
           </div>
           <div class="row_notice">
             <p class="left-side-p">Your address:</p>

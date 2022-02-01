@@ -48,13 +48,12 @@ const CurrencyRow = ({
         type="number"
       />
       <DropdownButton
-        // title={selected.length > 3 ? 'EVM' : selected}
-        title={selected === 'VLX-EVM' ? 'EVM' : selected.substring(0, 3)}
+        title={selected}
         id="dropdown-fiat"
         disabled={disabled}
       >
-      <Dropdown.Item href="#" active={selected === currency1 && true} onSelect={() => setSelected(currency1)}>{currency1}</Dropdown.Item>
-      <Dropdown.Item href="#" active={selected === currency2 && true} onSelect={() => setSelected(currency2)}>{currency2}</Dropdown.Item>
+      <Dropdown.Item style={{fontSize: 12}} href="#" active={selected === currency1 && true} onSelect={() => setSelected(currency1)}>{currency1}</Dropdown.Item>
+      <Dropdown.Item style={{fontSize: 12}} href="#" active={selected === currency2 && true} onSelect={() => setSelected(currency2)}>{currency2}</Dropdown.Item>
       </DropdownButton>
       </InputGroup>
       </>
@@ -101,7 +100,8 @@ const PaymentDetails = (props) => {
   const stringified_valid = queryString.stringify(valid_address_evm);
   valid_address_evm = stringified_valid.substr(0, 2);
 
-  const [selected, setSelected] = useState(valid ? 'VLX-NATIVE' : valid_address_evm === '0x' ? 'VLX-EVM' : 'VLX');
+  // const [selected, setSelected] = useState(valid ? 'VLX(NATIVE)' : valid_address_evm === '0x' ? 'VLX(EVM)' : 'VLX');
+  const [selected, setSelected] = useState(valid ? 'VLX(EVM)' : valid_address_evm === '0x' ? 'VLX(EVM)' : 'VLX(NATIVE)');
 
   let total_amount_usd = null;
   let total_amount_eur = null;
@@ -177,10 +177,10 @@ const PaymentDetails = (props) => {
   const onSubmit_ = async () => {
     // console.log("payment_id", payment_id);
     setIsLoading(true);
-    
+
     try {
       const params = {
-        crypto_currency: valid ? selected === "VLX-NATIVE" ? "VLX" : selected : parsed.crypto_currency && valid_address_evm === '0x' ? vlx_evm : parsed.crypto_currency,
+        crypto_currency: valid ? selected === "VLX(EVM)" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === '0x' ? vlx_evm : parsed.crypto_currency,
         fiat_currency: selectedFiat || parsed.fiat_currency,
         crypto_amount: Number(amountCrypto),
         address: valid ? address : parsed.address,
@@ -193,7 +193,7 @@ const PaymentDetails = (props) => {
         quote_id: quoteResult.data.quote_id,
         address: valid ? address : parsed.address,
         payment_id: payment_id,
-        crypto_currency: valid ? selected === "VLX-NATIVE" ? "VLX" : selected : parsed.crypto_currency && valid_address_evm === '0x' ? vlx_evm : parsed.crypto_currency
+        crypto_currency: valid ? selected === "VLX(EVM)" ? "VLX-EVM" : "VLX"  : parsed.crypto_currency && valid_address_evm === '0x' ? vlx_evm : parsed.crypto_currency
       };
 
       const paymentResult = await axios.post(
@@ -212,7 +212,13 @@ const PaymentDetails = (props) => {
       setIsLoading(false);
     }
   };
-    const valid_input = !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX-NATIVE" && valid_address_evm === '0x' || valid && selected === "VLX-EVM" && address.length < 42 || valid && selected === "VLX-NATIVE" && address.length < 44;
+    const [focusInput, setFocusInput] = useState(false);
+    const handleChangeValid = () => {
+      setFocusInput(true);
+    }
+
+    const validForm = !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44;
+
     const inputAddress = () => {
       return (
         <>
@@ -222,9 +228,10 @@ const PaymentDetails = (props) => {
                 <FormControl
                   value={address}
                   onChange={handleChange}
+                  onFocus={handleChangeValid}
                   placeholder="Please enter the address"
-                  isInvalid={valid_input}
-                  maxLength={selected === "VLX-EVM" ? 42 : 44}
+                  isInvalid={focusInput ? validForm : false}
+                  maxLength={selected === "VLX(EVM)" ? 42 : 44}
                 />
               </InputGroup>
         </>
@@ -260,7 +267,7 @@ const PaymentDetails = (props) => {
       );		
 	  }
     
-  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX-EVM" && valid_address_evm != '0x' || selected === "VLX-NATIVE" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX-EVM" && address.length < 42 || valid && selected === "VLX-NATIVE" && address.length < 44;
+  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44;
   
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
   return (
@@ -304,8 +311,8 @@ const PaymentDetails = (props) => {
             label={'Get'}
             selected={selected}
             setSelected={setSelected}
-            currency1={'VLX-NATIVE'}
-            currency2={'VLX-EVM'}
+            currency1={'VLX(EVM)'}
+            currency2={'VLX(NATIVE)'}
             disabled={!valid && true}
           />
           </span>
