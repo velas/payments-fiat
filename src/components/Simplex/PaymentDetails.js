@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import Select from "react-select";
 import { BsInfoCircle } from "react-icons/bs";
+import transakSDK from '@transak/transak-sdk'
 
 const parsed = queryString.parse(global.location.search);
 const vlx_evm = "VLX-EVM"
@@ -67,7 +68,7 @@ const PaymentDetails = (props) => {
   const [tickerData, setTickerData] = useState(null);
   const [tickerEurData, setTickerEurData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectProvider, setSelectProvider] = useState(null)
+  const [selectProvider, setSelectProvider] = useState("")
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
 
   // console.log('selectProvider', selectProvider)
@@ -165,7 +166,40 @@ const PaymentDetails = (props) => {
   };
   
   const formRef = useRef(null);
+  
+  let transak = new transakSDK({
+    apiKey: '4fcd6904-706b-4aff-bd9d-77422813bbb7',  // Your API Key 246f8a9b-a5a1-4dcc-bf13-3f6e223b9d8f
+    environment: 'STAGING', // STAGING/PRODUCTION
+    walletAddress: valid ? address : parsed.address, // Your customer's wallet address
+    themeColor: '#0037c1', // App theme color
+    fiatCurrency: 'EUR', // INR/GBP
+    email: 'velas.obolon@gmail.com', // Your customer's email address
+    redirectURL: 'https://wallet.velas.com/',
+    hostURL: window.location.origin,
+    widgetHeight: '600px',
+    widgetWidth: '450px',
+    hideMenu: true,
+    fiatAmount: fromAmount,
+    defaultPaymentMethod: 'credit_debit_card',
+    disablePaymentMethods: 'sepa_bank_transfer',
+    network: 'vlx-evm', //vlx-evm or mainnet
+    defaultCryptoCurrency: 'VLX',
+    disableWalletAddressForm: true,
+  });
 
+  // To get all the events
+  transak.on(transak.ALL_EVENTS, (data) => {
+      console.log(data)
+  });
+
+  // This will trigger when the user marks payment is made.
+  transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
+      console.log(orderData);
+      transak.close();
+  });
+  const onSubmitTransak = () => {
+    transak.init();
+  }
   const onSubmit = (event) => {
     event.returnValue = false;
     setIsLoading(false);
@@ -248,12 +282,12 @@ const PaymentDetails = (props) => {
     
     const options = [
     { value: 'Simplex', label: "Simplex (Visa/MC)" },
-    { value: 'Utorg', label: "Utorg (Visa/MC)" }
+    { value: 'Transak', label: "Transak (Visa/MC)" }
   ];
 	  const Provider = (props) => {		
       return (		
         <div style={props.style}>
-          <Form.Label class="left-side-p">Pay with<BsInfoCircle onClick={onInfo} className="info-icon" /></Form.Label>
+          <Form.Label class="left-side-p">Pay with {selectProvider.value}<BsInfoCircle onClick={onInfo} className="info-icon" /></Form.Label>
             <div className="mb-3">		
               <Select		
                 defaultValue={selectProvider}		
@@ -267,7 +301,7 @@ const PaymentDetails = (props) => {
       );		
 	  }
     
-  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44;
+  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44 || !selectProvider.value;
   
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
   return (
@@ -276,7 +310,7 @@ const PaymentDetails = (props) => {
       className="input-form mt-3"
       method="POST"
       ref={formRef}
-      onSubmit={onSubmit}
+      onSubmit={selectProvider.value === 'Simplex' ? onSubmit : onSubmitTransak}
       action={
         SIMPLEX_PAYMENT_URIS[
           window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
@@ -289,7 +323,7 @@ const PaymentDetails = (props) => {
         animate={{ x: 0 }}
       >
         <Form.Group>
-        <Provider default={'Simplex (Visa/MC)'} style={{display: !valid && "none"}}/>
+        <Provider style={{display: !valid && "none"}}/>
         <div style={{display: "flex"}}>
         <span style={{marginRight: "20px"}}>
           <CurrencyRow
@@ -343,7 +377,7 @@ const PaymentDetails = (props) => {
 
         <Button
           variant="primary"
-          onClick={onSubmit}
+          onClick={selectProvider.value === 'Simplex' ? onSubmit : onSubmitTransak}
           disabled={valid_btn}
         >
           {isLoading ? "Loading..." : "Buy"}
@@ -357,7 +391,7 @@ const PaymentDetails = (props) => {
       </motion.div>
     </Form>
     </>
-  );
+    ) 
 };
 
 export default PaymentDetails;
