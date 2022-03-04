@@ -18,6 +18,7 @@ import { BsInfoCircle } from "react-icons/bs";
 import transakSDK from '@transak/transak-sdk'
 
 const parsed = queryString.parse(global.location.search);
+// console.log('parsed', parsed)
 const vlx_evm = "VLX-EVM"
 const partner_name = "velas";
 const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
@@ -25,6 +26,9 @@ const link_wallet = 'https://wallet.velas.com/'
 
 const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
 const body = `<p class="info-style">The minimum transaction is $50, and the maximum is $20,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
+const body_transak = `<p class="info-style">The minimum amount is $30 **, limit per transaction is $1,500, daily limit per user is $14,000, monthly limit per user is $28,000, and yearly limit per user is $100,000.
+<br>These limits are set by the provider. We do not charge any commissions.
+<br>Provider fee is 3.5%.<br><br>** For some cryptocurrencies our minimum buy amount may be greater due the minimum withdrawal limit of our partner exchanges.</p>`;
 
 
 const CurrencyRow = ({
@@ -70,8 +74,19 @@ const PaymentDetails = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectProvider, setSelectProvider] = useState("")
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
+  
+  let check_provider;
+    if (!valid) {
+      function checkProvider() {
+        const parsed = queryString.parse(global.location.search);
+        check_provider = parsed.provider;
+        setSelectProvider(check_provider)
+        console.log('check_provider', check_provider)
+      }
+      setTimeout(checkProvider, 500);
+    }
 
-  // console.log('selectProvider', selectProvider)
+    console.log('selectProvider', selectProvider)
   useEffect(() => {
     async function fetchData() {
       const result = await fetch(TICKER_URL);
@@ -86,13 +101,20 @@ const PaymentDetails = (props) => {
     }
     fetchData();
   }, []);
+  
+  
 
   const [amount, setAmount] = useState(300); // default value
   const [amountFrom, setAmountFrom] = useState('');
   const [amountTo, setAmountTo] = useState('');
   const [address, setAddress] = useState('');
-  const [selectedFiat, setSelectedFiat] = useState('USD');
-  
+  let [selectedFiat, setSelectedFiat] = useState('USD');
+
+  if (selectProvider.value === 'Transak' || selectProvider === 'Transak') {
+     selectedFiat = 'EUR' //default value
+  }
+ 
+  console.log('selectedFiat', selectedFiat)
   const handleChange = e => {
     setAddress(e.target.value);
   }
@@ -114,7 +136,7 @@ const PaymentDetails = (props) => {
   let min_usd_valid = null;
   let min_eur_valid = null;
 
-  const validate_amount_min_usd = 50;
+  const validate_amount_min_usd = selectProvider.value === 'Simplex' ? 50 : 30;
   const validate_amount_max_usd = 20000;
   const min_fee_usd = 10;
 
@@ -182,7 +204,7 @@ const PaymentDetails = (props) => {
     fiatAmount: fromAmount,
     defaultPaymentMethod: 'credit_debit_card',
     disablePaymentMethods: 'sepa_bank_transfer',
-    network: 'vlx-evm', //vlx-evm or mainnet
+    network: valid ? selected === "VLX(EVM)" ? 'vlx-evm' : 'mainnet' : parsed.crypto_currency && valid_address_evm === '0x' ? 'vlx-evm' : 'mainnet',//vlx-evm or mainnet
     defaultCryptoCurrency: 'VLX',
     disableWalletAddressForm: true,
   });
@@ -276,18 +298,18 @@ const PaymentDetails = (props) => {
       Swal.fire({
         icon: "info",
         title: title_info,
-        html: body,
+        html: selectProvider.value === 'Simplex' ? body : body_transak,
       });
     };
-    
+
     const options = [
     { value: 'Simplex', label: "Simplex (Visa/MC)" },
     { value: 'Transak', label: "Transak (Visa/MC)" }
-  ];
+    ];
 	  const Provider = (props) => {		
       return (		
         <div style={props.style}>
-          <Form.Label class="left-side-p">Pay with {selectProvider.value}<BsInfoCircle onClick={onInfo} className="info-icon" /></Form.Label>
+          <Form.Label class="left-side-p">Pay with {selectProvider.value}{selectProvider.value && <BsInfoCircle onClick={onInfo} className="info-icon" />}</Form.Label>
             <div className="mb-3">		
               <Select		
                 defaultValue={selectProvider}		
@@ -301,9 +323,10 @@ const PaymentDetails = (props) => {
       );		
 	  }
     
-  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44 || !selectProvider.value;
+  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44 || valid && !selectProvider.value;
   
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
+
   return (
     <>
     <Form
@@ -335,6 +358,7 @@ const PaymentDetails = (props) => {
             setSelected={setSelectedFiat}
             currency1={'USD'}
             currency2={'EUR'}
+            disabled={selectProvider.value === 'Transak' || selectProvider === 'Transak' && true}
           />
           </span>
           <span>
@@ -359,16 +383,26 @@ const PaymentDetails = (props) => {
           <>
           <div class="row_notice_sub">
             <p class="left-side-p">Min amount to buy:</p>
+            {selectProvider.value || selectProvider ?
             <p class={amount ? selectedFiat === 'USD' ? min_usd_valid ? "red" : null : min_eur_valid ? "red" : null : null}>
               {" "}
               ~ {selectedFiat === 'USD' ? validate_amount_min_usd : Math.round(validate_amount_min_eur)} {selectedFiat || parsed.fiat_currency}
             </p>
+            : <p>...</p>}
           </div>
           <div class="row_notice_sub">
             <p class="left-side-p">Fee:</p>
+            {!selectProvider.value || !selectProvider && <p>...</p>}
+            {selectProvider.value === 'Simplex' || selectProvider === 'Simplex' ? 
             <p>
               3.5% - 5%, min {selectedFiat === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedFiat}
-            </p>
+            </p> : null
+            }
+            {selectProvider.value === 'Transak' || selectProvider === 'Transak' ? 
+            <p>
+              3.5%
+            </p> : null
+            }
           </div>
           </>
             ) 
@@ -377,7 +411,7 @@ const PaymentDetails = (props) => {
 
         <Button
           variant="primary"
-          onClick={selectProvider.value === 'Simplex' ? onSubmit : onSubmitTransak}
+          onClick={selectProvider.value === 'Simplex' || selectProvider === 'Simplex' ? onSubmit : onSubmitTransak}
           disabled={valid_btn}
         >
           {isLoading ? "Loading..." : "Buy"}
