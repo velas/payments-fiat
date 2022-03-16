@@ -23,6 +23,7 @@
     "react-dom": "^17.0.1",
     "react-hook-form": "6.15.4",
     "react-icons": "^4.3.1",
+    "react-ipgeolocation": "^1.4.0",
     "react-native-dropdown-picker": "^5.2.3",
     "react-router-dom": "5.2.0",
     "react-scripts": "4.0.3",

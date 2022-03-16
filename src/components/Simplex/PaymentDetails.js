@@ -16,7 +16,8 @@ import EmptyView from "../EmptyView";
 import Select from "react-select";
 import { BsInfoCircle } from "react-icons/bs";
 import transakSDK from '@transak/transak-sdk'
-
+import useGeoLocation from "react-ipgeolocation";
+ 
 const parsed = queryString.parse(global.location.search);
 // console.log('parsed', parsed)
 const vlx_evm = "VLX-EVM"
@@ -75,6 +76,26 @@ const PaymentDetails = (props) => {
   const [selectProvider, setSelectProvider] = useState("")
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
   
+  const location = useGeoLocation();
+  console.log('location', location.country);
+  //3.5%
+  const countries = ["AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
+  //5.5%
+  const countries1 = ["AU", "CA", "DK", "NZ", "NO", "PL", "SI", "SE", "CH", "AR", "BR", "CL", "CR", "DO", "IS", "ID", "IL", "JP", "MY", "PY", "PE", "PH", "SG", "ZA", "KR", "TH", "TR", "BM", "BG", "HR", "CZ", "FK", "FJ", "GI", "HU", "JM", "KE", "MD", "RO", "MX", "TZ"];
+
+  function checkArray(arr, val) {
+    return arr.some(function(arrVal) {
+      return val === arrVal;
+    });
+  }
+  function checkArray1(arr, val) {
+    return arr.some(function(arrVal) {
+      return val === arrVal;
+    });
+  }
+  const checkCountry = checkArray(countries, location.country);
+  const checkCountry1 = checkArray1(countries1, location.country);
+
   let check_provider;
     if (!valid) {
       function checkProvider() {
@@ -112,6 +133,15 @@ const PaymentDetails = (props) => {
 
   if (selectProvider.value === 'Transak' || selectProvider === 'Transak') {
      selectedFiat = 'EUR' //default value
+  }
+
+  if (selectProvider.value === 'Transak' && !checkCountry && !checkCountry1) {
+      Swal.fire({
+        icon: "info",
+        title: "Oops...",
+        html: `<p class="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
+      });
+      setSelectProvider('');
   }
  
   console.log('selectedFiat', selectedFiat)
@@ -190,13 +220,13 @@ const PaymentDetails = (props) => {
   const formRef = useRef(null);
   
   let transak = new transakSDK({
-    apiKey: '4fcd6904-706b-4aff-bd9d-77422813bbb7',  // Your API Key 246f8a9b-a5a1-4dcc-bf13-3f6e223b9d8f
+    apiKey: 'ed24950e-bde8-44b0-b328-e918d1c1ccb0', // STAGING:ed24950e-bde8-44b0-b328-e918d1c1ccb0 /PRODUCTION:72a39429-d0d4-48d4-942a-f80dc9deed57;
     environment: 'STAGING', // STAGING/PRODUCTION
     walletAddress: valid ? address : parsed.address, // Your customer's wallet address
     themeColor: '#0037c1', // App theme color
     fiatCurrency: 'EUR', // INR/GBP
-    email: 'velas.obolon@gmail.com', // Your customer's email address
-    redirectURL: 'https://wallet.velas.com/',
+    // email: 'velas.obolon@gmail.com', // Your customer's email address
+    // redirectURL: 'https://wallet.velas.com/',
     hostURL: window.location.origin,
     widgetHeight: '600px',
     widgetWidth: '450px',
@@ -218,6 +248,7 @@ const PaymentDetails = (props) => {
   transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
       console.log(orderData);
       transak.close();
+      window.location.href = checkout_url;
   });
   const onSubmitTransak = () => {
     transak.init();
@@ -399,9 +430,9 @@ const PaymentDetails = (props) => {
             </p> : null
             }
             {selectProvider.value === 'Transak' || selectProvider === 'Transak' ? 
-            <p>
-              3.5%
-            </p> : null
+              checkCountry && <p>3.5%</p> ||
+              checkCountry1 && <p>5.5%</p>
+              : null
             }
           </div>
           </>

@@ -10135,6 +10135,11 @@ react-icons@^4.3.1:
   resolved "https://registry.npmjs.org/react-icons/-/react-icons-4.3.1.tgz"
   integrity sha512-cB10MXLTs3gVuXimblAdI71jrJx8njrJZmNMEMC+sQu5B/BIOmlsAjskdqpn81y8UBVEGuHODd7/ci5DvoSzTQ==
 
+react-ipgeolocation@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/react-ipgeolocation/-/react-ipgeolocation-1.4.0.tgz#5edaf9e86b7a1620cf86fdd9485ea3caeb252ed5"
+  integrity sha512-pZ+/wxDVsHW3lHoPRkyu8NDXuNhz7d+vgp4vILJxpkktM46A90c4l6AxeU5P0jxDVv6b92lWphX30ahZZJapvg==
+
 react-is@^16.3.2, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.1:
   version "16.13.1"
   resolved "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz"

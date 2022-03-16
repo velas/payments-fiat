@@ -6,6 +6,7 @@ import EmptyView from "./EmptyView";
 import Swal from "sweetalert2";
 import { BsInfoCircle } from "react-icons/bs";
 import Select from "react-select";
+import useGeoLocation from "react-ipgeolocation";
 
 const parsed = queryString.parse(global.location.search);
 const stringified = queryString.stringify(parsed);
@@ -23,6 +24,33 @@ valid_address_evm = stringified_valid.substr(0, 2) === '0x' && parsed.address.le
 
 const ProviderSelection = (props) => {
   const [selectProvider, setSelectProvider] = useState("")
+  const location = useGeoLocation();
+  console.log('location', location.country);
+  //3.5%
+  const countries = ["AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
+  //5.5% 'CZ'- Czech Republic!!
+  const countries1 = ["AU", "CA", "DK", "NZ", "NO", "PL", "SI", "SE", "CH", "AR", "BR", "CL", "CR", "DO", "IS", "ID", "IL", "JP", "MY", "PY", "PE", "PH", "SG", "ZA", "KR", "TH", "TR", "BM", "BG", "HR", "CZ", "FK", "FJ", "GI", "HU", "JM", "KE", "MD", "RO", "MX", "TZ"];
+
+  function checkArray(arr, val) {
+    return arr.some(function(arrVal) {
+      return val === arrVal;
+    });
+  }
+  function checkArray1(arr, val) {
+    return arr.some(function(arrVal) {
+      return val === arrVal;
+    });
+  }
+  const checkCountry = checkArray(countries, location.country);
+  const checkCountry1 = checkArray1(countries1, location.country);
+  if (selectProvider.value === 'Transak' && !checkCountry && !checkCountry1) {
+    Swal.fire({
+      icon: "info",
+      title: "Oops...",
+      html: `<p class="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
+    });
+    setSelectProvider('');
+}
   const onSubmit = () => {
     props.history.push(`/simplex/2?${stringified}&provider=${selectProvider.value}`);
   };

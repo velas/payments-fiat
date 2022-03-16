@@ -26,6 +26,8 @@ const Checkout = (props) => {
         return "Payment Submitted!";
       case "payment_simplexcc_approved":
         return "Payment Approved!";
+      case "PROCESSING":
+        return "Test";
       default:
         return null;
     }
