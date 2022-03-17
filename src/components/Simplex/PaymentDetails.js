@@ -23,7 +23,7 @@ const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
 const link_wallet = 'https://wallet.velas.com/'
 
 const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
-const body = `<p class="info-style">The minimum transaction is $50, and the maximum is $20,000.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of 10 USD per transaction needed to ensure processing.</p>`;
+const body = `<p class="info-style">The minimum transaction is $50 USD, and the maximum is $20,000 USD.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of $10 USD per transaction needed to ensure processing.</p>`;
 
 
 const CurrencyRow = ({
@@ -229,7 +229,7 @@ const PaymentDetails = (props) => {
                   value={address}
                   onChange={handleChange}
                   onFocus={handleChangeValid}
-                  placeholder="Please enter the address"
+                  placeholder="Enter wallet address"
                   isInvalid={focusInput ? validForm : false}
                   maxLength={selected === "VLX(EVM)" ? 42 : 44}
                 />
@@ -290,8 +290,8 @@ const PaymentDetails = (props) => {
       >
         <Form.Group>
         <Provider default={'Simplex (Visa/MC)'} style={{display: !valid && "none"}}/>
-        <div style={{display: "flex"}}>
-        <span style={{marginRight: "20px"}}>
+        <div id='input-block'>
+        <span style={{marginRight: "20px"}} id='input-amount'>
           <CurrencyRow
             onChangeAmount={handleFromAmountChange}
             amount={fromAmount}
@@ -303,12 +303,12 @@ const PaymentDetails = (props) => {
             currency2={'EUR'}
           />
           </span>
-          <span>
+          <span id='input-amount'>
           <CurrencyRow
             onChangeAmount={handleToAmountChange}
             amount={toAmount}
             placeholder="0.00"
-            label={'Get'}
+            label={'Receive'}
             selected={selected}
             setSelected={setSelected}
             currency1={'VLX(EVM)'}
@@ -324,16 +324,16 @@ const PaymentDetails = (props) => {
             selectedFiat && (
           <>
           <div class="row_notice_sub">
-            <p class="left-side-p">Min amount to buy:</p>
+            <p class="left-side-p">Minimum purchase amount:</p>
             <p class={amount ? selectedFiat === 'USD' ? min_usd_valid ? "red" : null : min_eur_valid ? "red" : null : null}>
               {" "}
-              ~ {selectedFiat === 'USD' ? validate_amount_min_usd : Math.round(validate_amount_min_eur)} {selectedFiat || parsed.fiat_currency}
+              ~ {selectedFiat === 'USD' ? '$' : '€' }{selectedFiat === 'USD' ? validate_amount_min_usd : Math.round(validate_amount_min_eur)} {selectedFiat || parsed.fiat_currency}
             </p>
           </div>
           <div class="row_notice_sub">
             <p class="left-side-p">Fee:</p>
-            <p>
-              3.5% - 5%, min {selectedFiat === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedFiat}
+            <p class='fee-info'>
+              minimum {selectedFiat === 'USD' ? '$' : '€' }{selectedFiat === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedFiat} (below 3.5%-5%)
             </p>
           </div>
           </>
