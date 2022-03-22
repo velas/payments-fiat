@@ -10,7 +10,7 @@ import useGeoLocation from "react-ipgeolocation";
 
 const parsed = queryString.parse(global.location.search);
 const stringified = queryString.stringify(parsed);
-console.log('stringified', stringified)
+// console.log('stringified', stringified)
 
 const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit Card</h2>`;
 const body = `<p class="info-style">The minimum transaction is $50 USD, and the maximum is $20,000 USD.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of $10 USD per transaction needed to ensure processing.</p>`;
@@ -25,10 +25,10 @@ valid_address_evm = stringified_valid.substr(0, 2) === '0x' && parsed.address.le
 const ProviderSelection = (props) => {
   const [selectProvider, setSelectProvider] = useState("")
   const location = useGeoLocation();
-  console.log('location', location.country);
-  //3.5%
-  const countries = ["AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
-  //5.5% 'CZ'- Czech Republic!!
+  // console.log('location', location.country);
+  //3.5%, remove UA!!
+  const countries = ["UA", "AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
+  //5.5% 
   const countries1 = ["AU", "CA", "DK", "NZ", "NO", "PL", "SI", "SE", "CH", "AR", "BR", "CL", "CR", "DO", "IS", "ID", "IL", "JP", "MY", "PY", "PE", "PH", "SG", "ZA", "KR", "TH", "TR", "BM", "BG", "HR", "CZ", "FK", "FJ", "GI", "HU", "JM", "KE", "MD", "RO", "MX", "TZ"];
 
   function checkArray(arr, val) {
@@ -52,6 +52,7 @@ const ProviderSelection = (props) => {
     setSelectProvider('');
 }
   const valid_btn = !selectProvider.value;
+  // console.log('selectProvider.value', selectProvider.value)
 
 
   const onSubmit = () => {

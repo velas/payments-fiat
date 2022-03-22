@@ -7,7 +7,8 @@ import {
   BASE_API_URL,
   TICKER_URL,
   REDIRECT_URIS,
-  TICKER_URL_FIXER
+  TICKER_URL_FIXER,
+  TRANSAK_PAYMENT_URIS
 } from "../../utils/constants";
 import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
@@ -77,9 +78,9 @@ const PaymentDetails = (props) => {
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
   
   const location = useGeoLocation();
-  console.log('location', location.country);
-  //3.5%
-  const countries = ["AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
+  // console.log('location', location.country);
+  //3.5%, remove UA!!
+  const countries = ["UA", "AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
   //5.5%
   const countries1 = ["AU", "CA", "DK", "NZ", "NO", "PL", "SI", "SE", "CH", "AR", "BR", "CL", "CR", "DO", "IS", "ID", "IL", "JP", "MY", "PY", "PE", "PH", "SG", "ZA", "KR", "TH", "TR", "BM", "BG", "HR", "CZ", "FK", "FJ", "GI", "HU", "JM", "KE", "MD", "RO", "MX", "TZ"];
 
@@ -102,12 +103,12 @@ const PaymentDetails = (props) => {
         const parsed = queryString.parse(global.location.search);
         check_provider = parsed.provider;
         setSelectProvider(check_provider)
-        console.log('check_provider', check_provider)
+        // console.log('check_provider', check_provider)
       }
       setTimeout(checkProvider, 500);
     }
 
-    console.log('selectProvider', selectProvider)
+    // console.log('selectProvider', selectProvider)
   useEffect(() => {
     async function fetchData() {
       const result = await fetch(TICKER_URL);
@@ -131,7 +132,9 @@ const PaymentDetails = (props) => {
   const [address, setAddress] = useState('');
   let [selectedFiat, setSelectedFiat] = useState('USD');
 
-  if (selectProvider.value === 'Transak' || selectProvider === 'Transak') {
+  const checkTransak = selectProvider.value === 'Transak' || selectProvider === 'Transak';
+  const checkSimplex = selectProvider.value === 'Simplex' || selectProvider === 'Simplex';
+  if (checkTransak) {
      selectedFiat = 'EUR' //default value
   }
 
@@ -144,7 +147,7 @@ const PaymentDetails = (props) => {
       setSelectProvider('');
   }
  
-  console.log('selectedFiat', selectedFiat)
+  // console.log('selectedFiat', selectedFiat)
   const handleChange = e => {
     setAddress(e.target.value);
   }
@@ -220,12 +223,12 @@ const PaymentDetails = (props) => {
   const formRef = useRef(null);
   
   let transak = new transakSDK({
-    apiKey: 'ed24950e-bde8-44b0-b328-e918d1c1ccb0', // STAGING:ed24950e-bde8-44b0-b328-e918d1c1ccb0 /PRODUCTION:72a39429-d0d4-48d4-942a-f80dc9deed57;
-    environment: 'STAGING', // STAGING/PRODUCTION
-    walletAddress: valid ? address : parsed.address, // Your customer's wallet address
-    themeColor: '#0037c1', // App theme color
-    fiatCurrency: 'EUR', // INR/GBP
-    // email: 'velas.obolon@gmail.com', // Your customer's email address
+    apiKey: TRANSAK_PAYMENT_URIS[window.location.host === "buy.velas.com" ? "mainnet" : "testnet"],
+    environment: window.location.host === "buy.velas.com" ? 'PRODUCTION' : 'STAGING', // STAGING/PRODUCTION
+    walletAddress: valid ? address : parsed.address,
+    themeColor: '#0037c1',
+    fiatCurrency: 'EUR',
+    email: '',
     // redirectURL: 'https://wallet.velas.com/',
     hostURL: window.location.origin,
     widgetHeight: '600px',
@@ -233,9 +236,10 @@ const PaymentDetails = (props) => {
     hideMenu: true,
     fiatAmount: fromAmount,
     defaultPaymentMethod: 'credit_debit_card',
-    disablePaymentMethods: 'sepa_bank_transfer',
-    network: valid ? selected === "VLX(EVM)" ? 'vlx-evm' : 'mainnet' : parsed.crypto_currency && valid_address_evm === '0x' ? 'vlx-evm' : 'mainnet',//vlx-evm or mainnet
+    disablePaymentMethods: 'sepa_bank_transfer, gbp_bank_transfer, apple_pay',
+    network: valid ? selected === "VLX(EVM)" ? 'velasevm' : 'mainnet' : parsed.crypto_currency && valid_address_evm === '0x' ? 'velasevm' : 'mainnet',//velasevm or mainnet
     defaultCryptoCurrency: 'VLX',
+    cryptoCurrencyCode: 'VLX',
     disableWalletAddressForm: true,
   });
 
@@ -246,13 +250,15 @@ const PaymentDetails = (props) => {
 
   // This will trigger when the user marks payment is made.
   transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
-      console.log('orderData', orderData.status);
       const eventsInfo = orderData.status;
-      
-      console.log('eventsInfo', eventsInfo.id)
+      console.log('orderData1', eventsInfo);
+      console.log('orderData2', orderData.id);
+      // const eventsInfo = orderData.status;
+      // console.log('eventsInfo', eventsInfo.id)
+
       transak.close();
-      window.location.href = checkout_url;
-      alert(eventsInfo.id)
+      // window.location.href = checkout_url;
+      // alert(eventsInfo.id)
   });
   const onSubmitTransak = () => {
     transak.init();
@@ -362,6 +368,8 @@ const PaymentDetails = (props) => {
   
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
 
+  // console.log('selectProvider', selectProvider)
+  // console.log('selectProvider.value', selectProvider.value)
   return (
     <>
     <Form
@@ -382,8 +390,8 @@ const PaymentDetails = (props) => {
       >
         <Form.Group>
         <Provider style={{display: !valid && "none"}}/>
-        <div style={{display: "flex"}}>
-        <span style={{marginRight: "20px"}}>
+        <div id='input-block'>
+        <span style={{marginRight: "20px"}} id='input-amount'>
           <CurrencyRow
             onChangeAmount={handleFromAmountChange}
             amount={fromAmount}
@@ -393,7 +401,7 @@ const PaymentDetails = (props) => {
             setSelected={setSelectedFiat}
             currency1={'USD'}
             currency2={'EUR'}
-            disabled={selectProvider.value === 'Transak' || selectProvider === 'Transak' && true}
+            disabled={checkTransak && true}
           />
           </span>
           <span id='input-amount'>
@@ -427,17 +435,16 @@ const PaymentDetails = (props) => {
           </div>
           <div class="row_notice_sub">
             <p class="left-side-p">Fee:</p>
-            {!selectProvider.value || !selectProvider && <p>...</p>}
-            {selectProvider.value === 'Simplex' || selectProvider === 'Simplex' ? 
-            <p class='fee-info'>
-            3.5%-5% <br/>
-            (minimum {selectedFiat === 'USD' ? '$' : '€' }{selectedFiat === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedFiat})
-          </p> : null
-            }
-            {selectProvider.value === 'Transak' || selectProvider === 'Transak' ? 
-              checkCountry && <p>3.5%</p> ||
-              checkCountry1 && <p>5.5%</p>
-              : null
+            {!selectProvider.value && !selectProvider ? <p>...</p> :
+              (checkSimplex 
+                ? 
+                <p class='fee-info'>
+                3.5%-5% <br/>
+                (minimum {selectedFiat === 'USD' ? '$' : '€' }{selectedFiat === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedFiat})
+                </p>
+              :
+                checkCountry ? <p class='fee-info'>3.5%</p> : <p class='fee-info'>5.5%</p>
+              )
             }
           </div>
           </>
@@ -447,7 +454,7 @@ const PaymentDetails = (props) => {
 
         <Button
           variant="primary"
-          onClick={selectProvider.value === 'Simplex' || selectProvider === 'Simplex' ? onSubmit : onSubmitTransak}
+          onClick={checkSimplex ? onSubmit : onSubmitTransak}
           disabled={valid_btn}
         >
           {isLoading ? "Loading..." : "Buy"}

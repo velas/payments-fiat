@@ -621,6 +621,9 @@ div.checkbox {
   .dropdown {
     width: 120px;
   }
+  .swal2-popup.swal2-modal.swal2-icon-info.swal2-show {
+    width: 90%;
+  } 
 }
 
 @media screen and (max-width: 400px) {
