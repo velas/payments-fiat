@@ -29,16 +29,17 @@ const AppRouter = () => {
             />
             <Route
               render={(props) => <PaymentDetails {...props} />}
-              path="/simplex/2"
+              path="/provider/2"
             />
             <Route
               render={(props) => <ThirdStep {...props} />}
-              path="/simplex/checkout"
+              path="/provider/checkout"
             />
             <Route
               render={(props) => <EmptyView {...props} />}
-              path="/simplex/error"
+              path="/provider/error"
             />
+
             <Route render={() => <Redirect to="/" />} />
           </Switch>
         </div>

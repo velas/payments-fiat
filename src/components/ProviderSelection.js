@@ -51,8 +51,11 @@ const ProviderSelection = (props) => {
     });
     setSelectProvider('');
 }
+  const valid_btn = !selectProvider.value;
+
+
   const onSubmit = () => {
-    props.history.push(`/simplex/2?${stringified}&provider=${selectProvider.value}`);
+    props.history.push(`/provider/2?${stringified}&provider=${selectProvider.value}`);
   };
   if (!parsed.address || !parsed.crypto_currency || !parsed.env)
     return <EmptyView />;
@@ -103,18 +106,10 @@ const ProviderSelection = (props) => {
             <p class="left-side-p">Your address:</p>
             <p title={address}>{addressCut}</p>
           </div>
-          {/* <div class="row_notice">
-            <p class="left-side-p">Pay with:</p>
-
-            <p>
-              Simplex (Visa/MC){" "}
-              <BsInfoCircle onClick={onInfo} className="info-icon" />
-            </p>
-          </div> */}
         <Provider/>
 
         </div>
-        <Button variant="primary" onClick={onSubmit}>
+        <Button variant="primary" onClick={onSubmit} disabled={valid_btn}>
           Continue
         </Button>
       </motion.div>

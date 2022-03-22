@@ -68,8 +68,8 @@ const CurrencyRow = ({
 
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
-  const checkout_url = `${global.location.origin}/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(parsed.env)}`;
-  const error_url = `${global.location.origin}/simplex/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(parsed.env)}`;
+  const checkout_url = `${global.location.origin}/provider/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(parsed.env)}`;
+  const error_url = `${global.location.origin}/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(parsed.env)}`;
   const [tickerData, setTickerData] = useState(null);
   const [tickerEurData, setTickerEurData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -246,9 +246,13 @@ const PaymentDetails = (props) => {
 
   // This will trigger when the user marks payment is made.
   transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
-      console.log(orderData);
+      console.log('orderData', orderData.status);
+      const eventsInfo = orderData.status;
+      
+      console.log('eventsInfo', eventsInfo.id)
       transak.close();
       window.location.href = checkout_url;
+      alert(eventsInfo.id)
   });
   const onSubmitTransak = () => {
     transak.init();
