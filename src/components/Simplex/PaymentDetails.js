@@ -333,7 +333,8 @@ const PaymentDetails = (props) => {
           <div class="row_notice_sub">
             <p class="left-side-p">Fee:</p>
             <p class='fee-info'>
-              minimum {selectedFiat === 'USD' ? '$' : '€' }{selectedFiat === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedFiat} (below 3.5%-5%)
+              3.5%-5% <br/>
+              (minimum {selectedFiat === 'USD' ? '$' : '€' }{selectedFiat === 'USD' ? min_fee_usd : Math.round(min_fee_eur)} {selectedFiat})
             </p>
           </div>
           </>
