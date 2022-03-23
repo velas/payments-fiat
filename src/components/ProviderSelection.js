@@ -26,8 +26,8 @@ const ProviderSelection = (props) => {
   const [selectProvider, setSelectProvider] = useState("")
   const location = useGeoLocation();
   // console.log('location', location.country);
-  //3.5%, remove UA!!
-  const countries = ["UA", "AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
+  //3.5%
+  const countries = ["AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
   //5.5% 
   const countries1 = ["AU", "CA", "DK", "NZ", "NO", "PL", "SI", "SE", "CH", "AR", "BR", "CL", "CR", "DO", "IS", "ID", "IL", "JP", "MY", "PY", "PE", "PH", "SG", "ZA", "KR", "TH", "TR", "BM", "BG", "HR", "CZ", "FK", "FJ", "GI", "HU", "JM", "KE", "MD", "RO", "MX", "TZ"];
 

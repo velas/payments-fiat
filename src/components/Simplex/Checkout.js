@@ -12,7 +12,7 @@ import { isAndroid, isIOS } from "react-device-detect";
 import AppleIcon from '../../images/apple.svg';
 import GoogleIcon from '../../images/android.svg';
 
-const [payment_id, env] = global.location.pathname.split("/").slice(3);
+const [payment_id, env, status_transak] = global.location.pathname.split("/").slice(3);
 
 const socket = io("/", {
   query: {
@@ -29,8 +29,6 @@ const Checkout = (props) => {
         return "Payment Submitted!";
       case "payment_simplexcc_approved":
         return "Payment Approved!";
-      case "PROCESSING":
-        return "Test";
       default:
         return null;
     }
@@ -89,7 +87,7 @@ const Checkout = (props) => {
         >
           <Form.Group>
             <div className="block-txt">
-              <p className="row-txt status" style={{color: statusColor(status)}}>{checkStatus(status)}</p>
+              <p className="row-txt status" style={{color: statusColor(status)}}>{!status_transak ? checkStatus(status) : status_transak}</p>
               <p className="row-txt">
                 Go back to the wallet to check your balance!
               </p>

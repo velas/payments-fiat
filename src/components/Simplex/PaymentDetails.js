@@ -79,8 +79,8 @@ const PaymentDetails = (props) => {
   
   const location = useGeoLocation();
   // console.log('location', location.country);
-  //3.5%, remove UA!!
-  const countries = ["UA", "AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
+  //3.5%
+  const countries = ["AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
   //5.5%
   const countries1 = ["AU", "CA", "DK", "NZ", "NO", "PL", "SI", "SE", "CH", "AR", "BR", "CL", "CR", "DO", "IS", "ID", "IL", "JP", "MY", "PY", "PE", "PH", "SG", "ZA", "KR", "TH", "TR", "BM", "BG", "HR", "CZ", "FK", "FJ", "GI", "HU", "JM", "KE", "MD", "RO", "MX", "TZ"];
 
@@ -131,6 +131,7 @@ const PaymentDetails = (props) => {
   const [amountTo, setAmountTo] = useState('');
   const [address, setAddress] = useState('');
   let [selectedFiat, setSelectedFiat] = useState('USD');
+  const [widget, setWidget] = useState(false);
 
   const checkTransak = selectProvider.value === 'Transak' || selectProvider === 'Transak';
   const checkSimplex = selectProvider.value === 'Simplex' || selectProvider === 'Simplex';
@@ -224,15 +225,14 @@ const PaymentDetails = (props) => {
   
   let transak = new transakSDK({
     apiKey: TRANSAK_PAYMENT_URIS[window.location.host === "buy.velas.com" ? "mainnet" : "testnet"],
-    environment: window.location.host === "buy.velas.com" ? 'PRODUCTION' : 'STAGING', // STAGING/PRODUCTION
+    environment: window.location.host === "buy.velas.com" ? 'PRODUCTION' : 'STAGING',
     walletAddress: valid ? address : parsed.address,
     themeColor: '#0037c1',
     fiatCurrency: 'EUR',
     email: '',
-    // redirectURL: 'https://wallet.velas.com/',
     hostURL: window.location.origin,
     widgetHeight: '600px',
-    widgetWidth: '450px',
+    widgetWidth: '100%',
     hideMenu: true,
     fiatAmount: fromAmount,
     defaultPaymentMethod: 'credit_debit_card',
@@ -243,23 +243,31 @@ const PaymentDetails = (props) => {
     disableWalletAddressForm: true,
   });
 
-  // To get all the events
-  transak.on(transak.ALL_EVENTS, (data) => {
-      console.log(data)
+  // transak.on(transak.ALL_EVENTS, (data) => {
+  //     console.log(data)
+  // });
+
+  transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
+    setWidget(true);
+  });
+  transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
+    setWidget(false);
   });
 
-  // This will trigger when the user marks payment is made.
-  transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (orderData) => {
-      const eventsInfo = orderData.status;
-      console.log('orderData1', eventsInfo);
-      console.log('orderData2', orderData.id);
-      // const eventsInfo = orderData.status;
-      // console.log('eventsInfo', eventsInfo.id)
-
-      transak.close();
-      // window.location.href = checkout_url;
-      // alert(eventsInfo.id)
+  transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
+    // console.log('data', data.status.status);
+    transak.close();
+    window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
   });
+  transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
+    transak.close();
+    window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
+  });
+  transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
+    transak.close();
+    window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
+  });
+
   const onSubmitTransak = () => {
     transak.init();
   }
@@ -364,7 +372,7 @@ const PaymentDetails = (props) => {
       );		
 	  }
     
-  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44 || valid && !selectProvider.value;
+  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44 || valid && !selectProvider.value || widget;
   
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
 
@@ -457,7 +465,7 @@ const PaymentDetails = (props) => {
           onClick={checkSimplex ? onSubmit : onSubmitTransak}
           disabled={valid_btn}
         >
-          {isLoading ? "Loading..." : "Buy"}
+          {isLoading || widget ? "Loading..." : "Buy"}
         </Button>
         <input type="hidden" name="version" value="1" />
         <input type="hidden" name="partner" value={partner_name} />
