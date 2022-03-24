@@ -3,8 +3,8 @@ import { Link, withRouter } from 'react-router-dom';
 
 const Progress = ({ location: { pathname } }) => {
   const isFirstStep = pathname === '/';
-  const isSecondStep = pathname === '/simplex/2';
-  const isThirdStep = pathname === '/simplex/checkout';
+  const isSecondStep = pathname === '/provider/2';
+  const isThirdStep = pathname === '/provider/checkout';
 
   return (
     <React.Fragment>
