@@ -32,6 +32,6 @@ apiv1.get('/', async (req, res) => {
   res.json(latestRates).end();
 });
 
-updateRatesAutorun();
-
+// updateRatesAutorun();
+setInterval(updateRates, FIXER_UPDATE_INTERVAL);
 module.exports = apiv1;
