@@ -31,6 +31,29 @@ body {
 	background-size: cover;
 	background-attachment: fixed;
 }
+#dropdown-fiat {
+  margin-bottom: 20px;
+  // width: auto;
+  font-size: 12px;
+  height: 38px;
+}
+.link_btn {
+  float: right;
+  padding: 2px;
+  color: #0037c1;
+}
+.fee-info {
+  text-align: right;
+}
+.css-1insrsq-control {
+  border-radius: 0px !important;
+}
+.css-1okebmr-indicatorSeparator {
+  width: 0px !important;
+}
+.dropdown-item.active {
+  background-color: #2684ff;
+}
 .disabled {
   position: absolute;
   display: inline-block;
@@ -572,20 +595,77 @@ div.checkbox {
 .red {
   color: red
 }
+#input-block {
+  display: flex;
+}
+.button-store {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  width: 100px;
+  margin: 0 auto;
+  padding-top: 20px;
+}
+#btn-go-back {
+  margin-bottom: 0;
+}
 
 @media screen and (max-width: 600px) {
   h1 {
     font-size: 1.4rem;
   }
+  #input-block {
+    display: block;
+  }
+  .dropdown {
+    width: 120px;
+  }
+  .swal2-popup.swal2-modal.swal2-icon-info.swal2-show {
+    width: 90%;
+  } 
 }
 
 @media screen and (max-width: 400px) {
-  // .steps {
-  //   flex-direction: column;
-  //   align-items: center;
+  .left-side-p {
+    width: 50%;
+  }
+}
+.spinner {
+  animation: rotate 2s linear infinite;
+  z-index: 2;
+  // position: absolute;
+  // top: 50%;
+  // left: 50%;
+  // margin: -25px 0 0 -25px;
+  width: 20px;
+  height: 20px;
+  
+  & .path {
+    stroke: #0038C9;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  
+}
 
-  //   .step {
-  //     align-items: center;
-  //   }
-  // }
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }

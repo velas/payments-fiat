@@ -2,12 +2,12 @@ import React from 'react';
 import Progress from './Progress';
 
 
-const Header = () => (
+const Header = (props) => (
   <>
   <div className='header_style'>
-    <h1>Buy VLX fast and easy</h1>
+    <h1>Buy VLX</h1>
   </div>
-  <div className="width-progress">
+  <div className="width-progress" style={props.style}>
     <Progress/>
   </div>
   </>

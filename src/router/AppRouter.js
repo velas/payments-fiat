@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
-import CheckBox from "../components/CheckBox";
-import DropDown from "../components/DropDown";
 import ProviderSelection from "../components/ProviderSelection";
 import Header from "../components/Header";
 import EmptyView from "../components/EmptyView";
@@ -10,8 +8,8 @@ import ThirdStep from "../components/Simplex/Checkout";
 import { motion } from "framer-motion";
 import queryString from "query-string";
 
-const { crypto_currency } = queryString.parse(global.location.search);
-
+const parsed = queryString.parse(global.location.search);
+const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -22,25 +20,26 @@ const AppRouter = () => {
         transition={{ stiffness: 150 }}
       >
         <div className="container">
-          <Header class="form" crypto={crypto_currency} />
+          <Header class="form" style={{display: valid && 'none'}}/>
           <Switch>
             <Route
-              render={(props) => <ProviderSelection {...props} />}
+              render={(props) => valid ? <PaymentDetails {...props} /> : <ProviderSelection {...props} />}
               path="/"
               exact={true}
             />
             <Route
               render={(props) => <PaymentDetails {...props} />}
-              path="/simplex/2"
+              path="/provider/2"
             />
             <Route
               render={(props) => <ThirdStep {...props} />}
-              path="/simplex/checkout"
+              path="/provider/checkout"
             />
             <Route
               render={(props) => <EmptyView {...props} />}
-              path="/simplex/error"
+              path="/provider/error"
             />
+
             <Route render={() => <Redirect to="/" />} />
           </Switch>
         </div>
