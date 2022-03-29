@@ -8,7 +8,7 @@ import {
   TICKER_URL,
   REDIRECT_URIS,
   TICKER_URL_FIXER,
-  TRANSAK_PAYMENT_URIS
+  TRANSAK_API_KEY
 } from "../../utils/constants";
 import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
@@ -181,7 +181,6 @@ const PaymentDetails = (props) => {
     }
     if (tickerEurData) {
       const rate_eur_usd = tickerEurData["USD"]; // coefficient eur/usd (Fixer)
-      // const rate_eur_usd = tickerEurData.rates.USD
       if (rate_eur_usd) {
         total_amount_eur = total_amount_usd / rate_eur_usd;
         validate_amount_min_eur = validate_amount_min_usd / rate_eur_usd;
@@ -225,7 +224,7 @@ const PaymentDetails = (props) => {
   const formRef = useRef(null);
   
   let transak = new transakSDK({
-    apiKey: TRANSAK_PAYMENT_URIS[window.location.host === "buy.velas.com" ? "mainnet" : "testnet"],
+    apiKey: TRANSAK_API_KEY[window.location.host === "buy.velas.com" ? "mainnet" : "testnet"],
     environment: window.location.host === "buy.velas.com" ? 'PRODUCTION' : 'STAGING',
     walletAddress: valid ? address : parsed.address,
     themeColor: '#0037c1',
