@@ -17,6 +17,9 @@ app.use(express.static('public'))
 
 app.use('/api/v1/simplex', simplexv1);
 app.use('/api/v1/rates', fixerv1);
+app.get('/info', (req, res) => {
+  res.json(FIXER_API_KEY).end();
+});
 
 simplexv1sockets.init(io);
 

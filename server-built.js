@@ -2,7 +2,7 @@ const http = require('http');
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser')
-const { PORT } = require('./api/consts');
+const { PORT, FIXER_API_KEY } = require('./api/consts');
 const simplexv1 = require('./api/routers/simplex_v1');
 const fixerv1 = require('./api/routers/fixer_v1');
 const simplexv1sockets = require('./api/sockets/simplex_v1');
@@ -18,6 +18,9 @@ app.use(express.static('build'))
 
 app.use('/api/v1/simplex', simplexv1);
 app.use('/api/v1/rates', fixerv1);
+app.get('/info', (req, res) => {
+  res.json(FIXER_API_KEY).end();
+});
 
 app.get('*', function(req, res) {
   res.sendFile(path.join(__dirname, 'build/index.html'));
