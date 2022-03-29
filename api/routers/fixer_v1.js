@@ -7,15 +7,22 @@ let latestRates = null;
 let ratesTs = null;
 
 async function updateRates() {
-  if (!FIXER_API_KEY) return;
-  const res = await fetch(`http://data.fixer.io/api/latest?access_key=${FIXER_API_KEY}`);
-  const json = await res.json();
-  if (!json.rates || !json.rates.USD) {
-    console.error('Invalid fixer response', json);
-    throw new Error('Invalid fixer response');
+  if (!FIXER_API_KEY) {
+    console.log('Missing FIXER_API_KEY');
+    return;
   }
-  ratesTs = json.timestamp;
-  latestRates = json.rates;
+  try {
+    const res = await fetch(`http://data.fixer.io/api/latest?access_key=${FIXER_API_KEY}`);
+    const json = await res.json();
+    if (!json.rates || !json.rates.USD) {
+      console.error('Invalid fixer response', json);
+      throw new Error('Invalid fixer response');
+    }
+    ratesTs = json.timestamp;
+    latestRates = json.rates;
+  } catch (e) {
+    console.error('updateRates', e);
+  }
 }
 
 async function updateRatesAutorun() {
@@ -33,5 +40,6 @@ apiv1.get('/', async (req, res) => {
 });
 
 // updateRatesAutorun();
+updateRates();
 setInterval(updateRates, FIXER_UPDATE_INTERVAL);
 module.exports = apiv1;

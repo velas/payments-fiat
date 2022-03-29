@@ -18,9 +18,6 @@ app.use(express.static('build'))
 
 app.use('/api/v1/simplex', simplexv1);
 app.use('/api/v1/rates', fixerv1);
-app.get('/info', (req, res) => {
-  res.json(FIXER_API_KEY).end();
-});
 
 app.get('*', function(req, res) {
   res.sendFile(path.join(__dirname, 'build/index.html'));
