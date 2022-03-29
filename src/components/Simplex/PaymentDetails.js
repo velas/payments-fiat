@@ -180,8 +180,8 @@ const PaymentDetails = (props) => {
       total_amount_usd = amount * rate;
     }
     if (tickerEurData) {
-      // const rate_eur_usd = tickerEurData["USD"]; // coefficient eur/usd (Fixer)
-      const rate_eur_usd = tickerEurData.rates.USD
+      const rate_eur_usd = tickerEurData["USD"]; // coefficient eur/usd (Fixer)
+      // const rate_eur_usd = tickerEurData.rates.USD
       if (rate_eur_usd) {
         total_amount_eur = total_amount_usd / rate_eur_usd;
         validate_amount_min_eur = validate_amount_min_usd / rate_eur_usd;
