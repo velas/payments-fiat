@@ -8,7 +8,7 @@ import {
   TICKER_URL,
   REDIRECT_URIS,
   TICKER_URL_FIXER,
-  TRANSAK_PAYMENT_URIS
+  TRANSAK_API_KEY
 } from "../../utils/constants";
 import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
@@ -224,7 +224,7 @@ const PaymentDetails = (props) => {
   const formRef = useRef(null);
   
   let transak = new transakSDK({
-    apiKey: TRANSAK_PAYMENT_URIS[window.location.host === "buy.velas.com" ? "mainnet" : "testnet"],
+    apiKey: TRANSAK_API_KEY[window.location.host === "buy.velas.com" ? "mainnet" : "testnet"],
     environment: window.location.host === "buy.velas.com" ? 'PRODUCTION' : 'STAGING',
     walletAddress: valid ? address : parsed.address,
     themeColor: '#0037c1',
@@ -400,7 +400,7 @@ const PaymentDetails = (props) => {
         <Form.Group>
         <Provider style={{display: !valid && "none"}}/>
         <div id='input-block'>
-        <span style={{marginRight: "20px"}} id='input-amount'>
+        <span className="fiat-amount" id='input-amount'>
           <CurrencyRow
             onChangeAmount={handleFromAmountChange}
             amount={fromAmount}

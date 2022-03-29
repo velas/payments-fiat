@@ -11,7 +11,7 @@ export const SIMPLEX_PAYMENT_URIS = {
   mainnet: 'https://checkout.simplexcc.com/payments/new',
 }
 
-export const TRANSAK_PAYMENT_URIS = {
+export const TRANSAK_API_KEY = {
   mainnet: '72a39429-d0d4-48d4-942a-f80dc9deed57',
   testnet: 'ed24950e-bde8-44b0-b328-e918d1c1ccb0',
 }
