@@ -400,7 +400,7 @@ const PaymentDetails = (props) => {
         <Form.Group>
         <Provider style={{display: !valid && "none"}}/>
         <div id='input-block'>
-        <span style={{marginRight: "20px"}} id='input-amount'>
+        <span className="fiat-amount" id='input-amount'>
           <CurrencyRow
             onChangeAmount={handleFromAmountChange}
             amount={fromAmount}
