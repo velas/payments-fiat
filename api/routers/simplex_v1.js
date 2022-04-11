@@ -26,7 +26,8 @@ apiv1.post('/quote', async (req, res) => {
       throw new Error('fiat_currency unsupported');
     }
 
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log('Got quote request', req.headers['x-forwarded-for'], req.socket.remoteAddress);
     const fetchBody = {
       "end_user_id": address,
       "digital_currency": crypto_currency,
@@ -78,7 +79,8 @@ apiv1.post('/payment', async (req, res) => {
   try {
     const { quote_id, address, payment_id, crypto_currency, debug } = req.body;
     const order_id = uuidv4();
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log('Got payment request', req.headers['x-forwarded-for'], req.socket.remoteAddress);
     const fetchBody = {
       "account_details": {
         "app_provider_id": "velas",
