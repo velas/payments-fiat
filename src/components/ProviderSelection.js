@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { BsInfoCircle } from "react-icons/bs";
 import Select from "react-select";
 import useGeoLocation from "react-ipgeolocation";
+import { countries_low_fee, countries_high_fee } from "../utils/countries" 
 
 const parsed = queryString.parse(global.location.search);
 const stringified = queryString.stringify(parsed);
@@ -16,7 +17,7 @@ const title_info = `<h2 class="info-style-title">Buying Crypto with your Credit 
 const body = `<p class="info-style">The minimum transaction is $50 USD, and the maximum is $20,000 USD.<br> These limits are set by the provider. We do not collect any fees. The provider charges a conversion and network fee. <br>Fees range between 3.5% - 5% depends on transaction value. Notice that the provider applies a minimum fee of $10 USD per transaction needed to ensure processing.</p>`;
 const body_transak = `<p class="info-style">The minimum amount is $30 USD **, limit per transaction is $1,500 USD, daily limit per user is $14,000 USD, monthly limit per user is $28,000 USD, and yearly limit per user is $100,000 USD.
 <br>These limits are set by the provider. We do not charge any commissions.
-<br>Provider fee is 3.5%.<br><br>** For some cryptocurrencies our minimum buy amount may be greater due the minimum withdrawal limit of our partner exchanges.</p>`;
+<br>Providers fee 3.5%-5.5%.<br><br>** For some cryptocurrencies our minimum buy amount may be greater due the minimum withdrawal limit of our partner exchanges.</p>`;
 
 let valid_address_evm = queryString.parse(parsed.address);
 const stringified_valid = queryString.stringify(valid_address_evm);
@@ -25,12 +26,7 @@ valid_address_evm = stringified_valid.substr(0, 2) === '0x' && parsed.address.le
 const ProviderSelection = (props) => {
   const [selectProvider, setSelectProvider] = useState("")
   const location = useGeoLocation();
-  // console.log('location', location.country);
-  //3.5%, remove UA
-  const countries = ["UA", "AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LU", "MT", "NL", "PT", "ES", "SK", "LT", "GB", "CZ", "SI", "MC"];
-  //5.5% 
-  const countries1 = ["AU", "CA", "DK", "NZ", "NO", "PL", "SI", "SE", "CH", "AR", "BR", "CL", "CR", "DO", "IS", "ID", "IL", "JP", "MY", "PY", "PE", "PH", "SG", "ZA", "KR", "TH", "TR", "BM", "BG", "HR", "CZ", "FK", "FJ", "GI", "HU", "JM", "KE", "MD", "RO", "MX", "TZ"];
-
+  
   function checkArray(arr, val) {
     return arr.some(function(arrVal) {
       return val === arrVal;
@@ -41,8 +37,8 @@ const ProviderSelection = (props) => {
       return val === arrVal;
     });
   }
-  const checkCountry = checkArray(countries, location.country);
-  const checkCountry1 = checkArray1(countries1, location.country);
+  const checkCountry = checkArray(countries_low_fee, location.country);
+  const checkCountry1 = checkArray1(countries_high_fee, location.country);
   if (selectProvider.value === 'Transak' && !checkCountry && !checkCountry1) {
     Swal.fire({
       icon: "info",
@@ -71,7 +67,7 @@ const ProviderSelection = (props) => {
   };
   const options = [
     { value: 'Simplex', label: "Simplex (Visa/MC)" },
-    { value: 'Transak', label: "Transak (Visa/MC)", disabled: parsed.test_mode ? false : true }
+    { value: 'Transak', label: "Transak (Visa/MC)" }
     ];
 	  const Provider = (props) => {		
       return (		
