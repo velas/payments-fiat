@@ -92,18 +92,6 @@ const PaymentDetails = (props) => {
   const checkCountry = checkArray(countries_low_fee, location.country);
   const checkCountry1 = checkArray1(countries_high_fee, location.country);
 
-  let check_provider;
-    if (!valid) {
-      function checkProvider() {
-        const parsed = queryString.parse(global.location.search);
-        check_provider = parsed.provider;
-        setSelectProvider(check_provider)
-        // console.log('check_provider', check_provider)
-      }
-      setTimeout(checkProvider, 500);
-    }
-
-    // console.log('selectProvider', selectProvider)
   useEffect(() => {
     async function fetchData() {
       const result = await fetch(TICKER_URL);
@@ -118,7 +106,17 @@ const PaymentDetails = (props) => {
     }
     fetchData();
   }, []);
-  
+  useEffect(() => {
+    let storageProvider = JSON.parse(localStorage.getItem('storageProvider'));
+    if (!valid && storageProvider) {
+      setSelectProvider(storageProvider);
+    }
+    else if (valid || !storageProvider) {
+      localStorage.removeItem('storageProvider');
+    }
+  }, []);
+
+  // console.log('selectProviderNew', selectProvider)
   
 
   const [amount, setAmount] = useState(300); // default value
@@ -165,7 +163,7 @@ const PaymentDetails = (props) => {
   let min_usd_valid = null;
   let min_eur_valid = null;
 
-  const validate_amount_min_usd = selectProvider.value === 'Simplex' ? 50 : 30;
+  const validate_amount_min_usd = selectProvider === 'Simplex' || selectProvider.value === 'Simplex' ? 50 : 30;
   const validate_amount_max_usd = 20000;
   const min_fee_usd = 10;
 
@@ -342,7 +340,7 @@ const PaymentDetails = (props) => {
       Swal.fire({
         icon: "info",
         title: title_info,
-        html: selectProvider.value === 'Simplex' ? body : body_transak,
+        html: selectProvider === 'Simplex' || selectProvider.value === 'Simplex' ? body : body_transak,
       });
     };
 
@@ -368,7 +366,7 @@ const PaymentDetails = (props) => {
       );		
 	  }
     
-  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44 || valid && !selectProvider.value || widget;
+  const valid_btn = amountCrypto <=0 || valid && !address || selected === "VLX(EVM)" && valid_address_evm != '0x' || selected === "VLX(NATIVE)" && valid_address_evm === '0x' || min_usd_valid || min_eur_valid || valid && selected === "VLX(EVM)" && address.length < 42 || valid && selected === "VLX(NATIVE)" && address.length < 44 || valid && !selectProvider.value || widget || !selectProvider;
   
   if (!valid && !parsed.address || !valid && !parsed.crypto_currency) return <EmptyView />;
 
@@ -437,6 +435,15 @@ const PaymentDetails = (props) => {
             </p>
             : <p>...</p>}
           </div>
+          {!valid && (
+          <div class="row_notice_sub">
+            <p class="left-side-p">Pay with:</p>
+            <p class='fee-info'>
+              {selectProvider ? selectProvider : "..."}
+              {selectProvider && <BsInfoCircle onClick={onInfo} className="info-icon" />}
+            </p>
+          </div>
+          )}
           <div class="row_notice_sub">
             <p class="left-side-p">Fee:</p>
             {!selectProvider.value && !selectProvider ? <p>...</p> :

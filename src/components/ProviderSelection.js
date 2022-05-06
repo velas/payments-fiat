@@ -24,7 +24,11 @@ const stringified_valid = queryString.stringify(valid_address_evm);
 valid_address_evm = stringified_valid.substr(0, 2) === '0x' && parsed.address.length === 42;
 
 const ProviderSelection = (props) => {
-  const [selectProvider, setSelectProvider] = useState("")
+  const [selectProvider, setSelectProvider] = useState([]);
+  useEffect(() => {
+    localStorage.setItem('storageProvider', selectProvider.value ? JSON.stringify(selectProvider.value) : null);
+  }, [selectProvider]);
+
   const location = useGeoLocation();
   
   function checkArray(arr, val) {
@@ -52,7 +56,7 @@ const ProviderSelection = (props) => {
 
 
   const onSubmit = () => {
-    props.history.push(`/provider/2?${stringified}&provider=${selectProvider.value}`);
+    props.history.push(`/provider/2?${stringified}`);
   };
   if (!parsed.address || !parsed.crypto_currency || !parsed.env)
     return <EmptyView />;
