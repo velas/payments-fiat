@@ -150,7 +150,6 @@ const PaymentDetails = (props) => {
   const stringified_valid = queryString.stringify(valid_address_evm);
   valid_address_evm = stringified_valid.substr(0, 2);
 
-  // const [selected, setSelected] = useState(valid ? 'VLX(NATIVE)' : valid_address_evm === '0x' ? 'VLX(EVM)' : 'VLX');
   const [selected, setSelected] = useState(valid ? 'VLX(EVM)' : valid_address_evm === '0x' ? 'VLX(EVM)' : 'VLX(NATIVE)');
 
   let total_amount_usd = null;
@@ -236,33 +235,29 @@ const PaymentDetails = (props) => {
     disableWalletAddressForm: true,
   });
 
-  // transak.on(transak.ALL_EVENTS, (data) => {
-  //     console.log(data)
-  // });
-
-  transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
-    setWidget(true);
-  });
-  transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
-    setWidget(false);
-  });
-
-  transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
-    // console.log('data', data.status.status);
-    transak.close();
-    window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
-  });
-  transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
-    transak.close();
-    window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
-  });
-  transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
-    transak.close();
-    window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
-  });
-
   const onSubmitTransak = () => {
+    
+    transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
+      setWidget(true);
+    });
+    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
+      setWidget(false);
+    });
+    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
+      // console.log('data', data.status.status);
+      transak.close();
+      window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
+    });
+    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
+      transak.close();
+      window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
+    });
+    transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
+      transak.close();
+      window.location.href = `${global.location.origin}/provider/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status)}`;
+    });
     transak.init();
+
   }
   const onSubmit = (event) => {
     event.returnValue = false;
