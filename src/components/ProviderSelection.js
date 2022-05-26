@@ -12,7 +12,6 @@ import {title_info, body, body_transak, body_utorg } from "./InfoMsg"
 
 const parsed = queryString.parse(global.location.search);
 const stringified = queryString.stringify(parsed);
-// console.log('stringified', stringified)
 
 let valid_address_evm = queryString.parse(parsed.address);
 const stringified_valid = queryString.stringify(valid_address_evm);
@@ -117,7 +116,7 @@ const ProviderSelection = (props) => {
   var address = parsed.address;
   const addressCut = address.substring(0, 8) + "..." + address.substring(35);
   return (
-    <Form className="form mt-5" onSubmit={onSubmit}>
+    <Form className="form mt-5 select-provider" onSubmit={onSubmit}>
       <motion.div
         className="col-md-10 offset-md-1"
         initial={{ x: "-5vw" }}

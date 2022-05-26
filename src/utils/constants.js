@@ -1,6 +1,7 @@
 export const BASE_API_URL = '/api/v1/simplex';
 export const TICKER_URL = 'https://explorer.velas.com/ticker';
 export const TICKER_URL_FIXER = 'https://buy.velas.com/api/v1/rates';
+
 export const REDIRECT_URIS = {
   wallet_mainnet: 'https://wallet.velas.com/',
   wallet_testnet: 'https://wallet.testnet.velas.com/',
@@ -9,6 +10,16 @@ export const REDIRECT_URIS = {
 export const SIMPLEX_PAYMENT_URIS = {
   testnet: 'https://sandbox.test-simplexcc.com/payments/new',
   mainnet: 'https://checkout.simplexcc.com/payments/new',
+}
+
+export const UTORG_DOMAIN = {
+  testnet: 'https://app-stage.utorg.pro',
+  mainnet: 'https://app.utorg.pro',
+}
+
+export const UTORG_PAYMENT_URIS = {
+  testnet: 'https://app-stage.utorg.pro/api/merchant/v1/order/init',
+  mainnet: 'https://app.utorg.pro/api/merchant/v1/order/init',
 }
 
 export const TRANSAK_API_KEY = {

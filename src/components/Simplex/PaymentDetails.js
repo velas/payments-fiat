@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import {
   SIMPLEX_PAYMENT_URIS,
+  UTORG_PAYMENT_URIS,
   BASE_API_URL,
   TICKER_URL,
   REDIRECT_URIS,
@@ -26,7 +27,7 @@ import { BsInfoCircle } from "react-icons/bs";
 import transakSDK from "@transak/transak-sdk";
 import useGeoLocation from "react-ipgeolocation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
-import {title_info, body, body_transak, body_utorg } from "../InfoMsg"
+import { title_info, body, body_transak, body_utorg } from "../InfoMsg";
 
 const parsed = queryString.parse(global.location.search);
 // console.log('parsed', parsed)
@@ -186,13 +187,14 @@ const PaymentDetails = (props) => {
   let valid_address_evm = queryString.parse(parsed.address || address);
   const stringified_valid = queryString.stringify(valid_address_evm);
   valid_address_evm = stringified_valid.substr(0, 2);
+  const crypto_currency = (parsed.crypto_currency || "").toLowerCase();
 
   const [selected, setSelected] = useState(
     valid
       ? "VLX(EVM)"
-      : parsed.crypto_currency === "VLX" && valid_address_evm === "0x"
+      : crypto_currency === "vlx" && valid_address_evm === "0x"
       ? "VLX(EVM)"
-      : "VLX(NATIVE)" && parsed.crypto_currency === "VLX_USDV"
+      : "VLX(NATIVE)" && crypto_currency === "vlx_usdv"
       ? "VLX(USDV)"
       : "VLX(NATIVE)"
   );
@@ -226,12 +228,12 @@ const PaymentDetails = (props) => {
 
   if (tickerData) {
     const rate =
-      selected === "VLX(USDV)" || parsed.crypto_currency === "VLX_USDV"
+      selected === "VLX(USDV)" || crypto_currency === "vlx_usdv"
         ? usdv_price
         : tickerData[
             valid
               ? "price_usd"
-              : parsed.crypto_currency === "VLX"
+              : crypto_currency === "vlx"
               ? "price_usd"
               : `${parsed.crypto_currency}_price`
           ];
@@ -430,26 +432,100 @@ const PaymentDetails = (props) => {
     if (checkUtorg && valid && selected === "VLX(USDV)") {
       return "USDVEL";
     }
-    if (valid_address_evm === "0x" && parsed.crypto_currency !== "VLX_USDV") {
+    if (valid_address_evm === "0x" && crypto_currency !== "vlx_usdv") {
       return "VLXETH";
     }
-    if (parsed.crypto_currency === "VLX" && valid_address_evm !== "0x") {
+    if (crypto_currency === "vlx" && valid_address_evm !== "0x") {
       return "VLX";
     }
-    if (parsed.crypto_currency === "VLX_USDV") {
+    if (crypto_currency === "vlx_usdv") {
       return "USDVEL";
     }
   };
   const typeUtorg = "FIAT_TO_CRYPTO";
 
-  const onSubmitUtorg = () => {
-    console.log("type", typeUtorg);
-    console.log("currency", validCurrencyForUtorg());
-    console.log("paymentCurrency", selectedFiat || parsed.fiat_currency);
-    console.log("paymentAmount", fromAmount);
-    console.log("externalId", payment_id);
-    console.log("address", valid ? address : parsed.address);
+  const onSubmitUtorg = async () => {
+    const paymentCurrency = (selectedFiat || parsed.fiat_currency).toUpperCase();
+    const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
+    const paymentUrl = UTORG_PAYMENT_URIS[`${network}`];
+    const _address = valid ? address : parsed.address
+
+    const currency = validCurrencyForUtorg();
+    const checkout_url = `${
+      global.location.origin
+    }/provider/utorg/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
+      parsed.env
+    )}`;
+    const error_url = `${
+      global.location.origin
+    }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
+      parsed.env
+    )}`;
+
+    const params = {
+      type: "FIAT_TO_CRYPTO",
+      currency : currency,
+      paymentCurrency : paymentCurrency,
+      paymentAmount : fromAmount,
+      externalId : payment_id,
+      address : _address,
+      email : "",
+      postbackUrl : "https://merchant.com/utorg/callback",
+      successUrl : checkout_url,
+      failUrl : error_url
+    };
+    const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
+
+    const headers = {
+      'Content-Type': 'application/json;charset=UTF-8',
+      'X-AUTH-SID': seed,
+      'X-AUTH-NONCE': Date.now(),
+    };
+
+    //web3 signature
+    //function sha256(string) {
+      //return crypto
+        //.createHash("sha256")
+        //.update(address)
+        //.digest("hex");
+    //}
+
+    //const publicKey = "0x14669e50587b5406b6f8bf64dbb129e564939e1a1f77bff71d210f828dff1f39977086bf388714a3541c13a4aa3e86caf4ccecf6ce0fd8ee445d0c78c173a76a"
+    //const signature = sha256(publicKey);
+    //const link = "https://app-stage.utorg.pro/direct/" + seed + "/" + _address + "/?currency="+currency+"&timestamp="+Date.now()+"&signature="+signature+"&paymentAmount=" + fromAmount + "&successUrl=" + checkout_url;
+    //return window.location.replace(link);
+    // end web3 signature
+    try {
+      const quoteResult = await axios.post(`${paymentUrl}`, params, {headers});
+      console.log({res: quoteResult.data})
+      if (!quoteResult.data.success) return;
+      const { url } = quoteResult.data.data;
+      if (!url) return;
+      window.location.replace(url);
+    } catch (err) {
+      let errMsg = "";
+
+      if (err.response && err.response.data && err.response.data.error) {
+        const errorObj = err.response.data.error.details;
+        if (({}.toString).call(errorObj).slice(8, -1) === 'Array') {
+          errMsg = errorObj.map(it => {
+            const field = Object.keys(it).length ? Object.keys(it)[0] : "";
+            const reason = it[`${field}`] || "Sorry, unexpected error occurred.";
+            return `${field}: ${reason}`;
+          }).join(',');
+        }
+      } else {
+        errMsg = `<p class="info-style">Sorry, unexpected error occurred.`;
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        html: errMsg,
+      });
+    }
   };
+
   const [focusInput, setFocusInput] = useState(false);
   const handleChangeValid = () => {
     setFocusInput(true);
@@ -551,21 +627,30 @@ const PaymentDetails = (props) => {
 
   if ((!valid && !parsed.address) || (!valid && !parsed.crypto_currency))
     return <EmptyView />;
+  const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
+  const action = (
+    function(){
+      switch (selectProvider){
+        case 'Simplex':
+          return SIMPLEX_PAYMENT_URIS[`${network}`];
+        case 'Utorg':
+          return UTORG_PAYMENT_URIS[`${network}`];
+        case 'Transak':
+          return '';
+      }
+    }
+  )();
 
   return (
     <>
       <Form
-        className="input-form mt-3"
+        className="form-step-2 input-form mt-3"
         method="POST"
         ref={formRef}
         onSubmit={
           selectProvider.value === "Simplex" ? onSubmit : onSubmitTransak
         }
-        action={
-          SIMPLEX_PAYMENT_URIS[
-            window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
-          ]
-        }
+        action={action}
       >
         <motion.div
           className="col-md-10 offset-md-1"
@@ -638,7 +723,7 @@ const PaymentDetails = (props) => {
                 </div>
                 {!valid && (
                   <div class="row_notice_sub">
-                    <p class="left-side-p">Pay with:</p>
+                    <p class="left-side-p pay-with">Pay with:</p>
                     <p class="fee-info">
                       {selectProvider ? selectProvider : "..."}
                       {selectProvider && (

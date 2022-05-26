@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import EmptyView from "../components/EmptyView";
 import PaymentDetails from "../components/Simplex/PaymentDetails";
 import ThirdStep from "../components/Simplex/Checkout";
+import UtorgCheckout from "../components/Utorg/Checkout";
 import { motion } from "framer-motion";
 import queryString from "query-string";
 
@@ -34,6 +35,10 @@ const AppRouter = () => {
             <Route
               render={(props) => <ThirdStep {...props} />}
               path="/provider/checkout"
+            />
+            <Route
+              render={(props) => <UtorgCheckout {...props} />}
+              path="/provider/utorg/checkout"
             />
             <Route
               render={(props) => <EmptyView {...props} />}
