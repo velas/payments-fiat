@@ -35,6 +35,8 @@ const vlx_evm = "VLX-EVM";
 const partner_name = "velas";
 const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
 const link_wallet = "https://wallet.velas.com/";
+const DEFAULT_MIN_AMOUNT_USD = 30;
+const DEFAULT_MAX_AMOUNT_USD = 20000;
 
 const CurrencyRow = ({
   onChangeAmount,
@@ -43,9 +45,7 @@ const CurrencyRow = ({
   label,
   selectedRow,
   setSelectedRow,
-  currency1,
-  currency2,
-  currency3,
+  currencies,
   disabled,
   disabledItem,
 }) => {
@@ -64,31 +64,20 @@ const CurrencyRow = ({
           id="dropdown-fiat"
           disabled={disabled}
         >
-          <Dropdown.Item
-            style={{ fontSize: 12 }}
-            href="#"
-            active={selectedRow === currency1}
-            onSelect={() => setSelectedRow(currency1)}
-          >
-            {currency1}
-          </Dropdown.Item>
-          <Dropdown.Item
-            style={{ fontSize: 12 }}
-            href="#"
-            active={selectedRow === currency2}
-            onSelect={() => setSelectedRow(currency2)}
-          >
-            {currency2}
-          </Dropdown.Item>
-          <Dropdown.Item
-            disabled={disabledItem}
-            style={{ fontSize: 12 }}
-            href="#"
-            active={selectedRow === currency3}
-            onSelect={() => setSelectedRow(currency3)}
-          >
-            {currency3}
-          </Dropdown.Item>
+          {
+            (currencies || []).map( it => {
+              return (
+                <Dropdown.Item
+                  style={{ fontSize: 12 }}
+                  href="#"
+                  active={selectedRow === it}
+                  onSelect={() => setSelectedRow(it)}
+                >
+                  {it}
+                </Dropdown.Item>
+              )
+            })
+          }
         </DropdownButton>
       </InputGroup>
     </>
@@ -106,8 +95,8 @@ const PaymentDetails = (props) => {
   }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
     parsed.env
   )}`;
-  const [tickerData, setTickerData] = useState(null);
-  const [tickerEurData, setTickerEurData] = useState(null);
+  const [tickerData, setTickerData] = useState({});
+  const [tickerFiatData, setTickerFiatData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [selectProvider, setSelectProvider] = useState("");
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
@@ -129,19 +118,20 @@ const PaymentDetails = (props) => {
 
   useEffect(() => {
     async function fetchData() {
+      //VLX
       const result = await fetch(TICKER_URL);
-      setTickerData(await result.json());
+      const rates = await result.json();
+
+      // Add rate for usdv token
+      rates.vlx_usdv_price = '1.13';
+      setTickerData(rates);
+
+      //Fiat
+      const fiatData = await fetch(TICKER_URL_FIXER);
+      setTickerFiatData(await fiatData.json());
     }
     fetchData();
-  }, []);
-  useEffect(() => {
-    async function fetchData() {
-      const result_eur = await fetch(TICKER_URL_FIXER);
-      setTickerEurData(await result_eur.json());
-    }
-    fetchData();
-  }, []);
-  useEffect(() => {
+
     let storageProvider = JSON.parse(localStorage.getItem("storageProvider"));
     if (!valid && storageProvider) {
       setSelectProvider(storageProvider);
@@ -150,7 +140,6 @@ const PaymentDetails = (props) => {
     }
   }, []);
 
-  // console.log('selectProviderNew', selectProvider)
 
   const [amount, setAmount] = useState(300); // default value
   const [amountFrom, setAmountFrom] = useState("");
@@ -179,7 +168,6 @@ const PaymentDetails = (props) => {
     setSelectProvider("");
   }
 
-  // console.log('selectedFiat', selectedFiat)
   const handleChange = (e) => {
     setAddress(e.target.value);
   };
@@ -198,95 +186,80 @@ const PaymentDetails = (props) => {
       ? "VLX(USDV)"
       : "VLX(NATIVE)"
   );
-  console.log("selected", selected);
 
-  let total_amount_usd = null;
-  let total_amount_eur = null;
-  let validate_amount_min_eur = null;
-  let validate_amount_max_eur = null; //not included, do it
-  let min_fee_eur = null;
+  let validate_amount_min_eur = 0;
+  let validate_amount_max_eur = 0; //not included, do it
   let toAmount, fromAmount, rate_euro;
   let amount_calc, amountCrypto;
-  let min_usd_valid = null;
-  let min_eur_valid = null;
+  let min_usd_valid = 0;
+  let min_eur_valid = 0;
 
-  const checkMinAmount = () => {
-    if (checkSimplex) {
-      return 50;
-    }
-    if (checkTransak) {
-      return 30;
-    }
-    if (checkUtorg) {
-      return 50;
-    }
+  const minimalAmounts = {
+    Simplex: 50,
+    Transak: 30,
+    Utorg: 50
   };
-  const validate_amount_min_usd = checkMinAmount();
-  const validate_amount_max_usd = 20000;
-  const min_fee_usd = 10;
-  const usdv_price = 1.13;
 
-  if (tickerData) {
-    const rate =
-      selected === "VLX(USDV)" || crypto_currency === "vlx_usdv"
-        ? usdv_price
-        : tickerData[
-            valid
-              ? "price_usd"
-              : crypto_currency === "vlx"
-              ? "price_usd"
-              : `${parsed.crypto_currency}_price`
-          ];
-    // console.log('rate', rate)
-    if (rate) {
-      total_amount_usd = amount * rate;
-    }
+  const MIN_AMOUNT_USD = minimalAmounts[selectProvider] || DEFAULT_MIN_AMOUNT_USD;
+  const MAX_AMOUNT_USD = DEFAULT_MAX_AMOUNT_USD;
 
-    if (tickerEurData) {
-      const rate_eur_usd = tickerEurData["USD"]; // coefficient eur/usd (Fixer)
+  const toUsd = (amount) => {
+    return amount / tickerFiatData["USD"];
+  }
+
+  if (tickerData && tickerFiatData) {
+    const usd_amount_of_1_Euro = tickerFiatData["USD"];
+    const fiatRate = tickerFiatData[selectedFiat]; // cost selected currency in eur
+    const cryptoPriceKey = crypto_currency === "vlx" ? "price_usd" : `${crypto_currency}_price`;
+    const crypto_usd_rate = tickerData[cryptoPriceKey];
+    const crypto_fiat_rate = crypto_usd_rate * toUsd(fiatRate);
+    const FIAT_PER_CRYPTO = selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
+
+    console.log({FIAT_PER_CRYPTO, crypto_usd_rate})
+
+    if (tickerFiatData) {
+      const rate_eur_usd = tickerFiatData["USD"]; // coefficient eur/usd (Fixer)
       if (rate_eur_usd) {
-        total_amount_eur = total_amount_usd / rate_eur_usd;
-        validate_amount_min_eur = validate_amount_min_usd / rate_eur_usd;
-        validate_amount_max_eur = validate_amount_max_usd / rate_eur_usd; // not included, do it
-        min_fee_eur = 10 / rate_eur_usd;
+        validate_amount_min_eur = toUsd(MIN_AMOUNT_USD * fiatRate);
+        validate_amount_max_eur = toUsd(MAX_AMOUNT_USD * fiatRate);  // not included, do it
         rate_euro = rate_eur_usd;
       }
     }
     if (amountInFromCurrency) {
+      //Receive input
       toAmount = amount;
+      fromAmount = (FIAT_PER_CRYPTO * amount).toFixed(2);
 
-      fromAmount = (
-        selectedFiat === "USD" ? amount * rate : (amount * rate) / rate_euro
-      ).toFixed(2);
       if (amountTo) {
         amount_calc = toAmount;
       }
     } else {
+      // Pay Input
+      const amountReceive = (amountFrom / FIAT_PER_CRYPTO).toFixed(2);
       fromAmount = amountFrom;
-      toAmount = (
-        selectedFiat === "USD"
-          ? amountFrom / rate
-          : (amountFrom / rate) * rate_euro
-      ).toFixed(2);
+      toAmount = amountReceive;
+
       if (amountTo) {
-        amount_calc = toAmount;
+        amount_calc = amountReceive;
       }
     }
 
     amountCrypto = amountTo ? amount_calc : amount;
 
-    min_usd_valid = amountCrypto * rate < validate_amount_min_usd;
+    min_usd_valid = amountCrypto * crypto_usd_rate < MIN_AMOUNT_USD;
     min_eur_valid =
-      (amountCrypto * rate) / rate_euro < validate_amount_min_usd / rate_euro;
+      (amountCrypto * crypto_usd_rate) / rate_euro < MIN_AMOUNT_USD / rate_euro;
   }
 
   const handleFromAmountChange = (e) => {
+    if (e.target.value < 0) return;
     setAmountFrom(e.target.value);
     setAmountInFromCurrency(false);
     setAmountTo(true);
   };
 
   const handleToAmountChange = (e) => {
+    if (e.target.value < 0) return;
     setAmount(e.target.value);
     setAmountInFromCurrency(true);
     setAmountTo(false);
@@ -609,7 +582,6 @@ const PaymentDetails = (props) => {
       </div>
     );
   };
-  console.log("selectProvider", selectProvider.value);
 
   const valid_btn =
     amountCrypto <= 0 ||
@@ -668,8 +640,7 @@ const PaymentDetails = (props) => {
                   label={"Pay"}
                   selectedRow={selectedFiat}
                   setSelectedRow={setSelectedFiat}
-                  currency1={"USD"}
-                  currency2={"EUR"}
+                  currencies={["USD","EUR","UAH","AUD","PLN","GBP"]} //TODO: retrieve data from new supportedCurrencies object
                   disabled={checkTransak && true}
                 />
               </span>
@@ -711,9 +682,9 @@ const PaymentDetails = (props) => {
                       }
                     >
                       {" "}
-                      ~ {selectedFiat === "USD" ? "$" : "€"}
+                      ~
                       {selectedFiat === "USD"
-                        ? validate_amount_min_usd
+                        ? MIN_AMOUNT_USD
                         : Math.round(validate_amount_min_eur)}{" "}
                       {selectedFiat || parsed.fiat_currency}
                     </p>
