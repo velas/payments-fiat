@@ -29,14 +29,16 @@ import useGeoLocation from "react-ipgeolocation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
 import { title_info, body, body_transak, body_utorg } from "../InfoMsg";
 
-const parsed = queryString.parse(global.location.search);
-// console.log('parsed', parsed)
 const vlx_evm = "VLX-EVM";
-const partner_name = "velas";
-const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
-const link_wallet = "https://wallet.velas.com/";
+const PARTNER_NAME = "velas";
+const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
 const DEFAULT_MIN_AMOUNT_USD = 30;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
+const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
+
+const parsed = queryString.parse(global.location.search);
+const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
+
 
 const CurrencyRow = ({
   onChangeAmount,
@@ -141,11 +143,11 @@ const PaymentDetails = (props) => {
   }, []);
 
 
-  const [amount, setAmount] = useState(300); // default value
+  const [amount, setAmount] = useState(DEFAULT_RECEIVE_CRYPTO_AMOUNT);
   const [amountFrom, setAmountFrom] = useState("");
   const [amountTo, setAmountTo] = useState("");
   const [address, setAddress] = useState("");
-  let [selectedFiat, setSelectedFiat] = useState("USD");
+  const [selectedFiat, setSelectedFiat] = useState("USD");
   const [widget, setWidget] = useState(false);
 
   const checkTransak =
@@ -516,7 +518,7 @@ const PaymentDetails = (props) => {
     return (
       <>
         <Form.Label class="left-side-p">{selected} address</Form.Label>
-        <a href={link_wallet} class="active link_btn" target="_blank">
+        <a href={VELAS_WALLET_DOMAIN} class="active link_btn" target="_blank">
           Don't have one?
         </a>
         <InputGroup className="mb-3">
@@ -721,7 +723,7 @@ const PaymentDetails = (props) => {
             {isLoading || widget ? "Loading..." : "Buy"}
           </Button>
           <input type="hidden" name="version" value="1" />
-          <input type="hidden" name="partner" value={partner_name} />
+          <input type="hidden" name="partner" value={PARTNER_NAME} />
           <input type="hidden" name="payment_flow_type" value="wallet" />
           <input type="hidden" name="return_url_success" value={checkout_url} />
           <input type="hidden" name="return_url_fail" value={error_url} />
