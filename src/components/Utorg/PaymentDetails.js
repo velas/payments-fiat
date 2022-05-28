@@ -240,62 +240,6 @@ const PaymentDetails = (props) => {
 
   const formRef = useRef(null);
 
-  const onSubmit = (event) => {
-    event.returnValue = false;
-    setIsLoading(false);
-    onSubmit_();
-    return false;
-  };
-
-  const onSubmit_ = async () => {
-    setIsLoading(true);
-
-    try {
-      const params = {
-        crypto_currency: valid
-          ? selected === "VLX(EVM)"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
-        fiat_currency: selectedFiat || parsed.fiat_currency,
-        crypto_amount: Number(amountCrypto),
-        address: valid ? address : parsed.address,
-      };
-      const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
-
-      if (quoteResult.data.error) throw new Error(quoteResult.data.error);
-
-      const paramsPayment = {
-        quote_id: quoteResult.data.quote_id,
-        address: valid ? address : parsed.address,
-        payment_id: payment_id,
-        crypto_currency: valid
-          ? selected === "VLX(EVM)"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
-      };
-
-      const paymentResult = await axios.post(
-        `${BASE_API_URL}/payment`,
-        paramsPayment
-      );
-      if (paymentResult.data.error) throw new Error(paymentResult.data.error);
-
-      formRef.current.submit();
-    } catch (e) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: e.response?.data || e.message,
-      });
-      setIsLoading(false);
-    }
-  };
   const validCurrencyForUtorg = () => {
     if (valid && selected === "VLX(EVM)") {
       return "VLXETH";
