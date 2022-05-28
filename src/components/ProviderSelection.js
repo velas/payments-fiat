@@ -20,12 +20,6 @@ valid_address_evm =
 
 const ProviderSelection = (props) => {
   const [selectProvider, setSelectProvider] = useState([]);
-  useEffect(() => {
-    localStorage.setItem(
-      "storageProvider",
-      selectProvider.value ? JSON.stringify(selectProvider.value) : null
-    );
-  }, [selectProvider]);
 
   const location = useGeoLocation();
 
@@ -41,7 +35,7 @@ const ProviderSelection = (props) => {
   }
   const checkCountry = checkArray(countries_low_fee, location.country);
   const checkCountry1 = checkArray1(countries_high_fee, location.country);
-  if (selectProvider.value === "Transak" && !checkCountry && !checkCountry1) {
+  if (selectProvider.value === "transak" && location.country && !checkCountry && !checkCountry1) {
     Swal.fire({
       icon: "info",
       title: "Oops...",
@@ -50,52 +44,47 @@ const ProviderSelection = (props) => {
     setSelectProvider("");
   }
   const valid_btn = !selectProvider.value;
-  // console.log('selectProvider.value', selectProvider.value)
 
   const onSubmit = () => {
-    props.history.push(`/provider/2?${stringified}`);
+    props.history.push(`/provider/${selectProvider.value}/?${stringified}`);
   };
   if (!parsed.address || !parsed.crypto_currency || !parsed.env)
     return <EmptyView />;
 
-  const checkProvider = () => {
-    if (selectProvider.value === "Simplex") {
-      return body;
-    }
-
-    if (selectProvider.value === "Transak") {
-      return body_transak;
-    }
-
-    if (selectProvider.value === "Utorg") {
-      return body_utorg;
-    }
+  const providerInfo = {
+    simplex: body,
+    transak: body_transak,
+    utorg: body_utorg
   };
+
   const onInfo = () => {
     Swal.fire({
       icon: "info",
       title: title_info,
-      html: checkProvider(),
+      html: providerInfo[selectProvider.value],
     });
   };
+
   const options = [
     {
-      value: "Simplex",
+      value: "simplex",
       label: "Simplex (Visa/MC)",
-      disabled: parsed.crypto_currency === "VLX_USDV",
     },
     {
-      value: "Transak",
+      value: "transak",
       label: "Transak (Visa/MC)",
-      disabled: parsed.crypto_currency === "VLX_USDV",
     },
-    { value: "Utorg", label: "Utorg (Visa/MC)" },
+    {
+      value: "utorg",
+      label: "Utorg (Visa/MC)"
+    },
   ];
+
   const Provider = (props) => {
     return (
       <div style={props.style}>
         <Form.Label class="left-side-p">
-          Pay with {selectProvider.value}
+          Pay with <span className="selected-provider" style={{textTransform: "capitalize"}}>{selectProvider.value}</span>
           {selectProvider.value && (
             <BsInfoCircle onClick={onInfo} className="info-icon" />
           )}

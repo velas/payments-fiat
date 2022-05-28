@@ -1,9 +1,4 @@
-import React, {
-  useState,
-  useMemo,
-  useRef,
-  useEffect
-} from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Form,
   Button,
@@ -15,12 +10,11 @@ import {
 import { motion } from "framer-motion";
 import axios from "axios";
 import {
-  SIMPLEX_PAYMENT_URIS,
+  UTORG_PAYMENT_URIS,
   BASE_API_URL,
   TICKER_URL,
   REDIRECT_URIS,
   TICKER_URL_FIXER,
-  TRANSAK_API_KEY,
 } from "../../utils/constants";
 import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
@@ -28,15 +22,14 @@ import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import Select from "react-select";
 import { BsInfoCircle } from "react-icons/bs";
-import transakSDK from "@transak/transak-sdk";
 import useGeoLocation from "react-ipgeolocation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
-import { title_info, body, body_transak } from "../InfoMsg";
+import { title_info, body, body_utorg } from "../InfoMsg";
 
 const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
-const DEFAULT_MIN_AMOUNT_USD = 30;
+const DEFAULT_MIN_AMOUNT_USD = 50;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
 const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 
@@ -105,6 +98,9 @@ const PaymentDetails = (props) => {
   const [tickerFiatData, setTickerFiatData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
+  const pathsName = global.location.pathname.split("/provider/")[1].split("/");
+  const selectProvider = pathsName[0];
+  console.log({selectProvider})
 
   const location = useGeoLocation();
 
@@ -120,9 +116,6 @@ const PaymentDetails = (props) => {
   }
   const checkCountry = checkArray(countries_low_fee, location.country);
   const checkCountry1 = checkArray1(countries_high_fee, location.country);
-
-  const pathsName = global.location.pathname.split("/provider/")[1].split("/");
-  const selectProvider = pathsName[0];
 
   useEffect(() => {
     async function fetchData() {
@@ -142,6 +135,7 @@ const PaymentDetails = (props) => {
 
     //cleanup
     localStorage.removeItem("storageProvider");
+
   }, []);
 
 
@@ -149,23 +143,8 @@ const PaymentDetails = (props) => {
   const [amountFrom, setAmountFrom] = useState("");
   const [amountTo, setAmountTo] = useState("");
   const [address, setAddress] = useState("");
-  let [selectedFiat, setSelectedFiat] = useState("USD");
+  const [selectedFiat, setSelectedFiat] = useState("USD");
   const [widget, setWidget] = useState(false);
-
-  const checkTransak = selectProvider === "transak";
-  const checkSimplex = selectProvider === "simplex";
-
-  if (checkTransak) {
-    selectedFiat = "EUR"; //default value
-  }
-
-  if (selectProvider === "transak" && location.country && !checkCountry && !checkCountry1) {
-    Swal.fire({
-      icon: "info",
-      title: "Oops...",
-      html: `<p class="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
-    });
-  }
 
   const handleChange = (e) => {
     setAddress(e.target.value);
@@ -193,12 +172,8 @@ const PaymentDetails = (props) => {
   let min_usd_valid = 0;
   let min_eur_valid = 0;
 
-  const minimalAmounts = {
-    Simplex: 50,
-    Transak: 30,
-  };
 
-  const MIN_AMOUNT_USD = minimalAmounts[selectProvider] || DEFAULT_MIN_AMOUNT_USD;
+  const MIN_AMOUNT_USD = DEFAULT_MIN_AMOUNT_USD;
   const MAX_AMOUNT_USD = DEFAULT_MAX_AMOUNT_USD;
 
   const toUsd = (amount) => {
@@ -265,86 +240,14 @@ const PaymentDetails = (props) => {
 
   const formRef = useRef(null);
 
-  let transak = new transakSDK({
-    apiKey:
-      TRANSAK_API_KEY[
-        window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
-      ],
-    environment:
-      window.location.host === "buy.velas.com" ? "PRODUCTION" : "STAGING",
-    walletAddress: valid ? address : parsed.address,
-    themeColor: "#0037c1",
-    fiatCurrency: "EUR",
-    email: "",
-    hostURL: window.location.origin,
-    widgetHeight: "600px",
-    widgetWidth: "100%",
-    hideMenu: true,
-    fiatAmount: fromAmount,
-    defaultPaymentMethod: "credit_debit_card",
-    disablePaymentMethods: "sepa_bank_transfer, gbp_bank_transfer, apple_pay",
-    network: valid
-      ? selected === "VLX(EVM)"
-        ? "velasevm"
-        : "mainnet"
-      : parsed.crypto_currency && valid_address_evm === "0x"
-      ? "velasevm"
-      : "mainnet", //velasevm or mainnet
-    defaultCryptoCurrency: "VLX",
-    cryptoCurrencyCode: "VLX",
-    disableWalletAddressForm: true,
-  });
-
-  const onSubmitTransak = () => {
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
-      setWidget(true);
-    });
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
-      setWidget(false);
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
-      // console.log('data', data.status.status);
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.init();
-  };
   const onSubmit = (event) => {
     event.returnValue = false;
     setIsLoading(false);
     onSubmit_();
     return false;
   };
-  // console.log('amountCrypto', amountCrypto)
 
   const onSubmit_ = async () => {
-    // console.log("payment_id", payment_id);
     setIsLoading(true);
 
     try {
@@ -393,6 +296,108 @@ const PaymentDetails = (props) => {
       setIsLoading(false);
     }
   };
+  const validCurrencyForUtorg = () => {
+    if (valid && selected === "VLX(EVM)") {
+      return "VLXETH";
+    }
+    if (valid && selected === "VLX(NATIVE)") {
+      return "VLX";
+    }
+    if (valid && selected === "VLX(USDV)") {
+      return "USDVEL";
+    }
+    if (valid_address_evm === "0x" && crypto_currency !== "vlx_usdv") {
+      return "VLXETH";
+    }
+    if (crypto_currency === "vlx" && valid_address_evm !== "0x") {
+      return "VLX";
+    }
+    if (crypto_currency === "vlx_usdv") {
+      return "USDVEL";
+    }
+  };
+
+  const onSubmitUtorg = async () => {
+    const paymentCurrency = (selectedFiat || parsed.fiat_currency).toUpperCase();
+    const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
+    const paymentUrl = UTORG_PAYMENT_URIS[`${network}`];
+    const _address = valid ? address : parsed.address
+
+    const currency = validCurrencyForUtorg();
+    const checkout_url = `${
+      global.location.origin
+    }/provider/utorg/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
+      parsed.env
+    )}`;
+    const error_url = `${
+      global.location.origin
+    }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
+      parsed.env
+    )}`;
+
+    const params = {
+      type: "FIAT_TO_CRYPTO",
+      currency : currency,
+      paymentCurrency : paymentCurrency,
+      paymentAmount : fromAmount,
+      externalId : payment_id,
+      address : _address,
+      email : "",
+      postbackUrl : "https://merchant.com/utorg/callback",
+      successUrl : checkout_url,
+      failUrl : error_url
+    };
+    const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
+
+    const headers = {
+      'Content-Type': 'application/json;charset=UTF-8',
+      'X-AUTH-SID': seed,
+      'X-AUTH-NONCE': Date.now(),
+    };
+
+    //web3 signature
+    //function sha256(string) {
+      //return crypto
+        //.createHash("sha256")
+        //.update(address)
+        //.digest("hex");
+    //}
+
+    //const publicKey = "0x14669e50587b5406b6f8bf64dbb129e564939e1a1f77bff71d210f828dff1f39977086bf388714a3541c13a4aa3e86caf4ccecf6ce0fd8ee445d0c78c173a76a"
+    //const signature = sha256(publicKey);
+    //const link = "https://app-stage.utorg.pro/direct/" + seed + "/" + _address + "/?currency="+currency+"&timestamp="+Date.now()+"&signature="+signature+"&paymentAmount=" + fromAmount + "&successUrl=" + checkout_url;
+    //return window.location.replace(link);
+    // end web3 signature
+    try {
+      const quoteResult = await axios.post(`${paymentUrl}`, params, {headers});
+      console.log({res: quoteResult.data})
+      if (!quoteResult.data.success) return;
+      const { url } = quoteResult.data.data;
+      if (!url) return;
+      window.location.replace(url);
+    } catch (err) {
+      let errMsg = "";
+
+      if (err.response && err.response.data && err.response.data.error) {
+        const errorObj = err.response.data.error.details;
+        if (({}.toString).call(errorObj).slice(8, -1) === 'Array') {
+          errMsg = errorObj.map(it => {
+            const field = Object.keys(it).length ? Object.keys(it)[0] : "";
+            const reason = it[`${field}`] || "Sorry, unexpected error occurred.";
+            return `${field}: ${reason}`;
+          }).join(',');
+        }
+      } else {
+        errMsg = `<p class="info-style">Sorry, unexpected error occurred.`;
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        html: errMsg,
+      });
+    }
+  };
 
   const [focusInput, setFocusInput] = useState(false);
   const handleChangeValid = () => {
@@ -428,18 +433,19 @@ const PaymentDetails = (props) => {
     );
   };
 
-  const providerInfo = {
-    simplex: body,
-    transak: body_transak
-  };
-
   const onInfo = () => {
     Swal.fire({
       icon: "info",
       title: title_info,
-      html: providerInfo[selectProvider],
+      html: body_utorg,
     });
   };
+
+  const options = [
+    { value: "Utorg", label: "Utorg (Visa/MC)" },
+  ];
+
+
 
   const valid_btn =
     amountCrypto <= 0 ||
@@ -450,7 +456,7 @@ const PaymentDetails = (props) => {
     min_eur_valid ||
     (valid && selected === "VLX(EVM)" && address.length < 42) ||
     (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
-    (valid && !selectProvider) ||
+    (valid && !selectProvider.value) ||
     widget ||
     !selectProvider ||
     (selected === "VLX(USDV)" && valid_address_evm != "0x");
@@ -459,7 +465,7 @@ const PaymentDetails = (props) => {
     return <EmptyView />;
 
   const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
-  const action = selectProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
+  const action = UTORG_PAYMENT_URIS[`${network}`];
 
   return (
     <>
@@ -467,9 +473,6 @@ const PaymentDetails = (props) => {
         className="form-step-2 input-form mt-3"
         method="POST"
         ref={formRef}
-        onSubmit={
-          selectProvider === "simplex" ? onSubmit : onSubmitTransak
-        }
         action={action}
       >
         <motion.div
@@ -487,8 +490,7 @@ const PaymentDetails = (props) => {
                   label={"Pay"}
                   selectedRow={selectedFiat}
                   setSelectedRow={setSelectedFiat}
-                  currencies={["USD","EUR"]} //TODO: retrieve data from new supportedCurrencies object
-                  disabled={checkTransak && true}
+                  currencies={["USD","EUR","UAH","AUD","PLN","GBP"]} //TODO: retrieve data from new supportedCurrencies object
                 />
               </span>
               <span id="input-amount">
@@ -554,13 +556,8 @@ const PaymentDetails = (props) => {
           </Form.Group>
 
           <Button
-            className="submit-button2"
             variant="primary"
-            onClick={
-              checkSimplex
-                ? onSubmit
-                : onSubmitTransak
-            }
+            onClick={onSubmitUtorg}
             disabled={valid_btn}
           >
             {isLoading || widget ? "Loading..." : "Buy"}

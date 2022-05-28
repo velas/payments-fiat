@@ -4,6 +4,7 @@ import ProviderSelection from "../components/ProviderSelection";
 import Header from "../components/Header";
 import EmptyView from "../components/EmptyView";
 import PaymentDetails from "../components/Simplex/PaymentDetails";
+import PaymentDetailsUtorg from "../components/Utorg/PaymentDetails";
 import ThirdStep from "../components/Simplex/Checkout";
 import UtorgCheckout from "../components/Utorg/Checkout";
 import { motion } from "framer-motion";
@@ -30,7 +31,15 @@ const AppRouter = () => {
             />
             <Route
               render={(props) => <PaymentDetails {...props} />}
-              path="/provider/2"
+              path="/provider/simplex"
+            />
+            <Route
+              render={(props) => <PaymentDetails {...props} />}
+              path="/provider/transak"
+            />
+            <Route
+              render={(props) => <PaymentDetailsUtorg {...props} />}
+              path="/provider/utorg"
             />
             <Route
               render={(props) => <ThirdStep {...props} />}
