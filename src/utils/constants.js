@@ -12,14 +12,19 @@ export const SIMPLEX_PAYMENT_URIS = {
   mainnet: 'https://checkout.simplexcc.com/payments/new',
 }
 
+export const SIMPLEX_DOMAIN = {
+  testnet: 'https://sandbox.test-simplexcc.com',
+  mainnet: 'https://checkout.simplexcc.com',
+}
+
 export const UTORG_DOMAIN = {
   testnet: 'https://app-stage.utorg.pro',
   mainnet: 'https://app.utorg.pro',
 }
 
 export const UTORG_PAYMENT_URIS = {
-  testnet: 'https://app-stage.utorg.pro/api/merchant/v1/order/init',
-  mainnet: 'https://app.utorg.pro/api/merchant/v1/order/init',
+  testnet: 'api/merchant/v1/order/init',
+  mainnet: 'api/merchant/v1/order/init',
 }
 
 export const TRANSAK_API_KEY = {

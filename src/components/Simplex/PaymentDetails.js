@@ -17,6 +17,7 @@ import axios from "axios";
 import {
   SIMPLEX_PAYMENT_URIS,
   BASE_API_URL,
+  SIMPLEX_DOMAIN,
   TICKER_URL,
   TICKER_URL_FIXER,
   TRANSAK_API_KEY,
@@ -39,7 +40,8 @@ const DEFAULT_MAX_AMOUNT_USD = 20000;
 const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 
 const parsed = queryString.parse(global.location.search);
-const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
+const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
+const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
 
 
 const CurrencyRow = ({
@@ -176,7 +178,7 @@ const PaymentDetails = (props) => {
   const crypto_currency = (parsed.crypto_currency || "").toLowerCase();
 
   const [selected, setSelected] = useState(
-    valid
+    ALL_REQUIRED_PARAMS_MISSED
       ? "VLX(EVM)"
       : crypto_currency === "vlx" && valid_address_evm === "0x"
       ? "VLX(EVM)"
@@ -201,14 +203,14 @@ const PaymentDetails = (props) => {
   const MAX_AMOUNT_USD = DEFAULT_MAX_AMOUNT_USD;
 
   const toUsd = (amount) => {
-    return amount / tickerFiatData["USD"];
+    return amount / (tickerFiatData["USD"] || 1);
   }
 
   if (tickerData && tickerFiatData) {
     const usd_amount_of_1_Euro = tickerFiatData["USD"];
-    const fiatRate = tickerFiatData[selectedFiat]; // cost selected currency in eur
+    const fiatRate = tickerFiatData[`${selectedFiat}`] || 0;
     const cryptoPriceKey = crypto_currency === "vlx" ? "price_usd" : `${crypto_currency}_price`;
-    const crypto_usd_rate = tickerData[cryptoPriceKey];
+    const crypto_usd_rate = tickerData[`${cryptoPriceKey}`] || 0;
     const crypto_fiat_rate = crypto_usd_rate * toUsd(fiatRate);
     const FIAT_PER_CRYPTO = selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
 
@@ -271,7 +273,7 @@ const PaymentDetails = (props) => {
       ],
     environment:
       window.location.host === "buy.velas.com" ? "PRODUCTION" : "STAGING",
-    walletAddress: valid ? address : parsed.address,
+    walletAddress: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
     themeColor: "#0037c1",
     fiatCurrency: "EUR",
     email: "",
@@ -282,7 +284,7 @@ const PaymentDetails = (props) => {
     fiatAmount: fromAmount,
     defaultPaymentMethod: "credit_debit_card",
     disablePaymentMethods: "sepa_bank_transfer, gbp_bank_transfer, apple_pay",
-    network: valid
+    network: ALL_REQUIRED_PARAMS_MISSED
       ? selected === "VLX(EVM)"
         ? "velasevm"
         : "mainnet"
@@ -348,7 +350,7 @@ const PaymentDetails = (props) => {
 
     try {
       const params = {
-        crypto_currency: valid
+        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
           ? selected === "VLX(EVM)"
             ? "VLX-EVM"
             : "VLX"
@@ -357,17 +359,18 @@ const PaymentDetails = (props) => {
           : parsed.crypto_currency,
         fiat_currency: selectedFiat || parsed.fiat_currency,
         crypto_amount: Number(amountCrypto),
-        address: valid ? address : parsed.address,
+        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
       };
-      const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
+      const domain = SIMPLEX_DOMAIN[network];
+      const quoteResult = await axios.post(`${domain}${BASE_API_URL}/quote`, params);
 
       if (quoteResult.data.error) throw new Error(quoteResult.data.error);
 
       const paramsPayment = {
         quote_id: quoteResult.data.quote_id,
-        address: valid ? address : parsed.address,
+        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
         payment_id: payment_id,
-        crypto_currency: valid
+        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
           ? selected === "VLX(EVM)"
             ? "VLX-EVM"
             : "VLX"
@@ -377,7 +380,7 @@ const PaymentDetails = (props) => {
       };
 
       const paymentResult = await axios.post(
-        `${BASE_API_URL}/payment`,
+        `${domain}${BASE_API_URL}/payment`,
         paramsPayment
       );
       if (paymentResult.data.error) throw new Error(paymentResult.data.error);
@@ -402,8 +405,8 @@ const PaymentDetails = (props) => {
     !address ||
     (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
-    (valid && selected === "VLX(EVM)" && address.length < 42) ||
-    (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(EVM)" && address.length < 42) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(NATIVE)" && address.length < 44) ||
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
@@ -442,22 +445,21 @@ const PaymentDetails = (props) => {
 
   const valid_btn =
     amountCrypto <= 0 ||
-    (valid && !address) ||
+    (ALL_REQUIRED_PARAMS_MISSED && !address) ||
     (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
     min_usd_valid ||
     min_eur_valid ||
-    (valid && selected === "VLX(EVM)" && address.length < 42) ||
-    (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
-    (valid && !selectProvider) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(EVM)" && address.length < 42) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(NATIVE)" && address.length < 44) ||
+    (ALL_REQUIRED_PARAMS_MISSED && !selectProvider) ||
     widget ||
     !selectProvider ||
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
-  if ((!valid && !parsed.address) || (!valid && !parsed.crypto_currency))
+  if ((!ALL_REQUIRED_PARAMS_MISSED && !parsed.address) || (!ALL_REQUIRED_PARAMS_MISSED && !parsed.crypto_currency))
     return <EmptyView />;
 
-  const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
   const action = selectProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
 
   return (
@@ -501,12 +503,12 @@ const PaymentDetails = (props) => {
                   currency1={"VLX(EVM)"}
                   currency2={"VLX(NATIVE)"}
                   currency3={"VLX(USDV)"}
-                  disabled={!valid && true}
+                  disabled={!ALL_REQUIRED_PARAMS_MISSED && true}
                 />
               </span>
             </div>
 
-            {valid && inputAddress()}
+            {ALL_REQUIRED_PARAMS_MISSED && inputAddress()}
 
             {selectedFiat && (
               <>
@@ -537,7 +539,7 @@ const PaymentDetails = (props) => {
                     <p>...</p>
                   )}
                 </div>
-                {!valid && (
+                {!ALL_REQUIRED_PARAMS_MISSED && (
                   <div className="row_notice_sub">
                     <p className="left-side-p pay-with">Pay with:</p>
                     <p className="fee-info" style={{textTransform: "capitalize"}}>
