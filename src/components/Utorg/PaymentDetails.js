@@ -11,27 +11,37 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import {
   UTORG_PAYMENT_URIS,
-  BASE_API_URL,
   TICKER_URL,
-  REDIRECT_URIS,
   TICKER_URL_FIXER,
 } from "../../utils/constants";
 import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
-import Select from "react-select";
 import { BsInfoCircle } from "react-icons/bs";
-import useGeoLocation from "react-ipgeolocation";
-import { countries_low_fee, countries_high_fee } from "../../utils/countries";
-import { title_info, body, body_utorg } from "../InfoMsg";
+import { title_info, body_utorg } from "../InfoMsg";
 
-const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
 const DEFAULT_MIN_AMOUNT_USD = 50;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
 const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
+const SUPPORTED_CURRENCIES = [
+  "AUD",
+  "BRL",
+  "CAD",
+  "CZK",
+  "DKK",
+  "EUR",
+  "GBP",
+  "KZT",
+  "NOK",
+  "NZD",
+  "PLN",
+  "SEK",
+  "UAH",
+  "USD",
+];
 
 const parsed = queryString.parse(global.location.search);
 const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
@@ -50,7 +60,7 @@ const CurrencyRow = ({
 }) => {
   return (
     <>
-      <Form.Label class="left-side-p">{label}</Form.Label>
+      <Form.Label className="left-side-p">{label}</Form.Label>
       <InputGroup>
         <FormControl
           value={amount}
@@ -67,6 +77,7 @@ const CurrencyRow = ({
             (currencies || []).map( it => {
               return (
                 <Dropdown.Item
+                  key={it}
                   style={{ fontSize: 12 }}
                   href="#"
                   active={selectedRow === it}
@@ -96,26 +107,10 @@ const PaymentDetails = (props) => {
   )}`;
   const [tickerData, setTickerData] = useState({});
   const [tickerFiatData, setTickerFiatData] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
   const pathsName = global.location.pathname.split("/provider/")[1].split("/");
   const selectProvider = pathsName[0];
   console.log({selectProvider})
-
-  const location = useGeoLocation();
-
-  function checkArray(arr, val) {
-    return arr.some(function (arrVal) {
-      return val === arrVal;
-    });
-  }
-  function checkArray1(arr, val) {
-    return arr.some(function (arrVal) {
-      return val === arrVal;
-    });
-  }
-  const checkCountry = checkArray(countries_low_fee, location.country);
-  const checkCountry1 = checkArray1(countries_high_fee, location.country);
 
   useEffect(() => {
     async function fetchData() {
@@ -144,7 +139,6 @@ const PaymentDetails = (props) => {
   const [amountTo, setAmountTo] = useState("");
   const [address, setAddress] = useState("");
   const [selectedFiat, setSelectedFiat] = useState("USD");
-  const [widget, setWidget] = useState(false);
 
   const handleChange = (e) => {
     setAddress(e.target.value);
@@ -332,7 +326,7 @@ const PaymentDetails = (props) => {
           }).join(',');
         }
       } else {
-        errMsg = `<p class="info-style">Sorry, unexpected error occurred.`;
+        errMsg = `<p className="info-style">Sorry, unexpected error occurred.`;
       }
 
       Swal.fire({
@@ -350,17 +344,17 @@ const PaymentDetails = (props) => {
 
   const validForm =
     !address ||
-    (selected === "VLX(EVM)" && valid_address_evm != "0x") ||
+    (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
     (valid && selected === "VLX(EVM)" && address.length < 42) ||
     (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
-    (selected === "VLX(USDV)" && valid_address_evm != "0x");
+    (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
     return (
       <>
-        <Form.Label class="left-side-p">{selected} address</Form.Label>
-        <a href={VELAS_WALLET_DOMAIN} class="active link_btn" target="_blank">
+        <Form.Label className="left-side-p">{selected} address</Form.Label>
+        <a href={VELAS_WALLET_DOMAIN} className="active link_btn" target="_blank" rel="noreferrer">
           Don't have one?
         </a>
         <InputGroup className="mb-3">
@@ -385,25 +379,18 @@ const PaymentDetails = (props) => {
     });
   };
 
-  const options = [
-    { value: "Utorg", label: "Utorg (Visa/MC)" },
-  ];
-
-
-
   const valid_btn =
     amountCrypto <= 0 ||
     (valid && !address) ||
-    (selected === "VLX(EVM)" && valid_address_evm != "0x") ||
+    (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
     min_usd_valid ||
     min_eur_valid ||
     (valid && selected === "VLX(EVM)" && address.length < 42) ||
     (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
     (valid && !selectProvider.value) ||
-    widget ||
     !selectProvider ||
-    (selected === "VLX(USDV)" && valid_address_evm != "0x");
+    (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
   if ((!valid && !parsed.address) || (!valid && !parsed.crypto_currency))
     return <EmptyView />;
@@ -414,7 +401,7 @@ const PaymentDetails = (props) => {
   return (
     <>
       <Form
-        className="form-step-2 input-form mt-3"
+        className="form-step-2 pay-form input-form mt-3"
         method="POST"
         ref={formRef}
         action={action}
@@ -434,7 +421,7 @@ const PaymentDetails = (props) => {
                   label={"Pay"}
                   selectedRow={selectedFiat}
                   setSelectedRow={setSelectedFiat}
-                  currencies={["USD","EUR","UAH","AUD","PLN","GBP"]} //TODO: retrieve data from new supportedCurrencies object
+                  currencies={SUPPORTED_CURRENCIES} //TODO: retrieve data from new supportedCurrencies object
                 />
               </span>
               <span id="input-amount">
@@ -457,11 +444,11 @@ const PaymentDetails = (props) => {
 
             {selectedFiat && (
               <>
-                <div class="row_notice_sub">
-                  <p class="left-side-p">Minimum purchase amount:</p>
+                <div className="row_notice_sub">
+                  <p className="left-side-p">Minimum purchase amount:</p>
                   {selectProvider ? (
                     <p
-                      class={
+                      className={
                         amount
                           ? selectedFiat === "USD"
                             ? min_usd_valid
@@ -485,9 +472,9 @@ const PaymentDetails = (props) => {
                   )}
                 </div>
                 {!valid && (
-                  <div class="row_notice_sub">
-                    <p class="left-side-p pay-with">Pay with:</p>
-                    <p class="fee-info" style={{textTransform: "capitalize"}}>
+                  <div className="row_notice_sub">
+                    <p className="left-side-p pay-with">Pay with:</p>
+                    <p className="fee-info" style={{textTransform: "capitalize"}}>
                       {selectProvider ? selectProvider : "..."}
                       {selectProvider && (
                         <BsInfoCircle onClick={onInfo} className="info-icon" />
@@ -504,7 +491,7 @@ const PaymentDetails = (props) => {
             onClick={onSubmitUtorg}
             disabled={valid_btn}
           >
-            {isLoading || widget ? "Loading..." : "Buy"}
+            {"Buy"}
           </Button>
           <input type="hidden" name="version" value="1" />
           <input type="hidden" name="partner" value={PARTNER_NAME} />

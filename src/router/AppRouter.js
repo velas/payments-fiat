@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import ProviderSelection from "../components/ProviderSelection";
 import Header from "../components/Header";

@@ -18,7 +18,6 @@ import {
   SIMPLEX_PAYMENT_URIS,
   BASE_API_URL,
   TICKER_URL,
-  REDIRECT_URIS,
   TICKER_URL_FIXER,
   TRANSAK_API_KEY,
 } from "../../utils/constants";
@@ -26,7 +25,6 @@ import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
-import Select from "react-select";
 import { BsInfoCircle } from "react-icons/bs";
 import transakSDK from "@transak/transak-sdk";
 import useGeoLocation from "react-ipgeolocation";
@@ -57,7 +55,7 @@ const CurrencyRow = ({
 }) => {
   return (
     <>
-      <Form.Label class="left-side-p">{label}</Form.Label>
+      <Form.Label className="left-side-p">{label}</Form.Label>
       <InputGroup>
         <FormControl
           value={amount}
@@ -74,6 +72,7 @@ const CurrencyRow = ({
             (currencies || []).map( it => {
               return (
                 <Dropdown.Item
+                  key={it}
                   style={{ fontSize: 12 }}
                   href="#"
                   active={selectedRow === it}
@@ -163,7 +162,7 @@ const PaymentDetails = (props) => {
     Swal.fire({
       icon: "info",
       title: "Oops...",
-      html: `<p class="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
+      html: `<p className="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
     });
   }
 
@@ -401,17 +400,17 @@ const PaymentDetails = (props) => {
 
   const validForm =
     !address ||
-    (selected === "VLX(EVM)" && valid_address_evm != "0x") ||
+    (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
     (valid && selected === "VLX(EVM)" && address.length < 42) ||
     (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
-    (selected === "VLX(USDV)" && valid_address_evm != "0x");
+    (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
     return (
       <>
-        <Form.Label class="left-side-p">{selected} address</Form.Label>
-        <a href={VELAS_WALLET_DOMAIN} class="active link_btn" target="_blank">
+        <Form.Label className="left-side-p">{selected} address</Form.Label>
+        <a href={VELAS_WALLET_DOMAIN} className="active link_btn" target="_blank" rel="noreferrer">
           Don't have one?
         </a>
         <InputGroup className="mb-3">
@@ -444,7 +443,7 @@ const PaymentDetails = (props) => {
   const valid_btn =
     amountCrypto <= 0 ||
     (valid && !address) ||
-    (selected === "VLX(EVM)" && valid_address_evm != "0x") ||
+    (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
     min_usd_valid ||
     min_eur_valid ||
@@ -453,7 +452,7 @@ const PaymentDetails = (props) => {
     (valid && !selectProvider) ||
     widget ||
     !selectProvider ||
-    (selected === "VLX(USDV)" && valid_address_evm != "0x");
+    (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
   if ((!valid && !parsed.address) || (!valid && !parsed.crypto_currency))
     return <EmptyView />;
@@ -511,11 +510,11 @@ const PaymentDetails = (props) => {
 
             {selectedFiat && (
               <>
-                <div class="row_notice_sub">
-                  <p class="left-side-p">Minimum purchase amount:</p>
+                <div className="row_notice_sub">
+                  <p className="left-side-p">Minimum purchase amount:</p>
                   {selectProvider ? (
                     <p
-                      class={
+                      className={
                         amount
                           ? selectedFiat === "USD"
                             ? min_usd_valid
@@ -539,9 +538,9 @@ const PaymentDetails = (props) => {
                   )}
                 </div>
                 {!valid && (
-                  <div class="row_notice_sub">
-                    <p class="left-side-p pay-with">Pay with:</p>
-                    <p class="fee-info" style={{textTransform: "capitalize"}}>
+                  <div className="row_notice_sub">
+                    <p className="left-side-p pay-with">Pay with:</p>
+                    <p className="fee-info" style={{textTransform: "capitalize"}}>
                       {selectProvider ? selectProvider : "..."}
                       {selectProvider && (
                         <BsInfoCircle onClick={onInfo} className="info-icon" />

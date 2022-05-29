@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { motion } from "framer-motion";
 import queryString from "query-string";
@@ -39,7 +39,7 @@ const ProviderSelection = (props) => {
     Swal.fire({
       icon: "info",
       title: "Oops...",
-      html: `<p class="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
+      html: `<p className="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
     });
     setSelectProvider("");
   }
@@ -83,7 +83,7 @@ const ProviderSelection = (props) => {
   const Provider = (props) => {
     return (
       <div style={props.style}>
-        <Form.Label class="left-side-p">
+        <Form.Label className="left-side-p">
           Pay with <span className="selected-provider" style={{textTransform: "capitalize"}}>{selectProvider.value}</span>
           {selectProvider.value && (
             <BsInfoCircle onClick={onInfo} className="info-icon" />
@@ -111,9 +111,9 @@ const ProviderSelection = (props) => {
         initial={{ x: "-5vw" }}
         animate={{ x: 0 }}
       >
-        <div class="container_info">
-          <div class="row_notice">
-            <p class="left-side-p">Currency to buy:</p>
+        <div className="container_info">
+          <div className="row_notice">
+            <p className="left-side-p">Currency to buy:</p>
             <p>
               {parsed.crypto_currency === "VLX_USDV"
                 ? "VLX(USDV)"
@@ -122,8 +122,8 @@ const ProviderSelection = (props) => {
                 : "VLX(NATIVE)"}
             </p>
           </div>
-          <div class="row_notice">
-            <p class="left-side-p">Your address:</p>
+          <div className="row_notice">
+            <p className="left-side-p">Your address:</p>
             <p title={address}>{addressCut}</p>
           </div>
           <Provider />

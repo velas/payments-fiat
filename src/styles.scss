@@ -662,3 +662,10 @@ div.checkbox {
     stroke-dashoffset: -124;
   }
 }
+
+.pay-form {
+  .dropdown-menu {
+    max-height: 250px;
+    overflow-y: scroll;
+  }
+}

@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button } from "react-bootstrap";
-import csc from "country-state-city";
 import axios from "axios";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import queryString from "query-string";
-import io from "socket.io-client";
 import { REDIRECT_URIS, UTORG_DOMAIN } from "../../utils/constants";
 import Copy from "../../images/copy.svg"
-import EmptyView from "../EmptyView";
 
 const [payment_id, env] = global.location.pathname.split("/").slice(4);
 console.log({payment_id, env})
 
 const Checkout = (props) => {
 
-  const { crypto_currency, fiat_currency, crypto_amount, address, debug } = props;
+  const { crypto_currency, fiat_currency, crypto_amount, address } = props;
   const parsed = queryString.parse(global.location.search);
   const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
 
