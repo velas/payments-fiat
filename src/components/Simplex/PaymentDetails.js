@@ -128,16 +128,32 @@ const PaymentDetails = (props) => {
   useEffect(() => {
     async function fetchData() {
       //VLX
-      const result = await fetch(TICKER_URL);
-      const rates = await result.json();
+      try {
+        const result = await fetch(TICKER_URL);
+        const rates = await result.json();
 
-      // Add rate for usdv token
-      rates.vlx_usdv_price = '1.13';
-      setTickerData(rates);
+        // Add rate for usdv token
+        rates.vlx_usdv_price = '1.13';
+        setTickerData(rates);
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
+        });
+      }
 
       //Fiat
-      const fiatData = await fetch(TICKER_URL_FIXER);
-      setTickerFiatData(await fiatData.json());
+      try {
+        const fiatData = await fetch(TICKER_URL_FIXER);
+        setTickerFiatData(await fiatData.json());
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
+        });
+      }
     }
     fetchData();
 
@@ -457,7 +473,7 @@ const PaymentDetails = (props) => {
     !selectProvider ||
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
-  if ((!ALL_REQUIRED_PARAMS_MISSED && !parsed.address) || (!ALL_REQUIRED_PARAMS_MISSED && !parsed.crypto_currency))
+  if ((!ALL_REQUIRED_PARAMS_MISSED && !parsed.address) || (!ALL_REQUIRED_PARAMS_MISSED && !parsed.crypto_currency) || Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0)
     return <EmptyView />;
 
   const action = selectProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
