@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import {
   UTORG_PAYMENT_URIS,
+  UTORG_DOMAIN,
   TICKER_URL,
   TICKER_URL_FIXER,
 } from "../../utils/constants";
@@ -44,8 +45,9 @@ const SUPPORTED_CURRENCIES = [
 ];
 
 const parsed = queryString.parse(global.location.search);
-const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
-
+const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
+const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
+const domain  = UTORG_DOMAIN[`${network}`];
 
 const CurrencyRow = ({
   onChangeAmount,
@@ -107,10 +109,18 @@ const PaymentDetails = (props) => {
   )}`;
   const [tickerData, setTickerData] = useState({});
   const [tickerFiatData, setTickerFiatData] = useState({});
+  const [currencyData, setCurrencyData] = useState({});
+  const [minAmount, setMinAmount] = useState(0);
+  const [maxAmount, setMaxAmount] = useState(0);
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
   const pathsName = global.location.pathname.split("/provider/")[1].split("/");
   const selectProvider = pathsName[0];
-  console.log({selectProvider})
+
+  const [amount, setAmount] = useState(DEFAULT_RECEIVE_CRYPTO_AMOUNT);
+  const [amountFrom, setAmountFrom] = useState("");
+  const [amountTo, setAmountTo] = useState("");
+  const [address, setAddress] = useState("");
+  const [selectedFiat, setSelectedFiat] = useState("USD");
 
   useEffect(() => {
     async function fetchData() {
@@ -125,6 +135,22 @@ const PaymentDetails = (props) => {
       //Fiat
       const fiatData = await fetch(TICKER_URL_FIXER);
       setTickerFiatData(await fiatData.json());
+
+      const currencyResult = await makeQuery({ url: "api/merchant/v1/settings/currency" });
+      if (currencyResult && currencyResult.data && currencyResult.data.data) {
+        const data = currencyResult.data.data;
+        const currData = {};
+        data.forEach( it => {
+          currData[it.currency] = { min: it.withdrawalMin, max: it.withdrawalMax }
+        });
+        setCurrencyData(currData);
+
+        if (currData[`${selectedFiat}`]) {
+          const { min, max } = currData[`${selectedFiat}`];
+          setMinAmount(min);
+          setMaxAmount(max);
+        }
+      }
     }
     fetchData();
 
@@ -133,16 +159,19 @@ const PaymentDetails = (props) => {
 
   }, []);
 
-
-  const [amount, setAmount] = useState(DEFAULT_RECEIVE_CRYPTO_AMOUNT);
-  const [amountFrom, setAmountFrom] = useState("");
-  const [amountTo, setAmountTo] = useState("");
-  const [address, setAddress] = useState("");
-  const [selectedFiat, setSelectedFiat] = useState("USD");
-
   const handleChange = (e) => {
     setAddress(e.target.value);
   };
+
+  const handleSelectFiat = (fiat) => {
+    setSelectedFiat(fiat);
+    const chosenCurrencyData = currencyData[`${fiat}`];
+    if (!chosenCurrencyData)
+      return console.error(`${fiat} was not found in currencyData object.`);
+    const { min, max } = chosenCurrencyData;
+    setMinAmount(min);
+    setMaxAmount(max);
+  }
 
   let valid_address_evm = queryString.parse(parsed.address || address);
   const stringified_valid = queryString.stringify(valid_address_evm);
@@ -150,7 +179,7 @@ const PaymentDetails = (props) => {
   const crypto_currency = (parsed.crypto_currency || "").toLowerCase();
 
   const [selected, setSelected] = useState(
-    valid
+    ALL_REQUIRED_PARAMS_MISSED
       ? "VLX(EVM)"
       : crypto_currency === "vlx" && valid_address_evm === "0x"
       ? "VLX(EVM)"
@@ -159,19 +188,12 @@ const PaymentDetails = (props) => {
       : "VLX(NATIVE)"
   );
 
-  let validate_amount_min_eur = 0;
-  let validate_amount_max_eur = 0; //not included, do it
-  let toAmount, fromAmount, rate_euro;
-  let amount_calc, amountCrypto;
-  let min_usd_valid = 0;
-  let min_eur_valid = 0;
-
-
-  const MIN_AMOUNT_USD = DEFAULT_MIN_AMOUNT_USD;
-  const MAX_AMOUNT_USD = DEFAULT_MAX_AMOUNT_USD;
+  let toAmount, fromAmount;
+  let amountLessThanMin = false;
+  let amountMoreThanMax = false;
 
   const toUsd = (amount) => {
-    return amount / tickerFiatData["USD"];
+    return amount / (tickerFiatData["USD"] || 1);
   }
 
   if (tickerData && tickerFiatData) {
@@ -182,40 +204,23 @@ const PaymentDetails = (props) => {
     const crypto_fiat_rate = crypto_usd_rate * toUsd(fiatRate);
     const FIAT_PER_CRYPTO = selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
 
-    console.log({FIAT_PER_CRYPTO, crypto_usd_rate})
+    //console.log({FIAT_PER_CRYPTO, crypto_usd_rate})
 
-    if (tickerFiatData) {
-      const rate_eur_usd = tickerFiatData["USD"]; // coefficient eur/usd (Fixer)
-      if (rate_eur_usd) {
-        validate_amount_min_eur = toUsd(MIN_AMOUNT_USD * fiatRate);
-        validate_amount_max_eur = toUsd(MAX_AMOUNT_USD * fiatRate);  // not included, do it
-        rate_euro = rate_eur_usd;
-      }
-    }
     if (amountInFromCurrency) {
       //Receive input
       toAmount = amount;
       fromAmount = (FIAT_PER_CRYPTO * amount).toFixed(2);
 
-      if (amountTo) {
-        amount_calc = toAmount;
-      }
     } else {
       // Pay Input
       const amountReceive = (amountFrom / FIAT_PER_CRYPTO).toFixed(2);
       fromAmount = amountFrom;
       toAmount = amountReceive;
 
-      if (amountTo) {
-        amount_calc = amountReceive;
-      }
     }
 
-    amountCrypto = amountTo ? amount_calc : amount;
-
-    min_usd_valid = amountCrypto * crypto_usd_rate < MIN_AMOUNT_USD;
-    min_eur_valid =
-      (amountCrypto * crypto_usd_rate) / rate_euro < MIN_AMOUNT_USD / rate_euro;
+    amountLessThanMin = fromAmount < minAmount;
+    amountMoreThanMax = fromAmount > maxAmount;
   }
 
   const handleFromAmountChange = (e) => {
@@ -235,13 +240,13 @@ const PaymentDetails = (props) => {
   const formRef = useRef(null);
 
   const validCurrencyForUtorg = () => {
-    if (valid && selected === "VLX(EVM)") {
+    if (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(EVM)") {
       return "VLXETH";
     }
-    if (valid && selected === "VLX(NATIVE)") {
+    if (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(NATIVE)") {
       return "VLX";
     }
-    if (valid && selected === "VLX(USDV)") {
+    if (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(USDV)") {
       return "USDVEL";
     }
     if (valid_address_evm === "0x" && crypto_currency !== "vlx_usdv") {
@@ -255,11 +260,23 @@ const PaymentDetails = (props) => {
     }
   };
 
+  const makeQuery = async ({ url, params }) => {
+    const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
+    const headers = {
+      'Content-Type': 'application/json;charset=UTF-8',
+      'X-AUTH-SID': seed,
+      'X-AUTH-NONCE': Date.now(),
+    };
+    const _params = !params ? {} : params;
+
+    const quoteResult = await axios.post(`${domain}/${url}`, _params, { headers });
+    return quoteResult;
+  }
+
   const onSubmitUtorg = async () => {
     const paymentCurrency = (selectedFiat || parsed.fiat_currency).toUpperCase();
-    const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
     const paymentUrl = UTORG_PAYMENT_URIS[`${network}`];
-    const _address = valid ? address : parsed.address
+    const _address = ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address
 
     const currency = validCurrencyForUtorg();
     const checkout_url = `${
@@ -307,15 +324,15 @@ const PaymentDetails = (props) => {
     //return window.location.replace(link);
     // end web3 signature
     try {
-      const quoteResult = await axios.post(`${paymentUrl}`, params, {headers});
-      console.log({res: quoteResult.data})
+      const quoteResult = await makeQuery({ url: `${paymentUrl}`, params });
+//      const quoteResult = await axios.post(`${paymentUrl}`, params, {headers});
       if (!quoteResult.data.success) return;
       const { url } = quoteResult.data.data;
       if (!url) return;
       window.location.replace(url);
     } catch (err) {
       let errMsg = "";
-
+      console.error("@!!! caught error ", err)
       if (err.response && err.response.data && err.response.data.error) {
         const errorObj = err.response.data.error.details;
         if (({}.toString).call(errorObj).slice(8, -1) === 'Array') {
@@ -346,8 +363,8 @@ const PaymentDetails = (props) => {
     !address ||
     (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
-    (valid && selected === "VLX(EVM)" && address.length < 42) ||
-    (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(EVM)" && address.length < 42) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(NATIVE)" && address.length < 44) ||
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
@@ -379,24 +396,25 @@ const PaymentDetails = (props) => {
     });
   };
 
-  const valid_btn =
-    amountCrypto <= 0 ||
-    (valid && !address) ||
+  const disableButton =
+    toAmount <= 0 ||
+    (ALL_REQUIRED_PARAMS_MISSED && !address) ||
     (selected === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selected === "VLX(NATIVE)" && valid_address_evm === "0x") ||
-    min_usd_valid ||
-    min_eur_valid ||
-    (valid && selected === "VLX(EVM)" && address.length < 42) ||
-    (valid && selected === "VLX(NATIVE)" && address.length < 44) ||
-    (valid && !selectProvider.value) ||
+    amountLessThanMin ||
+    amountMoreThanMax ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(EVM)" && address.length < 42) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selected === "VLX(NATIVE)" && address.length < 44) ||
     !selectProvider ||
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
-  if ((!valid && !parsed.address) || (!valid && !parsed.crypto_currency))
+  if (ALL_REQUIRED_PARAMS_MISSED)
     return <EmptyView />;
 
-  const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
-  const action = UTORG_PAYMENT_URIS[`${network}`];
+
+  const action = UTORG_PAYMENT_URIS[`${domain}/${network}`];
+  const _minAmount = +minAmount === 0 ? "..." : minAmount;
+  const _maxAmount = +maxAmount === 0 ? "..." : maxAmount;
 
   return (
     <>
@@ -420,8 +438,8 @@ const PaymentDetails = (props) => {
                   placeholder="0.00"
                   label={"Pay"}
                   selectedRow={selectedFiat}
-                  setSelectedRow={setSelectedFiat}
-                  currencies={SUPPORTED_CURRENCIES} //TODO: retrieve data from new supportedCurrencies object
+                  setSelectedRow={handleSelectFiat}
+                  currencies={SUPPORTED_CURRENCIES}
                 />
               </span>
               <span id="input-amount">
@@ -432,46 +450,53 @@ const PaymentDetails = (props) => {
                   label={"Receive"}
                   selectedRow={selected}
                   setSelectedRow={setSelected}
-                  currency1={"VLX(EVM)"}
-                  currency2={"VLX(NATIVE)"}
-                  currency3={"VLX(USDV)"}
-                  disabled={!valid && true}
+                  currency1={"VLX(USDV)"}
+                  disabled={!ALL_REQUIRED_PARAMS_MISSED && true}
                 />
               </span>
             </div>
 
-            {valid && inputAddress()}
+            {ALL_REQUIRED_PARAMS_MISSED && inputAddress()}
 
             {selectedFiat && (
               <>
-                <div className="row_notice_sub">
+                <div className="row_notice_sub min-purchase-amount">
                   <p className="left-side-p">Minimum purchase amount:</p>
                   {selectProvider ? (
                     <p
                       className={
-                        amount
-                          ? selectedFiat === "USD"
-                            ? min_usd_valid
-                              ? "red"
-                              : null
-                            : min_eur_valid
-                            ? "red"
-                            : null
+                        amountLessThanMin
+                          ? "red"
                           : null
                       }
                     >
                       {" "}
-                      ~
-                      {selectedFiat === "USD"
-                        ? MIN_AMOUNT_USD
-                        : Math.round(validate_amount_min_eur)}{" "}
+                      { _minAmount }{" "}
                       {selectedFiat || parsed.fiat_currency}
                     </p>
                   ) : (
                     <p>...</p>
                   )}
                 </div>
-                {!valid && (
+                <div className="row_notice_sub max-purchase-amount">
+                  <p className="left-side-p">Maximum purchase amount:</p>
+                  {selectProvider ? (
+                    <p
+                      className={
+                        amountMoreThanMax
+                          ? "red"
+                          : null
+                      }
+                    >
+                      {" "}
+                      { _maxAmount }{" "}
+                      {selectedFiat || parsed.fiat_currency}
+                    </p>
+                  ) : (
+                    <p>...</p>
+                  )}
+                </div>
+                {!ALL_REQUIRED_PARAMS_MISSED && (
                   <div className="row_notice_sub">
                     <p className="left-side-p pay-with">Pay with:</p>
                     <p className="fee-info" style={{textTransform: "capitalize"}}>
@@ -489,7 +514,7 @@ const PaymentDetails = (props) => {
           <Button
             variant="primary"
             onClick={onSubmitUtorg}
-            disabled={valid_btn}
+            disabled={disableButton}
           >
             {"Buy"}
           </Button>
