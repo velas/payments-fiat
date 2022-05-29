@@ -125,33 +125,58 @@ const PaymentDetails = (props) => {
   useEffect(() => {
     async function fetchData() {
       //VLX
-      const result = await fetch(TICKER_URL);
-      const rates = await result.json();
+      try {
+        const result = await fetch(TICKER_URL);
+        const rates = await result.json();
 
-      // Add rate for usdv token
-      rates.vlx_usdv_price = '1.13';
-      setTickerData(rates);
+        // Add rate for usdv token
+        rates.vlx_usdv_price = '1.13';
+        setTickerData(rates);
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          html: `<p className="info-style">Sorry, unexpected error occurred.`,
+        });
+      }
 
       //Fiat
-      const fiatData = await fetch(TICKER_URL_FIXER);
-      setTickerFiatData(await fiatData.json());
-
-      const currencyResult = await makeQuery({ url: "api/merchant/v1/settings/currency" });
-      if (currencyResult && currencyResult.data && currencyResult.data.data) {
-        const data = currencyResult.data.data;
-        const currData = {};
-        data.forEach( it => {
-          currData[it.currency] = { min: it.withdrawalMin, max: it.withdrawalMax }
+      try {
+        const fiatData = await fetch(TICKER_URL_FIXER);
+        setTickerFiatData(await fiatData.json());
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          html: `<p className="info-style">Sorry, unexpected error occurred.`,
         });
-        setCurrencyData(currData);
+      }
 
-        if (currData[`${selectedFiat}`]) {
-          const { min, max } = currData[`${selectedFiat}`];
-          setMinAmount(min);
-          setMaxAmount(max);
+      try {
+        const currencyResult = await makeQuery({ url: "api/merchant/v1/settings/currency" });
+        if (currencyResult && currencyResult.data && currencyResult.data.data) {
+          const data = currencyResult.data.data;
+          const currData = {};
+          data.forEach( it => {
+            currData[it.currency] = { min: it.withdrawalMin, max: it.withdrawalMax }
+          });
+          setCurrencyData(currData);
+
+          if (currData[`${selectedFiat}`]) {
+            const { min, max } = currData[`${selectedFiat}`];
+            setMinAmount(min);
+            setMaxAmount(max);
+          }
         }
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          html: `<p className="info-style">Sorry, unexpected error occurred.`,
+        });
       }
     }
+
     fetchData();
 
     //cleanup
@@ -408,7 +433,7 @@ const PaymentDetails = (props) => {
     !selectProvider ||
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
-  if (ALL_REQUIRED_PARAMS_MISSED)
+  if (ALL_REQUIRED_PARAMS_MISSED || Object.keys(tickerData).length === 0)
     return <EmptyView />;
 
 
