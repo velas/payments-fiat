@@ -106,6 +106,7 @@ const PaymentDetails = (props) => {
   const [tickerFiatData, setTickerFiatData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
+  const [pageIsLoading, setPageIsLoading] = useState(true);
 
   const location = useGeoLocation();
 
@@ -136,6 +137,7 @@ const PaymentDetails = (props) => {
         rates.vlx_usdv_price = '1.13';
         setTickerData(rates);
       } catch (err) {
+        setPageIsLoading(false);
         Swal.fire({
           icon: "error",
           title: "Oops...",
@@ -148,12 +150,14 @@ const PaymentDetails = (props) => {
         const fiatData = await fetch(TICKER_URL_FIXER);
         setTickerFiatData(await fiatData.json());
       } catch (err) {
+        setPageIsLoading(false);
         Swal.fire({
           icon: "error",
           title: "Oops...",
           html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
         });
       }
+      setPageIsLoading(false);
     }
     fetchData();
 
@@ -474,7 +478,11 @@ const PaymentDetails = (props) => {
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
   if ((!ALL_REQUIRED_PARAMS_MISSED && !parsed.address) || (!ALL_REQUIRED_PARAMS_MISSED && !parsed.crypto_currency) || Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0)
-    return <EmptyView />;
+    return (
+      <EmptyView
+        pageIsLoading={pageIsLoading}
+      />
+    );
 
   const action = selectProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
 

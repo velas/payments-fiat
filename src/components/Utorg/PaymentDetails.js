@@ -121,6 +121,7 @@ const PaymentDetails = (props) => {
   const [amountTo, setAmountTo] = useState("");
   const [address, setAddress] = useState("");
   const [selectedFiat, setSelectedFiat] = useState("USD");
+  const [pageIsLoading, setPageIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
@@ -133,10 +134,11 @@ const PaymentDetails = (props) => {
         rates.vlx_usdv_price = '1.13';
         setTickerData(rates);
       } catch (err) {
+        setPageIsLoading(false);
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          html: `<p className="info-style">Sorry, unexpected error occurred.`,
+          html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
         });
       }
 
@@ -145,10 +147,11 @@ const PaymentDetails = (props) => {
         const fiatData = await fetch(TICKER_URL_FIXER);
         setTickerFiatData(await fiatData.json());
       } catch (err) {
+        setPageIsLoading(false);
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          html: `<p className="info-style">Sorry, unexpected error occurred.`,
+          html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
         });
       }
 
@@ -169,12 +172,14 @@ const PaymentDetails = (props) => {
           }
         }
       } catch (err) {
+        setPageIsLoading(false);
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          html: `<p className="info-style">Sorry, unexpected error occurred.`,
+          html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
         });
       }
+      setPageIsLoading(false);
     }
 
     fetchData();
@@ -433,8 +438,14 @@ const PaymentDetails = (props) => {
     !selectProvider ||
     (selected === "VLX(USDV)" && valid_address_evm !== "0x");
 
-  if (ALL_REQUIRED_PARAMS_MISSED || Object.keys(tickerData).length === 0)
-    return <EmptyView />;
+  if (ALL_REQUIRED_PARAMS_MISSED || Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0) {
+    return (
+      <EmptyView
+        pageIsLoading={pageIsLoading}
+      />
+    )
+  }
+
 
 
   const action = UTORG_PAYMENT_URIS[`${domain}/${network}`];
