@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button } from "react-bootstrap";
-import csc from "country-state-city";
-import axios from "axios";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-import queryString from "query-string";
 import io from "socket.io-client";
 import { REDIRECT_URIS } from "../../utils/constants";
 import Copy from "../../images/copy.svg"
@@ -98,7 +95,7 @@ const Checkout = (props) => {
                 {payment_id} 
                 <img 
                   src={Copy} 
-                  alt="Copy" 
+                  alt="Copy icon"
                   id="copy"
                   className="copyIcon" 
                 />
@@ -110,7 +107,11 @@ const Checkout = (props) => {
           </Button>
           {validMobile &&
           <a className='button-store' href={uriInstallApp} >
-            <img src={isAndroid ? GoogleIcon : AppleIcon} width={100} height={50}/>
+            <img
+              alt="mobile icon"
+              src={isAndroid ? GoogleIcon : AppleIcon}
+              width={100}
+              height={50}/>
           </a>
           }
         </motion.div>

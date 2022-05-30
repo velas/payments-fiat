@@ -15,9 +15,7 @@ import {
 import { motion } from "framer-motion";
 import axios from "axios";
 import {
-  SIMPLEX_PAYMENT_URIS,
   BASE_API_URL,
-  SIMPLEX_DOMAIN,
   TICKER_URL,
   TICKER_URL_FIXER,
   TRANSAK_API_KEY,
@@ -221,7 +219,6 @@ const PaymentDetails = (props) => {
   const [widget, setWidget] = useState(false);
 
   const checkTransak = selectedProvider === "transak";
-  const checkSimplex = selectedProvider === "simplex";
 
   if (checkTransak) {
     selectedFiat = "EUR"; //default value
@@ -255,7 +252,6 @@ const PaymentDetails = (props) => {
   let min_eur_valid = 0;
 
   const minimalAmounts = {
-    simplex: 50,
     transak: 30,
   };
   const MIN_AMOUNT_USD = minimalAmounts[selectedProvider] || DEFAULT_MIN_AMOUNT_USD;
@@ -394,65 +390,7 @@ const PaymentDetails = (props) => {
     });
     transak.init();
   };
-  const onSubmit = (event) => {
-    event.returnValue = false;
-    setIsLoading(false);
-    onSubmit_();
-    return false;
-  };
-  // console.log('amountCrypto', amountCrypto)
 
-  const onSubmit_ = async () => {
-    // console.log("payment_id", payment_id);
-    setIsLoading(true);
-
-    try {
-      const params = {
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "VLX(EVM)"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
-        fiat_currency: selectedFiat || parsed.fiat_currency,
-        crypto_amount: Number(amountCrypto),
-        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-      };
-      const domain = SIMPLEX_DOMAIN[network];
-      const quoteResult = await axios.post(`${domain}${BASE_API_URL}/quote`, params);
-
-      if (quoteResult.data.error) throw new Error(quoteResult.data.error);
-
-      const paramsPayment = {
-        quote_id: quoteResult.data.quote_id,
-        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-        payment_id: payment_id,
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "VLX(EVM)"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
-      };
-
-      const paymentResult = await axios.post(
-        `${domain}${BASE_API_URL}/payment`,
-        paramsPayment
-      );
-      if (paymentResult.data.error) throw new Error(paymentResult.data.error);
-
-      formRef.current.submit();
-    } catch (e) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: e.response?.data || e.message,
-      });
-      setIsLoading(false);
-    }
-  };
 
   const [focusInput, setFocusInput] = useState(false);
   const handleChangeValid = () => {
@@ -488,21 +426,17 @@ const PaymentDetails = (props) => {
     );
   };
 
-  const providerInfo = {
-    simplex: body,
-    transak: body_transak
-  };
 
   const onInfo = () => {
     Swal.fire({
       icon: "info",
       title: title_info,
-      html: providerInfo[selectedProvider],
+      html: body_transak,
     });
   };
-
   const valid_btn =
     amountCrypto <= 0 ||
+    !isValidAddress({ address, token: selectedCryptoCurrency }) ||
     (ALL_REQUIRED_PARAMS_MISSED && !address) ||
     (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
@@ -522,7 +456,7 @@ const PaymentDetails = (props) => {
       />
     );
 
-  const action = selectedProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
+  const action = "";
   const addressCut = (parsed.address || address).substring(0, 8) + "..." + address.substring(35);
 
   return (
@@ -530,10 +464,8 @@ const PaymentDetails = (props) => {
       <Form
         className="form-step-2 input-form mt-3"
         method="POST"
-        ref={formRef}
-        onSubmit={
-          selectedProvider === "simplex" ? onSubmit : onSubmitTransak
-        }
+        ref={ formRef }
+        onSubmit={ onSubmitTransak }
         action={action}
       >
         <motion.div
@@ -624,12 +556,8 @@ const PaymentDetails = (props) => {
           <Button
             className="submit-button2"
             variant="primary"
-            onClick={
-              checkSimplex
-                ? onSubmit
-                : onSubmitTransak
-            }
-            disabled={valid_btn}
+            onClick={ onSubmitTransak }
+            disabled={ valid_btn }
           >
             {isLoading || widget ? "Loading..." : "Buy"}
           </Button>

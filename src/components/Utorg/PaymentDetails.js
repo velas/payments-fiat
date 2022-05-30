@@ -1,9 +1,4 @@
-import React, {
-  useState,
-  useMemo,
-  useRef,
-  useEffect
-} from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Form,
   Button,
@@ -15,48 +10,58 @@ import {
 import { motion } from "framer-motion";
 import axios from "axios";
 import {
-  SIMPLEX_PAYMENT_URIS,
-  BASE_API_URL,
-  SIMPLEX_DOMAIN,
+  UTORG_PAYMENT_URIS,
+  UTORG_CONVERT_URL,
+  UTORG_DOMAIN,
   TICKER_URL,
   TICKER_URL_FIXER,
-  TRANSAK_API_KEY,
 } from "../../utils/constants";
 import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
 import { BsInfoCircle } from "react-icons/bs";
-import transakSDK from "@transak/transak-sdk";
-import useGeoLocation from "react-ipgeolocation";
 import { isValidAddress } from "../../utils/address-validation";
-import { countries_low_fee, countries_high_fee } from "../../utils/countries";
-import { title_info, body, body_transak } from "../InfoMsg";
-import { Provider } from "../ProviderSelection.js";
-import UtorgPaymentDetails from "../Utorg/PaymentDetails";
+import { title_info, body_utorg } from "../InfoMsg";
 
-const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
-const DEFAULT_MIN_AMOUNT_USD = 30;
+const DEFAULT_MIN_AMOUNT_USD = 50;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
 const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
+const SUPPORTED_CURRENCIES = [
+  "AUD",
+  "BRL",
+  "CAD",
+  "CZK",
+  "DKK",
+  "EUR",
+  "GBP",
+  "KZT",
+  "NOK",
+  "NZD",
+  "PLN",
+  "SEK",
+  "UAH",
+  "USD",
+];
 
-const parsed = queryString.parse(global.location.search);
-const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
-const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
 const CRYPTO_CURRENCIES_kv = {
   "vlx": "VLX(EVM)",
   "vlx_native":"VLX(NATIVE)",
+  "vlx_usdv": "VLX(USDV)"
 }
-const SUPPORTED_CURRENCIES = [
-  "EUR",
-  "USD",
-];
-const parsed_crypto_is_valid = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`];
-const DEFAULT_CRYPTO_CURRENCY = parsed_crypto_is_valid ? parsed.crypto_currency : 'vlx';
 
 
+const parsed = queryString.parse(global.location.search);
+const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
+const network = parsed.env ?
+  parsed.env === "wallet_testnet" ? "testnet" : "mainnet"
+  : "mainnet";
+
+const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`] ? parsed.crypto_currency : 'vlx';
+
+const domain  = UTORG_DOMAIN[`${network}`];
 
 const CurrencyRow = ({
   onChangeAmount,
@@ -117,50 +122,81 @@ const CurrencyRow = ({
               )
             })
           }
+
         </DropdownButton>
       </InputGroup>
     </>
   );
 };
 const PaymentDetails = (props) => {
+  //console.log("Utorg [PaymentDetails] props", props)
   const payment_id = useMemo(uuidv4, []);
   const checkout_url = `${
     global.location.origin
   }/provider/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-    parsed.env
+    network
   )}`;
   const error_url = `${
     global.location.origin
   }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-    parsed.env
+    network
   )}`;
   const [tickerData, setTickerData] = useState({});
   const [tickerFiatData, setTickerFiatData] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [currencyData, setCurrencyData] = useState({});
+  const [minAmount, setMinAmount] = useState(0);
+  const [maxAmount, setMaxAmount] = useState(0);
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
+
+  const [amount, setAmount] = useState(DEFAULT_RECEIVE_CRYPTO_AMOUNT);
+  const [amountFrom, setAmountFrom] = useState(0);
+  const [amountTo, setAmountTo] = useState(0);
+  const [address, setAddress] = useState("");
+  const [selectedFiat, setSelectedFiat] = useState("USD");
   const [pageIsLoading, setPageIsLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState(null);
-
-  const location = useGeoLocation();
-
-  function checkArray(arr, val) {
-    return arr.some(function (arrVal) {
-      return val === arrVal;
-    });
-  }
-  function checkArray1(arr, val) {
-    return arr.some(function (arrVal) {
-      return val === arrVal;
-    });
-  }
-  const checkCountry = checkArray(countries_low_fee, location.country);
-  const checkCountry1 = checkArray1(countries_high_fee, location.country);
+  const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState(DEFAULT_CRYPTO_CURRENCY);
+  const [currentRate, setCurrentRate] = useState(null); //currentRate means 1 fiat to crypto
 
   const hasUrlProvider =
     global && global.location && global.location.pathname &&
     (global.location.pathname || "").split("/provider/").length > 1;
 
-  const fetchData = async () => {
+  async function fetchCryptoRate(params) {
+    const currs = {
+      vlx_native: "VLX",
+      vlx_usdv: "USDVEL",
+      vlx: "VLXETH"
+    };
+    const from_currency = params && params.fiat ? params.fiat : selectedFiat;
+    const to_currency =
+      params && params.cryptoCurrency
+        ? currs[`${params.cryptoCurrency}`]
+        : currs[`${selectedCryptoCurrency}`];
+    //FETCH UTORG RATES
+    try {
+
+      const convertParams = {
+        "fromCurrency" : from_currency,
+        "toCurrency" : to_currency,
+        "paymentAmount" : 1
+      };
+
+      const convertResult = await makeQuery({ url: UTORG_CONVERT_URL, params: convertParams });
+      if (convertResult && convertResult.data && convertResult.data.data) {
+        setCurrentRate(convertResult.data.data);
+      }
+    } catch (err) {
+      setPageIsLoading(false);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
+      });
+    }
+  }
+
+  async function fetchData() {
     //VLX
     try {
       const result = await fetch(TICKER_URL);
@@ -178,6 +214,8 @@ const PaymentDetails = (props) => {
       });
     }
 
+    await fetchCryptoRate();
+
     //Fiat
     try {
       const fiatData = await fetch(TICKER_URL_FIXER);
@@ -190,10 +228,38 @@ const PaymentDetails = (props) => {
         html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
       });
     }
+
+    try {
+      const currencyResult = await makeQuery({ url: "api/merchant/v1/settings/currency" });
+      if (currencyResult && currencyResult.data && currencyResult.data.data) {
+        const data = currencyResult.data.data;
+        const currData = {};
+        data.forEach( it => {
+          currData[it.currency] = { min: it.depositMin, max: it.depositMax }
+        });
+        setCurrencyData(currData);
+
+        if (currData[`${selectedFiat}`]) {
+          const { min, max } = currData[`${selectedFiat}`];
+          setMinAmount(min);
+          setMaxAmount(max);
+        }
+      }
+    } catch (err) {
+      setPageIsLoading(false);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
+      });
+    }
     setPageIsLoading(false);
   }
 
   useEffect(() => {
+    if (parsed.address) {
+      setAddress(parsed.address);
+    }
     if (props.selectedProvider) {
       setSelectedProvider(props.selectedProvider)
     } else {
@@ -205,107 +271,69 @@ const PaymentDetails = (props) => {
         setSelectedProvider(pathsName[0])
       }
     }
-
     fetchData();
 
     //cleanup
     localStorage.removeItem("storageProvider");
+
   }, []);
-
-
-  const [amount, setAmount] = useState(DEFAULT_RECEIVE_CRYPTO_AMOUNT);
-  const [amountFrom, setAmountFrom] = useState(0);
-  const [amountTo, setAmountTo] = useState(0);
-  const [address, setAddress] = useState("");
-  let [selectedFiat, setSelectedFiat] = useState("USD");
-  const [widget, setWidget] = useState(false);
-
-  const checkTransak = selectedProvider === "transak";
-  const checkSimplex = selectedProvider === "simplex";
-
-  if (checkTransak) {
-    selectedFiat = "EUR"; //default value
-  }
-
-  if (selectedProvider === "transak" && location.country && !checkCountry && !checkCountry1) {
-    Swal.fire({
-      icon: "info",
-      title: "Oops...",
-      html: `<p className="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
-    });
-  }
 
   const handleChange = (e) => {
     setAddress(e.target.value);
   };
 
+  const handleSelectFiat = async (fiat) => {
+    setSelectedFiat(fiat);
+    await fetchCryptoRate({fiat});
+    const chosenCurrencyData = currencyData[`${fiat}`];
+    if (!chosenCurrencyData)
+      return console.error(`${fiat} was not found in currencyData object.`);
+    const { min, max } = chosenCurrencyData;
+    setMinAmount(min);
+    setMaxAmount(max);
+  }
+
   let valid_address_evm = queryString.parse(parsed.address || address);
   const stringified_valid = queryString.stringify(valid_address_evm);
   valid_address_evm = stringified_valid.substr(0, 2);
 
-  const crypto_currency = (parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`] ? parsed.crypto_currency : 'vlx').toLowerCase();
-  const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState(DEFAULT_CRYPTO_CURRENCY);
+  const crypto_currency = (parsed.crypto_currency || selectedCryptoCurrency || "").toLowerCase();
   const displayCryptoCurrency = CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`];
 
-  let validate_amount_min_eur = 0;
-  let validate_amount_max_eur = 0; //not included, do it
-  let toAmount, fromAmount, rate_euro;
-  let amount_calc, amountCrypto;
-  let min_usd_valid = 0;
-  let min_eur_valid = 0;
-
-  const minimalAmounts = {
-    simplex: 50,
-    transak: 30,
-  };
-  const MIN_AMOUNT_USD = minimalAmounts[selectedProvider] || DEFAULT_MIN_AMOUNT_USD;
-  const MAX_AMOUNT_USD = DEFAULT_MAX_AMOUNT_USD;
+  let toAmount, fromAmount;
+  let amountLessThanMin = false;
+  let amountMoreThanMax = false;
 
   const toUsd = (amount) => {
     return amount / (tickerFiatData["USD"] || 1);
   }
 
-  if (tickerData && tickerFiatData) {
+  if (currentRate && tickerFiatData) {
     const usd_amount_of_1_Euro = tickerFiatData["USD"];
-    const fiatRate = tickerFiatData[`${selectedFiat}`] || 0;
-    const cryptoPriceKey = crypto_currency === "vlx" ? "price_usd" : `${crypto_currency}_price`;
-    const crypto_usd_rate = tickerData[`${cryptoPriceKey}`] || 0;
-    const crypto_fiat_rate = crypto_usd_rate * toUsd(fiatRate);
-    const FIAT_PER_CRYPTO = selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
+    const fiatRate = tickerFiatData[selectedFiat]; // cost selectedCryptoCurrency currency in eur
+    const cryptoPriceKey = ["vlx", "vlx_native"].indexOf(crypto_currency) > -1 ? "price_usd" : `${crypto_currency}_price`;
 
+    //const crypto_usd_rate = tickerData[cryptoPriceKey] || 1;
+    //const crypto_fiat_rate = crypto_usd_rate * toUsd(fiatRate);
+    //console.log({crypto_usd_rate, crypto_fiat_rate, fiatRate})
+    //const FIAT_PER_CRYPTO = selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
+    const FIAT_PER_CRYPTO = 1 / currentRate;
 
-    if (tickerFiatData) {
-      const rate_eur_usd = tickerFiatData["USD"]; // coefficient eur/usd (Fixer)
-      if (rate_eur_usd) {
-        validate_amount_min_eur = toUsd(MIN_AMOUNT_USD * fiatRate);
-        validate_amount_max_eur = toUsd(MAX_AMOUNT_USD * fiatRate);  // not included, do it
-        rate_euro = rate_eur_usd;
-      }
-    }
     if (amountInFromCurrency) {
       //Receive input
       toAmount = amount;
       fromAmount = (FIAT_PER_CRYPTO * amount).toFixed(2);
 
-      if (amountTo) {
-        amount_calc = toAmount;
-      }
     } else {
       // Pay Input
       const amountReceive = (amountFrom / FIAT_PER_CRYPTO).toFixed(2);
       fromAmount = amountFrom;
       toAmount = amountReceive;
 
-      if (amountTo) {
-        amount_calc = amountReceive;
-      }
     }
 
-    amountCrypto = amountTo ? amount_calc : amount;
-
-    min_usd_valid = amountCrypto * crypto_usd_rate < MIN_AMOUNT_USD;
-    min_eur_valid =
-      (amountCrypto * crypto_usd_rate) / rate_euro < MIN_AMOUNT_USD / rate_euro;
+    amountLessThanMin = fromAmount < minAmount;
+    amountMoreThanMax = fromAmount > maxAmount;
   }
 
   const handleFromAmountChange = (e) => {
@@ -324,133 +352,108 @@ const PaymentDetails = (props) => {
 
   const formRef = useRef(null);
 
-  let transak = new transakSDK({
-    apiKey:
-      TRANSAK_API_KEY[
-        window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
-      ],
-    environment:
-      window.location.host === "buy.velas.com" ? "PRODUCTION" : "STAGING",
-    walletAddress: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-    themeColor: "#0037c1",
-    fiatCurrency: "EUR",
-    email: "",
-    hostURL: window.location.origin,
-    widgetHeight: "600px",
-    widgetWidth: "100%",
-    hideMenu: true,
-    fiatAmount: fromAmount,
-    defaultPaymentMethod: "credit_debit_card",
-    disablePaymentMethods: "sepa_bank_transfer, gbp_bank_transfer, apple_pay",
-    network: ALL_REQUIRED_PARAMS_MISSED
-      ? selectedCryptoCurrency === "VLX(EVM)"
-        ? "velasevm"
-        : "mainnet"
-      : parsed.crypto_currency && valid_address_evm === "0x"
-      ? "velasevm"
-      : "mainnet", //velasevm or mainnet
-    defaultCryptoCurrency: "VLX",
-    cryptoCurrencyCode: "VLX",
-    disableWalletAddressForm: true,
-  });
+  const makeQuery = async ({ url, params }) => {
+    const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
+    const headers = {
+      'Content-Type': 'application/json;charset=UTF-8',
+      'X-AUTH-SID': seed,
+      'X-AUTH-NONCE': Date.now(),
+    };
+    const _params = !params ? {} : params;
 
-  const onSubmitTransak = () => {
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
-      setWidget(true);
-    });
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
-      setWidget(false);
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
-      // console.log('data', data.status.status);
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.init();
-  };
-  const onSubmit = (event) => {
-    event.returnValue = false;
-    setIsLoading(false);
-    onSubmit_();
-    return false;
-  };
-  // console.log('amountCrypto', amountCrypto)
+    const quoteResult = await axios.post(`${domain}/${url}`, _params, { headers });
+    return quoteResult;
+  }
 
-  const onSubmit_ = async () => {
-    // console.log("payment_id", payment_id);
-    setIsLoading(true);
+  const onSubmitUtorg = async () => {
+    const paymentCurrency = (selectedFiat || parsed.fiat_currency).toUpperCase();
+    const paymentUrl = UTORG_PAYMENT_URIS[`${network}`];
+    const _address = ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address
+    const currs = {
+      vlx_native: "VLX",
+      vlx_usdv: "USDVEL",
+      vlx: "VLXETH"
+    };
+    const currency = currs[selectedCryptoCurrency];
+    if (!currency) {
+      return Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        html: "Unknown crypto currency was chosen to receive",
+      });
+    }
+    const checkout_url = `${
+      global.location.origin
+    }/provider/utorg/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
+      parsed.env
+    )}`;
+    const error_url = `${
+      global.location.origin
+    }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
+      parsed.env
+    )}`;
 
+    const params = {
+      type: "FIAT_TO_CRYPTO",
+      currency : currency,
+      paymentCurrency : paymentCurrency,
+      paymentAmount : fromAmount,
+      externalId : payment_id,
+      address : _address,
+      email : "",
+      postbackUrl : "https://merchant.com/utorg/callback",
+      successUrl : checkout_url,
+      failUrl : error_url
+    };
+    const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
+
+    const headers = {
+      'Content-Type': 'application/json;charset=UTF-8',
+      'X-AUTH-SID': seed,
+      'X-AUTH-NONCE': Date.now(),
+    };
+
+    //web3 signature
+    //function sha256(string) {
+      //return crypto
+        //.createHash("sha256")
+        //.update(address)
+        //.digest("hex");
+    //}
+
+    //const publicKey = "0x14669e50587b5406b6f8bf64dbb129e564939e1a1f77bff71d210f828dff1f39977086bf388714a3541c13a4aa3e86caf4ccecf6ce0fd8ee445d0c78c173a76a"
+    //const signature = sha256(publicKey);
+    //const link = "https://app-stage.utorg.pro/direct/" + seed + "/" + _address + "/?currency="+currency+"&timestamp="+Date.now()+"&signature="+signature+"&paymentAmount=" + fromAmount + "&successUrl=" + checkout_url;
+    //return window.location.replace(link);
+    // end web3 signature
     try {
-      const params = {
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "VLX(EVM)"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
-        fiat_currency: selectedFiat || parsed.fiat_currency,
-        crypto_amount: Number(amountCrypto),
-        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-      };
-      const domain = SIMPLEX_DOMAIN[network];
-      const quoteResult = await axios.post(`${domain}${BASE_API_URL}/quote`, params);
+      const quoteResult = await makeQuery({ url: `${paymentUrl}`, params });
+//      const quoteResult = await axios.post(`${paymentUrl}`, params, {headers});
+      if (!quoteResult.data.success) return;
+      const { url } = quoteResult.data.data;
+      if (!url) return;
+      window.location.replace(url);
+    } catch (err) {
+      let errMsg = "";
+      console.error("@!!! caught error ", err)
+      if (err.response && err.response.data && err.response.data.error) {
+        const errorObj = err.response.data.error.details;
+        if (({}.toString).call(errorObj).slice(8, -1) === 'Array') {
+          errMsg = errorObj.map(it => {
+            const field = Object.keys(it).length ? Object.keys(it)[0] : "";
+            const reason = it[`${field}`] || "Sorry, unexpected error occurred.";
+            return `${field}: ${reason}`;
+          }).join(',');
+        }
+      } else {
+        errMsg = `<p className="info-style">Sorry, unexpected error occurred.`;
+      }
 
-      if (quoteResult.data.error) throw new Error(quoteResult.data.error);
-
-      const paramsPayment = {
-        quote_id: quoteResult.data.quote_id,
-        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-        payment_id: payment_id,
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "VLX(EVM)"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
-      };
-
-      const paymentResult = await axios.post(
-        `${domain}${BASE_API_URL}/payment`,
-        paramsPayment
-      );
-      if (paymentResult.data.error) throw new Error(paymentResult.data.error);
-
-      formRef.current.submit();
-    } catch (e) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: e.response?.data || e.message,
+        html: errMsg,
       });
-      setIsLoading(false);
     }
   };
 
@@ -459,13 +462,6 @@ const PaymentDetails = (props) => {
     setFocusInput(true);
   };
 
-  const validForm =
-    !address ||
-    (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
-    (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(EVM)" && address.length < 42) ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(NATIVE)" && address.length < 44) ||
-    (selectedCryptoCurrency === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
     return (
@@ -488,52 +484,54 @@ const PaymentDetails = (props) => {
     );
   };
 
-  const providerInfo = {
-    simplex: body,
-    transak: body_transak
-  };
-
   const onInfo = () => {
     Swal.fire({
       icon: "info",
       title: title_info,
-      html: providerInfo[selectedProvider],
+      html: body_utorg,
     });
   };
 
-  const valid_btn =
-    amountCrypto <= 0 ||
+  const disableButton =
+    toAmount <= 0 ||
+    !isValidAddress({ address, token: selectedCryptoCurrency }) ||
     (ALL_REQUIRED_PARAMS_MISSED && !address) ||
     (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
     (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
-    min_usd_valid ||
-    min_eur_valid ||
+    amountLessThanMin ||
+    amountMoreThanMax ||
     (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(EVM)" && address.length < 42) ||
     (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(NATIVE)" && address.length < 44) ||
-    (ALL_REQUIRED_PARAMS_MISSED && !selectedProvider) ||
-    widget ||
     !selectedProvider ||
     (selectedCryptoCurrency === "VLX(USDV)" && valid_address_evm !== "0x");
 
-  if (Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0)
+  if (Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0) {
     return (
       <EmptyView
         pageIsLoading={pageIsLoading}
       />
-    );
+    )
+  }
 
-  const action = selectedProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
+
+
+  const action = UTORG_PAYMENT_URIS[`${domain}/${network}`];
+  const _minAmount = +minAmount === 0 ? "..." : minAmount;
+  const _maxAmount = +maxAmount === 0 ? "..." : maxAmount;
+
   const addressCut = (parsed.address || address).substring(0, 8) + "..." + address.substring(35);
+
+  const onSetSelectedCryptoCurrency = async (e) => {
+    setSelectedCryptoCurrency(e);
+    await fetchCryptoRate({cryptoCurrency: e});
+  }
 
   return (
     <>
       <Form
-        className="form-step-2 input-form mt-3"
+        className="form-step-2 pay-form input-form mt-3"
         method="POST"
         ref={formRef}
-        onSubmit={
-          selectedProvider === "simplex" ? onSubmit : onSubmitTransak
-        }
         action={action}
       >
         <motion.div
@@ -550,9 +548,8 @@ const PaymentDetails = (props) => {
                   placeholder="0.00"
                   label={"Pay"}
                   selectedRow={selectedFiat}
-                  setSelectedRow={setSelectedFiat}
+                  setSelectedRow={handleSelectFiat}
                   currencies={SUPPORTED_CURRENCIES}
-                  disabled={checkTransak}
                 />
               </span>
               <span id="input-amount">
@@ -562,9 +559,9 @@ const PaymentDetails = (props) => {
                   placeholder="0.00"
                   label={"Receive"}
                   selectedRow={CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`]}
-                  setSelectedRow={setSelectedCryptoCurrency}
+                  setSelectedRow={onSetSelectedCryptoCurrency}
                   cryptoCurrencies={CRYPTO_CURRENCIES_kv}
-                  disabled={parsed_crypto_is_valid}
+                  disabled={parsed.crypto_currency != null}
                 />
               </span>
             </div>
@@ -573,27 +570,36 @@ const PaymentDetails = (props) => {
 
             {selectedFiat && (
               <>
-                <div className="row_notice_sub">
+                <div className="row_notice_sub min-purchase-amount">
                   <p className="left-side-p">Minimum purchase amount:</p>
                   {selectedProvider ? (
                     <p
                       className={
-                        amount
-                          ? selectedFiat === "USD"
-                            ? min_usd_valid
-                              ? "red"
-                              : null
-                            : min_eur_valid
-                            ? "red"
-                            : null
+                        amountLessThanMin
+                          ? "red"
                           : null
                       }
                     >
                       {" "}
-                      ~
-                      {selectedFiat === "USD"
-                        ? MIN_AMOUNT_USD
-                        : Math.round(validate_amount_min_eur)}{" "}
+                      { _minAmount }{" "}
+                      {selectedFiat || parsed.fiat_currency}
+                    </p>
+                  ) : (
+                    <p>...</p>
+                  )}
+                </div>
+                <div className="row_notice_sub max-purchase-amount">
+                  <p className="left-side-p">Maximum purchase amount:</p>
+                  {selectedProvider ? (
+                    <p
+                      className={
+                        amountMoreThanMax
+                          ? "red"
+                          : null
+                      }
+                    >
+                      {" "}
+                      { _maxAmount }{" "}
                       {selectedFiat || parsed.fiat_currency}
                     </p>
                   ) : (
@@ -622,16 +628,11 @@ const PaymentDetails = (props) => {
           </Form.Group>
 
           <Button
-            className="submit-button2"
             variant="primary"
-            onClick={
-              checkSimplex
-                ? onSubmit
-                : onSubmitTransak
-            }
-            disabled={valid_btn}
+            onClick={onSubmitUtorg}
+            disabled={disableButton}
           >
-            {isLoading || widget ? "Loading..." : "Buy"}
+            {"Buy"}
           </Button>
           <input type="hidden" name="version" value="1" />
           <input type="hidden" name="partner" value={PARTNER_NAME} />
