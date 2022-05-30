@@ -1,6 +1,7 @@
 export const BASE_API_URL = '/api/v1/simplex';
 export const TICKER_URL = 'https://explorer.velas.com/ticker';
 export const TICKER_URL_FIXER = 'https://buy.velas.com/api/v1/rates';
+export const UTORG_CONVERT_URL = 'api/merchant/v1/tools/convert';
 
 export const REDIRECT_URIS = {
   wallet_mainnet: 'https://wallet.velas.com/',

@@ -18,8 +18,61 @@ const stringified_valid = queryString.stringify(valid_address_evm);
 valid_address_evm =
   stringified_valid.substr(0, 2) === "0x" && parsed.address.length === 42;
 
+export const Provider = (props) => {
+  const { selectedProvider, setSelectedProvider } = props;
+  const onInfo = () => {
+    Swal.fire({
+      icon: "info",
+      title: title_info,
+      html: providerInfo[selectedProvider],
+    });
+  };
+  const providerInfo = {
+    simplex: body,
+    transak: body_transak,
+    utorg: body_utorg
+  };
+  const options = [
+    {
+      value: "simplex",
+      label: "Simplex (Visa/MC)",
+    },
+    {
+      value: "transak",
+      label: "Transak (Visa/MC)",
+    },
+    {
+      value: "utorg",
+      label: "Utorg (Visa/MC)"
+    },
+  ];
+  const onProviderSelect = (e) => {
+    setSelectedProvider(e.value);
+  }
+  return (
+    <div style={props.style}>
+      <Form.Label className="left-side-p">
+        Pay with <span className="selected-provider" style={{textTransform: "capitalize"}}>{selectedProvider}</span>
+        {selectedProvider && (
+          <BsInfoCircle onClick={onInfo} className="info-icon" />
+        )}
+      </Form.Label>
+      <div className="mb-3">
+        <Select
+          defaultValue={selectedProvider}
+          isDisabled={props.default && true}
+          onChange={onProviderSelect}
+          options={options}
+          placeholder={props.default && props.default}
+          isOptionDisabled={(option) => option.disabled}
+        />
+      </div>
+    </div>
+  );
+};
+
 const ProviderSelection = (props) => {
-  const [selectProvider, setSelectProvider] = useState([]);
+  const [selectedProvider, setSelectProvider] = useState([]);
 
   const location = useGeoLocation();
 
@@ -35,7 +88,7 @@ const ProviderSelection = (props) => {
   }
   const checkCountry = checkArray(countries_low_fee, location.country);
   const checkCountry1 = checkArray1(countries_high_fee, location.country);
-  if (selectProvider.value === "transak" && location.country && !checkCountry && !checkCountry1) {
+  if (selectedProvider === "transak" && location.country && !checkCountry && !checkCountry1) {
     Swal.fire({
       icon: "info",
       title: "Oops...",
@@ -43,65 +96,19 @@ const ProviderSelection = (props) => {
     });
     setSelectProvider("");
   }
-  const valid_btn = !selectProvider.value;
+  const valid_btn = !selectedProvider;
 
   const onSubmit = () => {
-    props.history.push(`/provider/${selectProvider.value}/?${stringified}`);
+    props.history.push({
+      pathname: `/provider/${selectedProvider}/?${stringified}`,
+      state: {
+        selectedProvider: selectedProvider
+      }
+    });
   };
   if (!parsed.address || !parsed.crypto_currency || !parsed.env)
     return <EmptyView />;
 
-  const providerInfo = {
-    simplex: body,
-    transak: body_transak,
-    utorg: body_utorg
-  };
-
-  const onInfo = () => {
-    Swal.fire({
-      icon: "info",
-      title: title_info,
-      html: providerInfo[selectProvider.value],
-    });
-  };
-
-  const options = [
-    {
-      value: "simplex",
-      label: "Simplex (Visa/MC)",
-    },
-    {
-      value: "transak",
-      label: "Transak (Visa/MC)",
-    },
-    {
-      value: "utorg",
-      label: "Utorg (Visa/MC)"
-    },
-  ];
-
-  const Provider = (props) => {
-    return (
-      <div style={props.style}>
-        <Form.Label className="left-side-p">
-          Pay with <span className="selected-provider" style={{textTransform: "capitalize"}}>{selectProvider.value}</span>
-          {selectProvider.value && (
-            <BsInfoCircle onClick={onInfo} className="info-icon" />
-          )}
-        </Form.Label>
-        <div className="mb-3">
-          <Select
-            defaultValue={selectProvider}
-            isDisabled={props.default && true}
-            onChange={setSelectProvider}
-            options={options}
-            placeholder={props.default && props.default}
-            isOptionDisabled={(option) => option.disabled}
-          />
-        </div>
-      </div>
-    );
-  };
   var address = parsed.address;
   const addressCut = address.substring(0, 8) + "..." + address.substring(35);
   return (
@@ -126,7 +133,10 @@ const ProviderSelection = (props) => {
             <p className="left-side-p">Your address:</p>
             <p title={address}>{addressCut}</p>
           </div>
-          <Provider />
+          <Provider
+            setSelectProvider={setSelectProvider}
+            selectedProvider={selectedProvider}
+          />
         </div>
         <Button variant="primary" onClick={onSubmit} disabled={valid_btn}>
           Continue

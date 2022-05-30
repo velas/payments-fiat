@@ -3,8 +3,10 @@ import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import ProviderSelection from "../components/ProviderSelection";
 import Header from "../components/Header";
 import EmptyView from "../components/EmptyView";
-import PaymentDetails from "../components/Simplex/PaymentDetails";
+import CommonPaymentDetails from "../components/PaymentDetails";
+import PaymentDetailsSimplex from "../components/Simplex/PaymentDetails";
 import PaymentDetailsUtorg from "../components/Utorg/PaymentDetails";
+import PaymentDetailsTransak from "../components/Transak/PaymentDetails";
 import ThirdStep from "../components/Simplex/Checkout";
 import UtorgCheckout from "../components/Utorg/Checkout";
 import { motion } from "framer-motion";
@@ -25,16 +27,20 @@ const AppRouter = () => {
           <Header class="form" style={{display: valid && 'none'}}/>
           <Switch>
             <Route
-              render={(props) => valid ? <PaymentDetails {...props} /> : <ProviderSelection {...props} />}
+              render={(props) => <CommonPaymentDetails {...props} />}
               path="/"
               exact={true}
             />
             <Route
-              render={(props) => <PaymentDetails {...props} />}
+              render={(props) => <CommonPaymentDetails {...props} />}
+              path="/provider"
+            />
+            <Route
+              render={(props) => <PaymentDetailsSimplex {...props} />}
               path="/provider/simplex"
             />
             <Route
-              render={(props) => <PaymentDetails {...props} />}
+              render={(props) => <PaymentDetailsTransak {...props} />}
               path="/provider/transak"
             />
             <Route
