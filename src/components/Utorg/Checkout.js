@@ -4,16 +4,17 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import queryString from "query-string";
-import { REDIRECT_URIS, UTORG_DOMAIN } from "../../utils/constants";
-import Copy from "../../images/copy.svg"
+import { isAndroid, isIOS } from "react-device-detect";
+import { REDIRECT_URIS, UTORG_DOMAIN, UTORG_TX_DETAILS_URI } from "../../utils/constants";
+import Copy from "../../images/copy.svg";
+import { makeQuery } from "./functions";
 
-const [payment_id, env] = global.location.pathname.split("/").slice(4);
-console.log({payment_id, env})
 
 const Checkout = (props) => {
 
   const { crypto_currency, fiat_currency, crypto_amount, address } = props;
   const parsed = queryString.parse(global.location.search);
+  const payment_id = parsed.payment_id;
   const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
 
   const checkStatus = (status) => {
@@ -24,6 +25,8 @@ const Checkout = (props) => {
         return "Payment Submitted!";
       case "payment_approved":
         return "Payment Approved!";
+      case "error":
+        return "Payment failed!"
       default:
         return null;
     }
@@ -40,25 +43,50 @@ const Checkout = (props) => {
 
   const checkTxConfirmation = function (arg$, cb) {
     const { start, network, tx } = arg$;
+    if (!payment_id) {
+      return;
+    }
     return async function () {
       if (Date.now() > start + 3600000) {
         return cb(
           'Get transaction details timeout has expired. Try to repeat later.'
         );
       }
-      const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
-      const headers = {
-        'Content-Type': 'application/json;charset=UTF-8',
-        'X-AUTH-SID': seed,
-        'X-AUTH-NONCE': Date.now(),
-      };
+
       const params = {
         id: payment_id,
       };
-      const uri = UTORG_DOMAIN[`${network}`] + '/api/merchant/v1/order/find';
-      const quoteResult = await axios.post(uri, params, {headers});
-
-    };
+      const res = await makeQuery({ url: UTORG_TX_DETAILS_URI, network, params });
+      if (res && res.data && res.data.data) {
+//        const mock = {
+//          "success" : true,
+//          "cursor" : 1000,
+//          "left" : 0,
+//          "timestamp" : 1645680839725,
+//          "data" : [{
+//            "id" : 1000,
+//            "createdAt" : 1645680839723,
+//            "updatedAt" : 1645680839723,
+//            "externalId" : "some-external-id1",
+//            "amount" : 1,
+//            "currency" : "BTC",
+//            "address" : "mzBc4XEFSdzCDcTxAgf6EZXgsZWpztRhef",
+//            "paymentCurrency" : "EUR",
+//            "paymentCurrencyLocked" : true,
+//            "paymentAmountLocked" : false,
+//            "paymentAmount" : 7900.0,
+//            "status" : "EXECUTED",
+//            "blockchainTxId" : "4c8af628c15d4e8bf0505f29ee2dde0fec9682e947d750b8da60e4e66b69e79e",
+//            "conversionRate" : 7877.6,
+//            "type" : "FIAT_TO_CRYPTO",
+//            "kycInvolved" : false
+//          }]
+//        };
+        console.log("[checkTxConfirmation]", res)
+        const data = res.data.data[0];
+        return cb(null, { id: data.id, status: data.status, blockchainTxId: data.blockchainTxId });
+      };
+    }
   };
 
   const checkTransactionStatus = function (arg$, cb) {
@@ -77,29 +105,55 @@ const Checkout = (props) => {
         },
         timerCb
       ),
-      1000
+      5000
     ));
   };
 
   useEffect(() => {
-//    checkTransactionStatus({ start: Date.now(), network, tx: payment_id }, function(err, res){
-//      if (err) {
-//        Swal.fire({
-//          icon: "error",
-//          title: "Error",
-//          text: (err || "").toString(),
-//        });
-//      } else {
-//        Swal.fire({
-//          icon: "success",
-//          title: "Transaction succeed",
-//          text: "Your transaction was succeed",
-//        });
-//      }
-//    })
-    setStatus('payment_approved');
+    checkTransactionStatus({ start: Date.now(), network, tx: payment_id }, function(err, res){
+      if (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: (err || "").toString(),
+        });
+      } else {
+        const { id, status , blockchainTxId } = res;
+        if (status === "EXECUTED" || status === "SUCCESS") {
+          setStatus('payment_approved');
+          Swal.fire({
+            icon: "success",
+            title: "Transaction succeed",
+            text: "Your transaction was succeed",
+          });
+        }
+        if (status === "ERROR") {
+          setStatus("error");
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Something went wrong during order creation.",
+          });
+        }
+      }
+    })
 
+    return () => {
+       clearInterval(checkTransactionStatus.timer);
+    }
   }, []);
+
+  const goBack = (e) => {
+    e.preventDefault();
+    if (isAndroid) {
+      const url ="intent:/#Intent;scheme=https;package=com.velas.mobile_wallet;end";
+      window.location.replace(url);
+    } else if (isIOS) {
+      window.location.replace("com.velas.walletmobile://");
+    } else {
+      window.location.replace(parsed.env === undefined ? REDIRECT_URIS.wallet_mainnet : REDIRECT_URIS[parsed.env]);
+    }
+  }
 
   const copyPaymentId = () => {
     navigator.clipboard.writeText(payment_id)
@@ -113,7 +167,7 @@ const Checkout = (props) => {
       <Form
         className="input-form"
         action={
-          REDIRECT_URIS[env]
+          REDIRECT_URIS[network]
         }
       >
         <motion.div
@@ -124,9 +178,11 @@ const Checkout = (props) => {
           <Form.Group>
             <div className="block-txt">
               <p className="row-txt status" style={{color: statusColor(status)}}>{checkStatus(status)}</p>
-              <p className="row-txt">
-                Go back to the wallet to check your balance!
-              </p>
+              { status === "EXECUTED" && (
+                <p className="row-txt">
+                  Go back to the wallet to check your balance!
+                </p>
+              )}
             </div>
             <div className="block-txt">
               <p className="row-txt">Your payment id:</p>
@@ -141,7 +197,7 @@ const Checkout = (props) => {
               </p>
             </div>
           </Form.Group>
-          <Button variant="primary" type="submit">
+          <Button variant="primary" type="button" onClick={goBack}>
             Go Back
           </Button>
         </motion.div>
