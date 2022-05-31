@@ -617,6 +617,10 @@ const PaymentDetails = (props) => {
                     <p title={address}>{addressCut}</p>
                   </div>
                 )}
+                <div className="row_notice">
+                  <p>Fee:</p>
+                  <p>3.5% - 5%, min 10 {selectedFiat || parsed.fiat_currency}</p>
+                </div>
               </>
             )}
           </Form.Group>
