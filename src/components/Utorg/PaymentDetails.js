@@ -182,7 +182,7 @@ const PaymentDetails = (props) => {
         "paymentAmount" : 1
       };
 
-      const convertResult = await makeQuery({ url: UTORG_CONVERT_URL, params: convertParams });
+      const convertResult = await makeQuery({ url: UTORG_CONVERT_URL, params: convertParams, forceMainnet: true });
       if (convertResult && convertResult.data && convertResult.data.data) {
         setCurrentRate(convertResult.data.data);
       }
@@ -352,13 +352,16 @@ const PaymentDetails = (props) => {
 
   const formRef = useRef(null);
 
-  const makeQuery = async ({ url, params }) => {
-    const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
+  const makeQuery = async ({ url, params, forceMainnet }) => {
+    const seed =
+      network === 'testnet' && !forceMainnet ? 'Fhg5x79TFf' : 'VelasWallet';
     const headers = {
       'Content-Type': 'application/json;charset=UTF-8',
       'X-AUTH-SID': seed,
       'X-AUTH-NONCE': Date.now(),
     };
+    const _network = forceMainnet ? "mainnet" : network;
+    const domain  = UTORG_DOMAIN[`${_network}`];
     const _params = !params ? {} : params;
 
     const quoteResult = await axios.post(`${domain}/${url}`, _params, { headers });
