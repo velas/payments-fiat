@@ -23,6 +23,7 @@ import { Provider } from "./ProviderSelection.js";
 import UtorgPaymentDetails from "./Utorg/PaymentDetails";
 import SimplexPaymentDetails from "./Simplex/PaymentDetails";
 import TransakPaymentDetails from "./Transak/PaymentDetails";
+import Checkout from "./Utorg/Checkout";
 
 
 const PaymentDetails = (props) => {
@@ -40,37 +41,56 @@ const PaymentDetails = (props) => {
 
   return (
     <>
-      {!hasUrlProvider && (
-        <motion.div
-          className="col-md-10 offset-md-1 common-provider-selection"
-          initial={{ x: "-5vw" }}
-          animate={{ x: 0 }}
-          style={{zIndex: 2, marginTop: 20}}
-        >
-          <Provider
+      { (props.history.location.state &&
+        props.history.location.state.step === "WAIT_FOR_POSTBACK") ||
+         global.location.pathname === '/provider/utorg/checkout' ?
+        (
+          <Checkout
             selectedProvider={selectedProvider}
-            setSelectedProvider={setSelectedProvider}
+            {...props}
           />
-        </motion.div>
-      )}
+        )
+      : (
+        <>
+          { !hasUrlProvider && (
+            <motion.div
+              className="col-md-10 offset-md-1 common-provider-selection"
+              initial={{ x: "-5vw" }}
+              animate={{ x: 0 }}
+              style={{zIndex: 2, marginTop: 20}}
+            >
+              <Provider
+                selectedProvider={selectedProvider}
+                setSelectedProvider={setSelectedProvider}
+                {...props}
+              />
+            </motion.div>
+          )}
 
-      { selectedProvider === "utorg" && (
-        <UtorgPaymentDetails
-          selectedProvider={selectedProvider}
-        />
-      )}
+          { selectedProvider === "utorg" && (
+            <UtorgPaymentDetails
+              selectedProvider={selectedProvider}
+              redirectTo={props.history.push}
+              {...props}
+            />
+          )}
 
-      { selectedProvider === "simplex" && (
-        <SimplexPaymentDetails
-          selectedProvider={selectedProvider}
-        />
-      )}
+          { selectedProvider === "simplex" && (
+            <SimplexPaymentDetails
+              selectedProvider={selectedProvider}
+              {...props}
+            />
+          )}
 
-      { selectedProvider === "transak" && (
-        <TransakPaymentDetails
-          selectedProvider={selectedProvider}
-        />
-      )}
+          { selectedProvider === "transak" && (
+            <TransakPaymentDetails
+              selectedProvider={selectedProvider}
+              {...props}
+            />
+          )}
+        </>
+        )
+     }
 
     </>
   );

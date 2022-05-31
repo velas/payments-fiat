@@ -129,7 +129,7 @@ const CurrencyRow = ({
   );
 };
 const PaymentDetails = (props) => {
-  //console.log("Utorg [PaymentDetails] props", props)
+  //console.log("Utorg [PaymentDetails] props", props);
   const payment_id = useMemo(uuidv4, []);
   const checkout_url = `${
     global.location.origin
@@ -368,7 +368,8 @@ const PaymentDetails = (props) => {
     return quoteResult;
   }
 
-  const onSubmitUtorg = async () => {
+  const onSubmitUtorg = async (e) => {
+    e.preventDefault();
     const paymentCurrency = (selectedFiat || parsed.fiat_currency).toUpperCase();
     const paymentUrl = UTORG_PAYMENT_URIS[`${network}`];
     const _address = ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address
@@ -395,7 +396,9 @@ const PaymentDetails = (props) => {
     }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
       parsed.env
     )}`;
-
+    const localhost_domain = "http://192.168.1.4:3001"
+    const postbackUrl = `${global.location.origin}/utorg/quote/${encodeURIComponent(payment_id)}`;
+    //const postbackUrl = `${localhost_domain}/utorg/quote/${encodeURIComponent(payment_id)}`;
     const params = {
       type: "FIAT_TO_CRYPTO",
       currency : currency,
@@ -404,7 +407,7 @@ const PaymentDetails = (props) => {
       externalId : payment_id,
       address : _address,
       email : "",
-      postbackUrl : "https://merchant.com/utorg/callback",
+      postbackUrl : postbackUrl,
       successUrl : checkout_url,
       failUrl : error_url
     };
@@ -433,9 +436,26 @@ const PaymentDetails = (props) => {
       const quoteResult = await makeQuery({ url: `${paymentUrl}`, params });
 //      const quoteResult = await axios.post(`${paymentUrl}`, params, {headers});
       if (!quoteResult.data.success) return;
-      const { url } = quoteResult.data.data;
+      const { url, id, mId } = quoteResult.data.data; // mId "2dc1c88a96a145f9c6e9c76b78920f93c84e25e1"
       if (!url) return;
-      window.location.replace(url);
+      //window.location.replace(url);
+      const orderId = id;
+
+      // Open new tab with generated link
+      window.open(url, "_blank") ;
+
+      //Open Checkout page and waiting for postback response.
+      props.redirectTo({
+        pathname: `/provider/utorg/checkout?payment_id=${encodeURIComponent(id)}`,
+        state: {
+          selectedProvider: selectedProvider,
+          payment_id: payment_id,
+          orderId: id,
+          mId: mId,
+          step: "WAIT_FOR_POSTBACK"
+        }
+      });
+
     } catch (err) {
       let errMsg = "";
       console.error("@!!! caught error ", err)
@@ -609,17 +629,7 @@ const PaymentDetails = (props) => {
                     <p>...</p>
                   )}
                 </div>
-                {!ALL_REQUIRED_PARAMS_MISSED && (
-                  <div className="row_notice_sub">
-                    <p className="left-side-p pay-with">Pay with:</p>
-                    <p className="fee-info" style={{textTransform: "capitalize"}}>
-                      {selectedProvider ? selectedProvider : "..."}
-                      {selectedProvider && (
-                        <BsInfoCircle onClick={onInfo} className="info-icon" />
-                      )}
-                    </p>
-                  </div>
-                )}
+
                 { parsed.address && (
                   <div className="row_notice">
                     <p className="left-side-p">Your address:</p>

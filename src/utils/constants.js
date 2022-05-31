@@ -23,6 +23,8 @@ export const UTORG_DOMAIN = {
   mainnet: 'https://app.utorg.pro',
 }
 
+export const UTORG_TX_DETAILS_URI = "api/merchant/v1/order/find";
+
 export const UTORG_PAYMENT_URIS = {
   testnet: 'api/merchant/v1/order/init',
   mainnet: 'api/merchant/v1/order/init',
