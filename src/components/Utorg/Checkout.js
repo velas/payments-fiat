@@ -58,30 +58,6 @@ const Checkout = (props) => {
       };
       const res = await makeQuery({ url: UTORG_TX_DETAILS_URI, network, params });
       if (res && res.data && res.data.data) {
-//        const mock = {
-//          "success" : true,
-//          "cursor" : 1000,
-//          "left" : 0,
-//          "timestamp" : 1645680839725,
-//          "data" : [{
-//            "id" : 1000,
-//            "createdAt" : 1645680839723,
-//            "updatedAt" : 1645680839723,
-//            "externalId" : "some-external-id1",
-//            "amount" : 1,
-//            "currency" : "BTC",
-//            "address" : "mzBc4XEFSdzCDcTxAgf6EZXgsZWpztRhef",
-//            "paymentCurrency" : "EUR",
-//            "paymentCurrencyLocked" : true,
-//            "paymentAmountLocked" : false,
-//            "paymentAmount" : 7900.0,
-//            "status" : "EXECUTED",
-//            "blockchainTxId" : "4c8af628c15d4e8bf0505f29ee2dde0fec9682e947d750b8da60e4e66b69e79e",
-//            "conversionRate" : 7877.6,
-//            "type" : "FIAT_TO_CRYPTO",
-//            "kycInvolved" : false
-//          }]
-//        };
         console.log("[checkTxConfirmation]", res)
         const data = res.data.data[0];
         return cb(null, { id: data.id, status: data.status, blockchainTxId: data.blockchainTxId });
