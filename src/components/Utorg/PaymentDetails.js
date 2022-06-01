@@ -372,7 +372,7 @@ const PaymentDetails = (props) => {
     e.preventDefault();
     const paymentCurrency = (selectedFiat || parsed.fiat_currency).toUpperCase();
     const paymentUrl = UTORG_PAYMENT_URIS[`${network}`];
-    const _address = ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address
+    const _address = parsed.address || address;
     const currs = {
       vlx_native: "VLX",
       vlx_usdv: "USDVEL",
