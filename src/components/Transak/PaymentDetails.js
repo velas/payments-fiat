@@ -549,10 +549,6 @@ const PaymentDetails = (props) => {
                     <p title={address}>{addressCut}</p>
                   </div>
                 )}
-                <div className="row_notice">
-                  <p>Fee:</p>
-                  <p>3.5%</p>
-                </div>
               </>
             )}
           </Form.Group>
