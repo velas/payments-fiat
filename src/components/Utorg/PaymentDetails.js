@@ -136,11 +136,6 @@ const PaymentDetails = (props) => {
   }/provider/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
     network
   )}`;
-  const error_url = `${
-    global.location.origin
-  }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-    network
-  )}`;
   const [tickerData, setTickerData] = useState({});
   const [tickerFiatData, setTickerFiatData] = useState({});
   const [currencyData, setCurrencyData] = useState({});
@@ -373,6 +368,7 @@ const PaymentDetails = (props) => {
     const paymentCurrency = (selectedFiat || parsed.fiat_currency).toUpperCase();
     const paymentUrl = UTORG_PAYMENT_URIS[`${network}`];
     const _address = parsed.address || address;
+    const env = parsed.env || "wallet_mainnet";
     const currs = {
       vlx_native: "VLX",
       vlx_usdv: "USDVEL",
@@ -386,19 +382,8 @@ const PaymentDetails = (props) => {
         html: "Unknown crypto currency was chosen to receive",
       });
     }
-    const checkout_url = `${
-      global.location.origin
-    }/provider/utorg/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-      parsed.env
-    )}`;
-    const error_url = `${
-      global.location.origin
-    }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-      parsed.env
-    )}`;
-    const localhost_domain = "http://192.168.1.4:3001"
+    const checkout_url = `${global.location.origin}/provider/utorg/checkout?payment_id=${encodeURIComponent(payment_id)}&env=${encodeURIComponent(env)}`;
     const postbackUrl = `${global.location.origin}/utorg/quote/${encodeURIComponent(payment_id)}`;
-    //const postbackUrl = `${localhost_domain}/utorg/quote/${encodeURIComponent(payment_id)}`;
     const params = {
       type: "FIAT_TO_CRYPTO",
       currency : currency,
@@ -407,9 +392,9 @@ const PaymentDetails = (props) => {
       externalId : payment_id,
       address : _address,
       email : "",
-      postbackUrl : postbackUrl,
+      //postbackUrl : postbackUrl,
       successUrl : checkout_url,
-      failUrl : error_url
+      failUrl : checkout_url
     };
     const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
 
@@ -441,20 +426,23 @@ const PaymentDetails = (props) => {
       //window.location.replace(url);
       const orderId = id;
 
+      //Open in the same tab
+      window.location.replace(url);
+
       // Open new tab with generated link
-      window.open(url, "_blank") ;
+      //window.open(url, "_blank") ;
 
       //Open Checkout page and waiting for postback response.
-      props.redirectTo({
-        pathname: `/provider/utorg/checkout?payment_id=${encodeURIComponent(id)}`,
-        state: {
-          selectedProvider: selectedProvider,
-          payment_id: payment_id,
-          orderId: id,
-          mId: mId,
-          step: "WAIT_FOR_POSTBACK"
-        }
-      });
+//      props.redirectTo({
+//        pathname: `/provider/utorg/checkout?payment_id=${encodeURIComponent(payment_id)}`,
+//        state: {
+//          selectedProvider: selectedProvider,
+//          payment_id: payment_id,
+//          orderId: id,
+//          mId: mId,
+//          step: "WAIT_FOR_POSTBACK"
+//        }
+//      });
 
     } catch (err) {
       let errMsg = "";
@@ -651,7 +639,6 @@ const PaymentDetails = (props) => {
           <input type="hidden" name="partner" value={PARTNER_NAME} />
           <input type="hidden" name="payment_flow_type" value="wallet" />
           <input type="hidden" name="return_url_success" value={checkout_url} />
-          <input type="hidden" name="return_url_fail" value={error_url} />
           <input type="hidden" name="payment_id" value={payment_id} />
         </motion.div>
       </Form>
