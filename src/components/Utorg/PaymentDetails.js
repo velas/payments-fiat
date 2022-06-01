@@ -527,8 +527,8 @@ const PaymentDetails = (props) => {
 
 
   const action = UTORG_PAYMENT_URIS[`${domain}/${network}`];
-  const _minAmount = +minAmount === 0 ? "..." : minAmount;
-  const _maxAmount = +maxAmount === 0 ? "..." : maxAmount;
+  const _minAmount = +minAmount === 0 ? "..." : minAmount.toFixed(2);;
+  const _maxAmount = +maxAmount === 0 ? "..." : maxAmount.toFixed(2);;
 
   const addressCut = (parsed.address || address).substring(0, 8) + "..." + address.substring(35);
 
