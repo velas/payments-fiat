@@ -54,6 +54,7 @@ const CRYPTO_CURRENCIES_kv = {
 
 
 const parsed = queryString.parse(global.location.search);
+console.log("global.location.search",global.location.search)
 const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
 const network = parsed.env ?
   parsed.env === "wallet_testnet" ? "testnet" : "mainnet"
@@ -384,6 +385,16 @@ const PaymentDetails = (props) => {
     }
     const checkout_url = `${global.location.origin}/provider/utorg/checkout?payment_id=${encodeURIComponent(payment_id)}&env=${encodeURIComponent(env)}`;
     const postbackUrl = `${global.location.origin}/utorg/quote/${encodeURIComponent(payment_id)}`;
+    const referredFromLocalHost =
+        props.referrer && props.referrer.length > 0 &&
+        ((props.referrer.indexOf("://127.0.0.1") > -1) || (props.referrer.indexOf("://localhost") > -1));
+
+    const referrerUrl = referredFromLocalHost ? `${props.referrer}main-index.html` : props.referrer;
+    const referrerIsEmpty = referrerUrl.length === 0;
+    const successUrl = referrerIsEmpty ? `${global.location.origin}/provider/utorg` : referrerUrl;
+    const failUrl = `${global.location.origin}/provider/utorg`;
+
+    //debugger;
     const params = {
       type: "FIAT_TO_CRYPTO",
       currency : currency,
@@ -393,8 +404,8 @@ const PaymentDetails = (props) => {
       address : _address,
       email : "",
       //postbackUrl : postbackUrl,
-      successUrl : checkout_url,
-      failUrl : checkout_url
+      successUrl : successUrl,
+      failUrl : failUrl
     };
     const seed = network === 'testnet' ? 'Fhg5x79TFf' : 'VelasWallet';
 

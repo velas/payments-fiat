@@ -33,7 +33,15 @@ const PaymentDetails = (props) => {
   const [pageIsLoading, setPageIsLoading] = useState(true);
   const [selectProvider, setSelectProvider] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState(null);
+  const [referrer, setReferrer] = useState(document.referrer);
 
+  useEffect(() => {
+    if (hasUrlProvider) {
+      const provider_ = (global.location.pathname || "").split("/provider/")[1];
+      const provider = provider_.replace(/\/+$/g, '');
+      setSelectedProvider(provider);
+    }
+  }, []);
 
   const hasUrlProvider =
     global && global.location && global.location.pathname &&
@@ -71,6 +79,7 @@ const PaymentDetails = (props) => {
             <UtorgPaymentDetails
               selectedProvider={selectedProvider}
               redirectTo={props.history.push}
+              referrer={referrer}
               {...props}
             />
           )}
