@@ -60,7 +60,8 @@ const network = parsed.env ?
   parsed.env === "wallet_testnet" ? "testnet" : "mainnet"
   : "mainnet";
 
-const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`] ? parsed.crypto_currency : 'vlx';
+
+const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
 
 const domain  = UTORG_DOMAIN[`${network}`];
 
