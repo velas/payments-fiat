@@ -323,18 +323,13 @@ const PaymentDetails = (props) => {
     return false;
   };
 
+  console.log('selectedCryptoCurrency', selectedCryptoCurrency)
   const onSubmit_ = async () => {
     setIsLoading(true);
 
     try {
       const params = {
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "vlx"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
+        crypto_currency: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === "0x" ? vlx_evm : "VLX",
         fiat_currency: selectedFiat || parsed.fiat_currency,
         crypto_amount: Number(amountCrypto),
         address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
