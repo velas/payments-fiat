@@ -16,7 +16,16 @@ const stringified_valid = queryString.stringify(valid_address_evm);
 valid_address_evm =
   stringified_valid.substr(0, 2) === "0x" && parsed.address.length === 42;
 
-export const Provider = (props) => {
+  
+  export const Provider = (props) => {
+    const CRYPTO_CURRENCIES_kv = {
+      "vlx": "VLX(EVM)",
+      "vlx_native":"VLX(NATIVE)",
+      "vlx_usdv": "VLX(USDV)"
+    }
+  const CHECK_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+  const hasUsdvUrl = CHECK_CRYPTO_CURRENCY === 'vlx_usdv';
+
   const { selectedProvider, setSelectedProvider } = props;
   const onInfo = () => {
     Swal.fire({
@@ -34,10 +43,12 @@ export const Provider = (props) => {
     {
       value: "simplex",
       label: "Simplex (Visa/MC)",
+      disabled: hasUsdvUrl
     },
     {
       value: "transak",
       label: "Transak (Visa/MC)",
+      disabled: hasUsdvUrl
     },
     {
       value: "utorg",
