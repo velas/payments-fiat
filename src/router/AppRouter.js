@@ -9,7 +9,8 @@ import PaymentDetailsUtorg from "../components/Utorg/PaymentDetails";
 import PaymentDetailsTransak from "../components/Transak/PaymentDetails";
 import ThirdStep from "../components/Simplex/Checkout";
 import UtorgCheckout from "../components/Utorg/Checkout";
-import { motion } from "framer-motion";
+import TransakCheckout from "../components/Transak/Checkout";
+import SimplexCheckout from "../components/Simplex/Checkout";
 import queryString from "query-string";
 
 const parsed = queryString.parse(global.location.search);
@@ -17,14 +18,9 @@ const valid = !parsed.address && !parsed.crypto_currency && !parsed.env;
 const AppRouter = () => {
   return (
     <BrowserRouter>
-      <motion.div
-        className="col-md-8 offset-md-2"
-        initial={{ x: "-100vw" }}
-        animate={{ x: 0 }}
-        transition={{ stiffness: 150 }}
-      >
+      <div className="center-container">
         <div className="container">
-          <Header class="form" style={{display: valid && 'none'}}/>
+          <Header class="form" style={{display: 'none'}}/>
           <Switch>
             <Route
               render={(props) => <CommonPaymentDetails {...props} />}
@@ -52,6 +48,14 @@ const AppRouter = () => {
               path="/provider/checkout"
             />
             <Route
+              render={(props) => <TransakCheckout {...props} />}
+              path="/provider/transak/checkout"
+            />
+             <Route
+              render={(props) => <SimplexCheckout {...props} />}
+              path="/provider/simplex/checkout"
+            />
+            <Route
               render={(props) => <UtorgCheckout {...props} />}
               path="/provider/utorg/checkout"
             />
@@ -63,7 +67,7 @@ const AppRouter = () => {
             <Route render={() => <Redirect to="/" />} />
           </Switch>
         </div>
-      </motion.div>
+        </div>
     </BrowserRouter>
   );
 };

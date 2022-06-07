@@ -17,7 +17,7 @@ const socket = io("/", {
     payment_id: payment_id,
   },
 });
-const Checkout = (props) => {
+const TransakCheckout = (props) => {
   const checkStatus = (status) => {
     switch (status) {
       case "waiting":
@@ -77,7 +77,7 @@ const Checkout = (props) => {
         className="input-form"
         // action={env === 'undefined' ? REDIRECT_URIS.wallet_mainnet : REDIRECT_URIS[env]}
         >
-         <motion.div
+        <motion.div
           className="col-md-10 offset-md-1"
           style={{zIndex: 2, marginTop: 20}}
         >
@@ -118,4 +118,4 @@ const Checkout = (props) => {
   );
 };
 
-export default Checkout;
+export default TransakCheckout;

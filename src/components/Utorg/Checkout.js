@@ -20,7 +20,7 @@ const Checkout = (props) => {
   const checkStatus = (status) => {
     switch (status) {
       case "waiting":
-        return "Waiting..";
+        return "Waiting..UTORG";
       case "payment_request_submitted":
         return "Payment Submitted!";
       case "payment_approved":
@@ -58,7 +58,7 @@ const Checkout = (props) => {
       };
       const res = await makeQuery({ url: UTORG_TX_DETAILS_URI, network, params });
       if (res && res.data && res.data.data) {
-        console.log("[checkTxConfirmation]", res)
+        // console.log("[checkTxConfirmation]", res)
         const data = res.data.data[0];
         return cb(null, { id: data.id, status: data.status, blockchainTxId: data.blockchainTxId });
       };
@@ -148,8 +148,8 @@ const Checkout = (props) => {
       >
         <motion.div
           className="col-md-8 offset-md-2"
-          initial={{ x: "-5vw" }}
-          animate={{ x: 0 }}
+          // initial={{ x: "-5vw" }}
+          // animate={{ x: 0 }}
         >
           <Form.Group>
             <div className="block-txt">

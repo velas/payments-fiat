@@ -54,7 +54,7 @@ const CRYPTO_CURRENCIES_kv = {
 
 
 const parsed = queryString.parse(global.location.search);
-console.log("global.location.search",global.location.search)
+// console.log("global.location.search",global.location.search)
 const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
 const network = parsed.env ?
   parsed.env === "wallet_testnet" ? "testnet" : "mainnet"
@@ -113,10 +113,10 @@ const CurrencyRow = ({
               const name = CRYPTO_CURRENCIES_kv[`${it}`]
               return (
                 <Dropdown.Item
-                  key={it}
+                  key={name}
                   style={{ fontSize: 12 }}
                   href="#"
-                  active={selectedRow === it}
+                  active={selectedRow === name}
                   onSelect={() => setSelectedRow(it)}
                 >
                   {name}
@@ -519,14 +519,14 @@ const PaymentDetails = (props) => {
     toAmount <= 0 ||
     !isValidAddress({ address, token: selectedCryptoCurrency }) ||
     (ALL_REQUIRED_PARAMS_MISSED && !address) ||
-    (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
-    (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
+    (selectedCryptoCurrency === "vlx" && valid_address_evm !== "0x") ||
+    (selectedCryptoCurrency === "vlx_native" && valid_address_evm === "0x") ||
     amountLessThanMin ||
     amountMoreThanMax ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(EVM)" && address.length < 42) ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(NATIVE)" && address.length < 44) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "vlx" && address.length < 42) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "vlx_native" && address.length < 44) ||
     !selectedProvider ||
-    (selectedCryptoCurrency === "VLX(USDV)" && valid_address_evm !== "0x");
+    (selectedCryptoCurrency === "vlx_usdv" && valid_address_evm !== "0x");
 
   if (Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0) {
     return (
@@ -537,6 +537,7 @@ const PaymentDetails = (props) => {
   }
 
 
+  // console.log('selectedCryptoCurrency', selectedCryptoCurrency)
 
   const action = UTORG_PAYMENT_URIS[`${domain}/${network}`];
   const _minAmount = +minAmount === 0 ? "..." : minAmount.toFixed(2);;
@@ -557,10 +558,8 @@ const PaymentDetails = (props) => {
         ref={formRef}
         action={action}
       >
-        <motion.div
+        <div
           className="col-md-10 offset-md-1"
-          initial={{ x: "-5vw" }}
-          animate={{ x: 0 }}
         >
           <Form.Group>
             <div id="input-block">
@@ -652,7 +651,7 @@ const PaymentDetails = (props) => {
           <input type="hidden" name="payment_flow_type" value="wallet" />
           <input type="hidden" name="return_url_success" value={checkout_url} />
           <input type="hidden" name="payment_id" value={payment_id} />
-        </motion.div>
+        </div>
       </Form>
     </>
   );
