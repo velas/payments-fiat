@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { Form, Button } from "react-bootstrap";
-import { motion } from "framer-motion";
 import queryString from "query-string";
 import EmptyView from "./EmptyView";
 import Swal from "sweetalert2";
@@ -11,7 +10,6 @@ import { countries_low_fee, countries_high_fee } from "../utils/countries";
 import {title_info, body, body_transak, body_utorg } from "./InfoMsg"
 
 const parsed = queryString.parse(global.location.search);
-const stringified = queryString.stringify(parsed);
 
 let valid_address_evm = queryString.parse(parsed.address);
 const stringified_valid = queryString.stringify(valid_address_evm);
@@ -50,7 +48,7 @@ export const Provider = (props) => {
     setSelectedProvider(e.value);
   }
   return (
-    <div style={props.style}>
+    <div className={props.style}>
       <Form.Label className="left-side-p">
         Pay with <span className="selected-provider" style={{textTransform: "capitalize"}}>{selectedProvider}</span>
         {selectedProvider && (
@@ -71,79 +69,4 @@ export const Provider = (props) => {
   );
 };
 
-const ProviderSelection = (props) => {
-  const [selectedProvider, setSelectProvider] = useState([]);
 
-  const location = useGeoLocation();
-
-  function checkArray(arr, val) {
-    return arr.some(function (arrVal) {
-      return val === arrVal;
-    });
-  }
-  function checkArray1(arr, val) {
-    return arr.some(function (arrVal) {
-      return val === arrVal;
-    });
-  }
-  const checkCountry = checkArray(countries_low_fee, location.country);
-  const checkCountry1 = checkArray1(countries_high_fee, location.country);
-  if (selectedProvider === "transak" && location.country && !checkCountry && !checkCountry1) {
-    Swal.fire({
-      icon: "info",
-      title: "Oops...",
-      html: `<p className="info-style">Sorry, but selected payment processing doesn’t work in your country.<br>Please choose another Payment Provider.</p>`,
-    });
-    setSelectProvider("");
-  }
-  const valid_btn = !selectedProvider;
-
-  const onSubmit = () => {
-    props.history.push({
-      pathname: `/provider/${selectedProvider}/?${stringified}`,
-      state: {
-        selectedProvider: selectedProvider
-      }
-    });
-  };
-  if (!parsed.address || !parsed.crypto_currency || !parsed.env)
-    return <EmptyView />;
-
-  var address = parsed.address;
-  const addressCut = address.substring(0, 8) + "..." + address.substring(35);
-  return (
-    <Form className="form mt-5 select-provider" onSubmit={onSubmit}>
-      <motion.div
-        className="col-md-10 offset-md-1"
-        initial={{ x: "-5vw" }}
-        animate={{ x: 0 }}
-      >
-        <div className="container_info">
-          <div className="row_notice">
-            <p className="left-side-p">Currency to buy:</p>
-            <p>
-              {parsed.crypto_currency === "VLX_USDV"
-                ? "VLX(USDV)"
-                : valid_address_evm
-                ? "VLX(EVM)"
-                : "VLX(NATIVE)"}
-            </p>
-          </div>
-          <div className="row_notice">
-            <p className="left-side-p">Your address:</p>
-            <p title={address}>{addressCut}</p>
-          </div>
-          <Provider
-            setSelectProvider={setSelectProvider}
-            selectedProvider={selectedProvider}
-          />
-        </div>
-        <Button variant="primary" onClick={onSubmit} disabled={valid_btn}>
-          Continue
-        </Button>
-      </motion.div>
-    </Form>
-  );
-};
-
-export default ProviderSelection;

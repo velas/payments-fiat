@@ -1,37 +1,17 @@
 import React, {
   useState,
-  useMemo,
-  useRef,
   useEffect
 } from "react";
-import {
-  Form,
-  Button,
-  InputGroup,
-  FormControl,
-  DropdownButton,
-  Dropdown,
-} from "react-bootstrap";
-import { motion } from "framer-motion";
-import axios from "axios";
-import queryString from "query-string";
-import { v4 as uuidv4 } from "uuid";
-import Swal from "sweetalert2";
-import EmptyView from "./EmptyView";
-import { BsInfoCircle } from "react-icons/bs";
 import { Provider } from "./ProviderSelection.js";
 import UtorgPaymentDetails from "./Utorg/PaymentDetails";
 import SimplexPaymentDetails from "./Simplex/PaymentDetails";
 import TransakPaymentDetails from "./Transak/PaymentDetails";
 import Checkout from "./Utorg/Checkout";
+import TransakCheckout from "./Transak/Checkout"
+import SimplexCheckout from "./Simplex/Checkout"
 
 
 const PaymentDetails = (props) => {
-  const parsed = queryString.parse(global.location.search);
-  const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
-
-  const [pageIsLoading, setPageIsLoading] = useState(true);
-  const [selectProvider, setSelectProvider] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [referrer, setReferrer] = useState(document.referrer);
 
@@ -47,24 +27,39 @@ const PaymentDetails = (props) => {
     global && global.location && global.location.pathname &&
     (global.location.pathname || "").split("/provider/").length > 1;
 
+  var location = window.location.href;
+  const hasUtorgUrlCheckout = (props.history.location.state && props.history.location.state.step === "WAIT_FOR_POSTBACK") || global.location.pathname === '/provider/utorg/checkout';
+  const hasTransakUrlCheckout = location.indexOf("/provider/transak/checkout") > -1;
+  const hasSimplexUrlCheckout = location.indexOf("/provider/simplex/checkout") > -1;
+
   return (
     <>
-      { (props.history.location.state &&
-        props.history.location.state.step === "WAIT_FOR_POSTBACK") ||
-         global.location.pathname === '/provider/utorg/checkout' ?
+      { hasUtorgUrlCheckout || hasTransakUrlCheckout || hasSimplexUrlCheckout ?
         (
+          <>
+          { hasUtorgUrlCheckout && (
           <Checkout
             selectedProvider={selectedProvider}
             {...props}
           />
+          )}
+           { hasTransakUrlCheckout && (
+          <TransakCheckout
+            {...props}
+          />
+          )}
+          { hasSimplexUrlCheckout && (
+          <SimplexCheckout
+            {...props}
+          />
+          )}
+          </>
         )
       : (
         <>
           { !hasUrlProvider && (
-            <motion.div
+            <div
               className="col-md-10 offset-md-1 common-provider-selection"
-              initial={{ x: "-5vw" }}
-              animate={{ x: 0 }}
               style={{zIndex: 2, marginTop: 20}}
             >
               <Provider
@@ -72,7 +67,7 @@ const PaymentDetails = (props) => {
                 setSelectedProvider={setSelectedProvider}
                 {...props}
               />
-            </motion.div>
+            </div>
           )}
 
           { selectedProvider === "utorg" && (
@@ -92,6 +87,7 @@ const PaymentDetails = (props) => {
           )}
 
           { selectedProvider === "transak" && (
+            (global.location.pathname) === '/provider/transak/checkout' ? <TransakCheckout/> :
             <TransakPaymentDetails
               selectedProvider={selectedProvider}
               {...props}

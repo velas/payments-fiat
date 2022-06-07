@@ -26,14 +26,9 @@ import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
-import { BsInfoCircle } from "react-icons/bs";
-import transakSDK from "@transak/transak-sdk";
 import useGeoLocation from "react-ipgeolocation";
 import { isValidAddress } from "../../utils/address-validation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
-import { title_info, body, body_transak } from "../InfoMsg";
-import { Provider } from "../ProviderSelection.js";
-import UtorgPaymentDetails from "../Utorg/PaymentDetails";
 
 const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
@@ -54,9 +49,7 @@ const SUPPORTED_CURRENCIES = [
   "USD",
 ];
 const parsed_crypto_is_valid = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`];
-const DEFAULT_CRYPTO_CURRENCY = parsed_crypto_is_valid ? parsed.crypto_currency : 'vlx';
-
-
+const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
 
 const CurrencyRow = ({
   onChangeAmount,
@@ -106,10 +99,10 @@ const CurrencyRow = ({
               const name = CRYPTO_CURRENCIES_kv[`${it}`]
               return (
                 <Dropdown.Item
-                  key={it}
+                  key={name}
                   style={{ fontSize: 12 }}
                   href="#"
-                  active={selectedRow === it}
+                  active={selectedRow === name}
                   onSelect={() => setSelectedRow(it)}
                 >
                   {name}
@@ -126,7 +119,7 @@ const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
   const checkout_url = `${
     global.location.origin
-  }/provider/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
+  }/provider/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
     parsed.env
   )}`;
   const error_url = `${
@@ -218,7 +211,6 @@ const PaymentDetails = (props) => {
   const [amountTo, setAmountTo] = useState(0);
   const [address, setAddress] = useState("");
   let [selectedFiat, setSelectedFiat] = useState("USD");
-  const [widget, setWidget] = useState(false);
 
   const checkTransak = selectedProvider === "transak";
   const checkSimplex = selectedProvider === "simplex";
@@ -324,92 +316,20 @@ const PaymentDetails = (props) => {
 
   const formRef = useRef(null);
 
-  let transak = new transakSDK({
-    apiKey:
-      TRANSAK_API_KEY[
-        window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
-      ],
-    environment:
-      window.location.host === "buy.velas.com" ? "PRODUCTION" : "STAGING",
-    walletAddress: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-    themeColor: "#0037c1",
-    fiatCurrency: "EUR",
-    email: "",
-    hostURL: window.location.origin,
-    widgetHeight: "600px",
-    widgetWidth: "100%",
-    hideMenu: true,
-    fiatAmount: fromAmount,
-    defaultPaymentMethod: "credit_debit_card",
-    disablePaymentMethods: "sepa_bank_transfer, gbp_bank_transfer, apple_pay",
-    network: ALL_REQUIRED_PARAMS_MISSED
-      ? selectedCryptoCurrency === "VLX(EVM)"
-        ? "velasevm"
-        : "mainnet"
-      : parsed.crypto_currency && valid_address_evm === "0x"
-      ? "velasevm"
-      : "mainnet", //velasevm or mainnet
-    defaultCryptoCurrency: "VLX",
-    cryptoCurrencyCode: "VLX",
-    disableWalletAddressForm: true,
-  });
-
-  const onSubmitTransak = () => {
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
-      setWidget(true);
-    });
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
-      setWidget(false);
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
-      // console.log('data', data.status.status);
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.init();
-  };
   const onSubmit = (event) => {
     event.returnValue = false;
     setIsLoading(false);
     onSubmit_();
     return false;
   };
-  // console.log('amountCrypto', amountCrypto)
 
   const onSubmit_ = async () => {
-    // console.log("payment_id", payment_id);
     setIsLoading(true);
 
     try {
       const params = {
         crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "VLX(EVM)"
+          ? selectedCryptoCurrency === "vlx"
             ? "VLX-EVM"
             : "VLX"
           : parsed.crypto_currency && valid_address_evm === "0x"
@@ -429,7 +349,7 @@ const PaymentDetails = (props) => {
         address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
         payment_id: payment_id,
         crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "VLX(EVM)"
+          ? selectedCryptoCurrency === "vlx"
             ? "VLX-EVM"
             : "VLX"
           : parsed.crypto_currency && valid_address_evm === "0x"
@@ -459,13 +379,6 @@ const PaymentDetails = (props) => {
     setFocusInput(true);
   };
 
-  const validForm =
-    !address ||
-    (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
-    (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(EVM)" && address.length < 42) ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(NATIVE)" && address.length < 44) ||
-    (selectedCryptoCurrency === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
     return (
@@ -488,32 +401,17 @@ const PaymentDetails = (props) => {
     );
   };
 
-  const providerInfo = {
-    simplex: body,
-    transak: body_transak
-  };
-
-  const onInfo = () => {
-    Swal.fire({
-      icon: "info",
-      title: title_info,
-      html: providerInfo[selectedProvider],
-    });
-  };
-
   const valid_btn =
     amountCrypto <= 0 ||
+    !isValidAddress({ address: parsed.address || address, token: selectedCryptoCurrency }) ||
     (ALL_REQUIRED_PARAMS_MISSED && !address) ||
-    (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
-    (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
+    (selectedCryptoCurrency === "vlx" && valid_address_evm !== "0x") ||
+    (selectedCryptoCurrency === "vlx_native" && valid_address_evm === "0x") ||
     min_usd_valid ||
     min_eur_valid ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(EVM)" && address.length < 42) ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(NATIVE)" && address.length < 44) ||
-    (ALL_REQUIRED_PARAMS_MISSED && !selectedProvider) ||
-    widget ||
-    !selectedProvider ||
-    (selectedCryptoCurrency === "VLX(USDV)" && valid_address_evm !== "0x");
+    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "vlx" && address.length < 42) ||
+    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "vlx_native" && address.length < 44) ||
+    (ALL_REQUIRED_PARAMS_MISSED && !selectedProvider);
 
   if (Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0)
     return (
@@ -523,7 +421,7 @@ const PaymentDetails = (props) => {
     );
 
   const action = selectedProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
-  const addressCut = (parsed.address || address).substring(0, 8) + "..." + address.substring(35);
+  const addressCut = (parsed.address || address).substring(0, 8) + "..." + (parsed.address || address).substring(35);
 
   return (
     <>
@@ -531,15 +429,11 @@ const PaymentDetails = (props) => {
         className="form-step-2 input-form mt-3"
         method="POST"
         ref={formRef}
-        onSubmit={
-          selectedProvider === "simplex" ? onSubmit : onSubmitTransak
-        }
+        onSubmit={onSubmit}
         action={action}
       >
-        <motion.div
+        <div
           className="col-md-10 offset-md-1"
-          initial={{ x: "-5vw" }}
-          animate={{ x: 0 }}
         >
           <Form.Group>
             <div id="input-block">
@@ -564,7 +458,7 @@ const PaymentDetails = (props) => {
                   selectedRow={CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`]}
                   setSelectedRow={setSelectedCryptoCurrency}
                   cryptoCurrencies={CRYPTO_CURRENCIES_kv}
-                  disabled={parsed_crypto_is_valid}
+                  disabled={parsed.crypto_currency != null}
                 />
               </span>
             </div>
@@ -600,17 +494,6 @@ const PaymentDetails = (props) => {
                     <p>...</p>
                   )}
                 </div>
-                {!ALL_REQUIRED_PARAMS_MISSED && (
-                  <div className="row_notice_sub">
-                    <p className="left-side-p pay-with">Pay with:</p>
-                    <p className="fee-info" style={{textTransform: "capitalize"}}>
-                      {selectedProvider ? selectedProvider : "..."}
-                      {selectedProvider && (
-                        <BsInfoCircle onClick={onInfo} className="info-icon" />
-                      )}
-                    </p>
-                  </div>
-                )}
                 { parsed.address && (
                   <div className="row_notice">
                     <p className="left-side-p">Your address:</p>
@@ -624,14 +507,10 @@ const PaymentDetails = (props) => {
           <Button
             className="submit-button2"
             variant="primary"
-            onClick={
-              checkSimplex
-                ? onSubmit
-                : onSubmitTransak
-            }
+            onClick={onSubmit}
             disabled={valid_btn}
           >
-            {isLoading || widget ? "Loading..." : "Buy"}
+            {isLoading ? "Loading..." : "Buy"}
           </Button>
           <input type="hidden" name="version" value="1" />
           <input type="hidden" name="partner" value={PARTNER_NAME} />
@@ -639,7 +518,7 @@ const PaymentDetails = (props) => {
           <input type="hidden" name="return_url_success" value={checkout_url} />
           <input type="hidden" name="return_url_fail" value={error_url} />
           <input type="hidden" name="payment_id" value={payment_id} />
-        </motion.div>
+        </div>
       </Form>
     </>
   );

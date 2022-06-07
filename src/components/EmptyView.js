@@ -1,12 +1,15 @@
-import React from 'react';
+import React from "react";
 
 const EmptyView = (props) => {
-  const text = props.pageIsLoading ? "Loading..." : "Oops, something went wrong!!";
   return (
     <div className="block-txt">
-    <p className='row-txt'>{text}</p>
+      {props.pageIsLoading ? (
+        <div className="loader">Loading...</div>
+      ) : (
+        <p className="row-txt">Oops, something went wrong!!</p>
+      )}
     </div>
   );
-}
+};
 
 export default EmptyView;
