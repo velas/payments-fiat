@@ -55,6 +55,7 @@ valid_address_evm =
       label: "Utorg (Visa/MC)"
     },
   ];
+
   const onProviderSelect = (e) => {
     setSelectedProvider(e.value);
   }
@@ -75,6 +76,11 @@ valid_address_evm =
           placeholder={props.default && props.default}
           isOptionDisabled={(option) => option.disabled}
         />
+        {!selectedProvider &&  
+      <div style={{color: '#dc3545', marginTop: 5, fontSize: 13}}>
+        Please select a provider
+      </div>
+        }
       </div>
     </div>
   );

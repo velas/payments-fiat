@@ -323,7 +323,6 @@ const PaymentDetails = (props) => {
     return false;
   };
 
-  console.log('selectedCryptoCurrency', selectedCryptoCurrency)
   const onSubmit_ = async () => {
     setIsLoading(true);
 

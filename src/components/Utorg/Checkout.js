@@ -20,7 +20,7 @@ const Checkout = (props) => {
   const checkStatus = (status) => {
     switch (status) {
       case "waiting":
-        return "Waiting..UTORG";
+        return "Waiting..";
       case "payment_request_submitted":
         return "Payment Submitted!";
       case "payment_approved":

@@ -15,6 +15,7 @@ const PaymentDetails = (props) => {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [referrer, setReferrer] = useState(document.referrer);
 
+  // console.log('selectedProvider', selectedProvider)
   useEffect(() => {
     if (hasUrlProvider) {
       const provider_ = (global.location.pathname || "").split("/provider/")[1];
@@ -69,7 +70,14 @@ const PaymentDetails = (props) => {
               />
             </div>
           )}
-
+          {/* by default, if no provider is selected, I display a simplex for rate calculations start*/}
+          { !selectedProvider && (
+            <SimplexPaymentDetails
+              selectedProvider={selectedProvider}
+              {...props}
+            />
+          )}
+          {/* by default, if no provider is selected, I display a simplex for rate calculations end*/}
           { selectedProvider === "utorg" && (
             <UtorgPaymentDetails
               selectedProvider={selectedProvider}
@@ -87,7 +95,6 @@ const PaymentDetails = (props) => {
           )}
 
           { selectedProvider === "transak" && (
-            (global.location.pathname) === '/provider/transak/checkout' ? <TransakCheckout/> :
             <TransakPaymentDetails
               selectedProvider={selectedProvider}
               {...props}
