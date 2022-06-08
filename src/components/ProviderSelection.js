@@ -55,6 +55,7 @@ valid_address_evm =
       label: "Utorg (Visa/MC)"
     },
   ];
+
   const onProviderSelect = (e) => {
     setSelectedProvider(e.value);
   }
