@@ -8,6 +8,9 @@ import Select from "react-select";
 import useGeoLocation from "react-ipgeolocation";
 import { countries_low_fee, countries_high_fee } from "../utils/countries";
 import {title_info, body, body_transak, body_utorg } from "./InfoMsg"
+import IconSimplex from "../images/simplexLogo"
+import IconUtorg from "../images/utorgLogo"
+import IconTransak from "../images/transakLogo";
 
 const parsed = queryString.parse(global.location.search);
 
@@ -41,24 +44,28 @@ valid_address_evm =
   };
   const options = [
     {
-      value: "simplex",
-      label: "Simplex (Visa/MC)",
-      disabled: hasUsdvUrl
+      value: "utorg",
+      label: "Utorg (Visa/MC)",
+      icon: <IconUtorg width='20' height='20'/>
     },
     {
       value: "transak",
       label: "Transak (Visa/MC)",
-      disabled: hasUsdvUrl
+      disabled: hasUsdvUrl,
+      icon: <IconTransak width='20' height='20' opacity={hasUsdvUrl}/>
     },
     {
-      value: "utorg",
-      label: "Utorg (Visa/MC)"
+      value: "simplex",
+      label: "Simplex (Visa/MC)",
+      disabled: hasUsdvUrl,
+      icon: <IconSimplex width='20' height='20' opacity={hasUsdvUrl}/>
     },
   ];
 
   const onProviderSelect = (e) => {
     setSelectedProvider(e.value);
   }
+  
   return (
     <div className={props.style}>
       <Form.Label className="left-side-p">
@@ -75,6 +82,12 @@ valid_address_evm =
           options={options}
           placeholder={props.default && props.default}
           isOptionDisabled={(option) => option.disabled}
+          getOptionLabel={e => (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {e.icon}
+              <span style={{ marginLeft: 5 }}>{e.label}</span>
+            </div>
+          )}
         />
         {!selectedProvider &&  
       <div style={{color: '#dc3545', marginTop: 5, fontSize: 13}}>
