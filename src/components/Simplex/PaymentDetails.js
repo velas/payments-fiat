@@ -39,7 +39,7 @@ const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 
 const parsed = queryString.parse(global.location.search);
 const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
-const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
+// const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
 const CRYPTO_CURRENCIES_kv = {
   "vlx": "VLX(EVM)",
   "vlx_native":"VLX(NATIVE)",
@@ -160,7 +160,7 @@ const PaymentDetails = (props) => {
       const rates = await result.json();
 
       // Add rate for usdv token
-      rates.vlx_usdv_price = '1.13';
+      // rates.vlx_usdv_price = '1.13';
       setTickerData(rates);
     } catch (err) {
       setPageIsLoading(false);
@@ -174,7 +174,8 @@ const PaymentDetails = (props) => {
     //Fiat
     try {
       const fiatData = await fetch(TICKER_URL_FIXER);
-      setTickerFiatData(await fiatData.json());
+      const result_eur = await fiatData.json();
+      setTickerFiatData(result_eur);
     } catch (err) {
       setPageIsLoading(false);
       Swal.fire({
@@ -333,8 +334,10 @@ const PaymentDetails = (props) => {
         crypto_amount: Number(amountCrypto),
         address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
       };
-      const domain = SIMPLEX_DOMAIN[network];
-      const quoteResult = await axios.post(`${domain}${BASE_API_URL}/quote`, params);
+      // const domain = SIMPLEX_DOMAIN[network];
+      // const quoteResult = await axios.post(`${domain}${BASE_API_URL}/quote`, params);
+      const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
+
 
       if (quoteResult.data.error) throw new Error(quoteResult.data.error);
 
@@ -342,17 +345,15 @@ const PaymentDetails = (props) => {
         quote_id: quoteResult.data.quote_id,
         address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
         payment_id: payment_id,
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
-          ? selectedCryptoCurrency === "vlx"
-            ? "VLX-EVM"
-            : "VLX"
-          : parsed.crypto_currency && valid_address_evm === "0x"
-          ? vlx_evm
-          : parsed.crypto_currency,
+        crypto_currency: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === "0x" ? vlx_evm : "VLX",
       };
 
+      // const paymentResult = await axios.post(
+      //   `${domain}${BASE_API_URL}/payment`,
+      //   paramsPayment
+      // );
       const paymentResult = await axios.post(
-        `${domain}${BASE_API_URL}/payment`,
+        `${BASE_API_URL}/payment`,
         paramsPayment
       );
       if (paymentResult.data.error) throw new Error(paymentResult.data.error);
@@ -414,7 +415,7 @@ const PaymentDetails = (props) => {
       />
     );
 
-  const action = selectedProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
+  // const action = selectedProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
   const addressCut = (parsed.address || address).substring(0, 8) + "..." + (parsed.address || address).substring(35);
 
   return (
@@ -424,7 +425,12 @@ const PaymentDetails = (props) => {
         method="POST"
         ref={formRef}
         onSubmit={onSubmit}
-        action={action}
+        // action={action}
+        action={
+          SIMPLEX_PAYMENT_URIS[
+            window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
+          ]
+        }
       >
         <div
           className="col-md-10 offset-md-1"
