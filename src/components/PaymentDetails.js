@@ -9,6 +9,7 @@ import TransakPaymentDetails from "./Transak/PaymentDetails";
 import Checkout from "./Utorg/Checkout";
 import TransakCheckout from "./Transak/Checkout"
 import SimplexCheckout from "./Simplex/Checkout"
+import EmptyComponent from "./EmptyComponent"
 
 
 const PaymentDetails = (props) => {
@@ -70,14 +71,11 @@ const PaymentDetails = (props) => {
               />
             </div>
           )}
-          {/* by default, if no provider is selected, I display a simplex for rate calculations start*/}
+          {/* by default, if no provider is selected. Start*/}
           { !selectedProvider && (
-            <SimplexPaymentDetails
-              selectedProvider={selectedProvider}
-              {...props}
-            />
+            <EmptyComponent/>
           )}
-          {/* by default, if no provider is selected, I display a simplex for rate calculations end*/}
+          {/* by default, if no provider is selected. End*/}
           { selectedProvider === "utorg" && (
             <UtorgPaymentDetails
               selectedProvider={selectedProvider}

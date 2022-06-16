@@ -65,6 +65,13 @@ valid_address_evm =
   const onProviderSelect = (e) => {
     setSelectedProvider(e.value);
   }
+  const customStyles = {
+    control: (provided) => ({
+      ...provided,
+      border: !selectedProvider ? '2px solid #2684ff' : "",
+      borderRadius: 0,
+    }),
+  };
   
   return (
     <div className={props.style}>
@@ -76,6 +83,7 @@ valid_address_evm =
       </Form.Label>
       <div className="mb-3">
         <Select
+          styles={customStyles}
           defaultValue={selectedProvider}
           isDisabled={props.default && true}
           onChange={onProviderSelect}

@@ -452,6 +452,10 @@ div.checkbox {
 .left-side-p {
   color: #000
 }
+.form-control::-webkit-input-placeholder {
+  color: rgb(0, 0, 0);
+  opacity: 0.3;
+}
 .btn {
   letter-spacing: 1px;
   border-radius: 0;
