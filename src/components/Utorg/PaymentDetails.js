@@ -31,19 +31,19 @@ const DEFAULT_MIN_AMOUNT_USD = 50;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
 const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 const SUPPORTED_CURRENCIES = [
-  "AUD",
-  "BRL",
-  "CAD",
-  "CZK",
-  "DKK",
-  "EUR",
-  "GBP",
-  "KZT",
-  "NOK",
-  "NZD",
-  "PLN",
-  "SEK",
-  "UAH",
+  // "AUD",
+  // "BRL",
+  // "CAD",
+  // "CZK",
+  // "DKK",
+  // "EUR",
+  // "GBP",
+  // "KZT",
+  // "NOK",
+  // "NZD",
+  // "PLN",
+  // "SEK",
+  // "UAH",
   "USD",
 ];
 
