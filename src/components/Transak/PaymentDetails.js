@@ -28,7 +28,7 @@ import transakSDK from "@transak/transak-sdk";
 import useGeoLocation from "react-ipgeolocation";
 import { isValidAddress } from "../../utils/address-validation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
-import { title_info, body, body_transak } from "../InfoMsg";
+import { isAndroid, isIOS } from "react-device-detect";
 
 const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
@@ -44,9 +44,19 @@ const CRYPTO_CURRENCIES_kv = {
   "vlx": "VLX(EVM)",
   "vlx_native": "VLX(NATIVE)",
 }
+
+///delete when mob wallet update is released
+const valid_mobile = parsed.address && isIOS || isAndroid;
+let valid_address_evm = queryString.parse(parsed.address);
+const stringified_valid = queryString.stringify(valid_address_evm);
+valid_address_evm = stringified_valid.substr(0, 2);
+const valid_mobile_parameters = valid_address_evm === '0x' ? "vlx" : "vlx_native";
+const DEFAULT_CRYPTO_CURRENCY = valid_mobile ? valid_mobile_parameters : parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+///
+
 const SUPPORTED_CURRENCIES = ["EUR","USD"];
 const parsed_crypto_is_valid = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`];
-const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+// const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
 
 
 
