@@ -23,6 +23,7 @@ import EmptyView from "../EmptyView";
 import { BsInfoCircle } from "react-icons/bs";
 import { isValidAddress } from "../../utils/address-validation";
 import { title_info, body_utorg } from "../InfoMsg";
+import { isAndroid, isIOS } from "react-device-detect";
 
 const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
@@ -60,8 +61,17 @@ const network = parsed.env ?
   parsed.env === "wallet_testnet" ? "testnet" : "mainnet"
   : "mainnet";
 
+///delete when mob wallet update is released
+const valid_mobile = parsed.address && isIOS || isAndroid;
+let valid_address_evm = queryString.parse(parsed.address);
+const stringified_valid = queryString.stringify(valid_address_evm);
+valid_address_evm = stringified_valid.substr(0, 2);
+const valid_mobile_parameters = valid_address_evm === '0x' ? "vlx" : "vlx_native";
+const DEFAULT_CRYPTO_CURRENCY = valid_mobile ? valid_mobile_parameters : parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+///
 
-const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+// const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+
 
 const domain  = UTORG_DOMAIN[`${network}`];
 

@@ -71,11 +71,15 @@ const PaymentDetails = (props) => {
               />
             </div>
           )}
-          {/* by default, if no provider is selected. Start*/}
+          {/* by default Start*/}
           { !selectedProvider && (
-            <EmptyComponent/>
+            // <EmptyComponent/>
+              <SimplexPaymentDetails
+                selectedProvider={selectedProvider}
+                {...props}
+              />
           )}
-          {/* by default, if no provider is selected. End*/}
+          {/* by default End*/}
           { selectedProvider === "utorg" && (
             <UtorgPaymentDetails
               selectedProvider={selectedProvider}
