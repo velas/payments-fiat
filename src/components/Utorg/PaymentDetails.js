@@ -31,19 +31,19 @@ const DEFAULT_MIN_AMOUNT_USD = 50;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
 const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 const SUPPORTED_CURRENCIES = [
-  "AUD",
-  "BRL",
-  "CAD",
-  "CZK",
-  "DKK",
-  "EUR",
-  "GBP",
-  "KZT",
-  "NOK",
-  "NZD",
-  "PLN",
-  "SEK",
-  "UAH",
+  // "AUD",
+  // "BRL",
+  // "CAD",
+  // "CZK",
+  // "DKK",
+  // "EUR",
+  // "GBP",
+  // "KZT",
+  // "NOK",
+  // "NZD",
+  // "PLN",
+  // "SEK",
+  // "UAH",
   "USD",
 ];
 
@@ -582,6 +582,7 @@ const PaymentDetails = (props) => {
                   selectedRow={selectedFiat}
                   setSelectedRow={handleSelectFiat}
                   currencies={SUPPORTED_CURRENCIES}
+                  disabled={!selectedProvider}
                 />
               </span>
               <span id="input-amount">
@@ -620,6 +621,7 @@ const PaymentDetails = (props) => {
                     <p>...</p>
                   )}
                 </div>
+                  {selectedProvider && 
                 <div className="row_notice_sub max-purchase-amount">
                   <p className="left-side-p">Maximum purchase amount:</p>
                   {selectedProvider ? (
@@ -638,6 +640,7 @@ const PaymentDetails = (props) => {
                     <p>...</p>
                   )}
                 </div>
+                }
 
                 { parsed.address && (
                   <div className="row_notice">

@@ -457,7 +457,8 @@ const PaymentDetails = (props) => {
                   selectedRow={selectedFiat}
                   setSelectedRow={setSelectedFiat}
                   currencies={SUPPORTED_CURRENCIES}
-                  disabled={checkTransak}
+                  // disabled={checkTransak}
+                  disabled={!selectedProvider}
                 />
               </span>
               <span id="input-amount">

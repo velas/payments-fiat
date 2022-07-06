@@ -1,68 +1,59 @@
-import React, {
-  useState,
-  useEffect
-} from "react";
+import React, { useState, useEffect } from "react";
 import { Provider } from "./ProviderSelection.js";
 import UtorgPaymentDetails from "./Utorg/PaymentDetails";
 import SimplexPaymentDetails from "./Simplex/PaymentDetails";
 import TransakPaymentDetails from "./Transak/PaymentDetails";
 import Checkout from "./Utorg/Checkout";
-import TransakCheckout from "./Transak/Checkout"
-import SimplexCheckout from "./Simplex/Checkout"
-import EmptyComponent from "./EmptyComponent"
-
+import TransakCheckout from "./Transak/Checkout";
+import SimplexCheckout from "./Simplex/Checkout";
+import queryString from "query-string";
 
 const PaymentDetails = (props) => {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [referrer, setReferrer] = useState(document.referrer);
+  const parsed = queryString.parse(global.location.search);
 
   // console.log('selectedProvider', selectedProvider)
   useEffect(() => {
     if (hasUrlProvider) {
       const provider_ = (global.location.pathname || "").split("/provider/")[1];
-      const provider = provider_.replace(/\/+$/g, '');
+      const provider = provider_.replace(/\/+$/g, "");
       setSelectedProvider(provider);
     }
   }, []);
 
   const hasUrlProvider =
-    global && global.location && global.location.pathname &&
+    global &&
+    global.location &&
+    global.location.pathname &&
     (global.location.pathname || "").split("/provider/").length > 1;
 
   var location = window.location.href;
-  const hasUtorgUrlCheckout = (props.history.location.state && props.history.location.state.step === "WAIT_FOR_POSTBACK") || global.location.pathname === '/provider/utorg/checkout';
-  const hasTransakUrlCheckout = location.indexOf("/provider/transak/checkout") > -1;
-  const hasSimplexUrlCheckout = location.indexOf("/provider/simplex/checkout") > -1;
+  const hasUtorgUrlCheckout =
+    (props.history.location.state &&
+      props.history.location.state.step === "WAIT_FOR_POSTBACK") ||
+    global.location.pathname === "/provider/utorg/checkout";
+  const hasTransakUrlCheckout =
+    location.indexOf("/provider/transak/checkout") > -1;
+  const hasSimplexUrlCheckout =
+    location.indexOf("/provider/simplex/checkout") > -1;
 
   return (
     <>
-      { hasUtorgUrlCheckout || hasTransakUrlCheckout || hasSimplexUrlCheckout ?
-        (
-          <>
-          { hasUtorgUrlCheckout && (
-          <Checkout
-            selectedProvider={selectedProvider}
-            {...props}
-          />
-          )}
-           { hasTransakUrlCheckout && (
-          <TransakCheckout
-            {...props}
-          />
-          )}
-          { hasSimplexUrlCheckout && (
-          <SimplexCheckout
-            {...props}
-          />
-          )}
-          </>
-        )
-      : (
+      {hasUtorgUrlCheckout || hasTransakUrlCheckout || hasSimplexUrlCheckout ? (
         <>
-          { !hasUrlProvider && (
+          {hasUtorgUrlCheckout && (
+            <Checkout selectedProvider={selectedProvider} {...props} />
+          )}
+          {hasTransakUrlCheckout && <TransakCheckout {...props} />}
+          {hasSimplexUrlCheckout && <SimplexCheckout {...props} />}
+        </>
+      ) : (
+        <>
+          {!hasUrlProvider && (
             <div
               className="col-md-10 offset-md-1 common-provider-selection"
-              style={{zIndex: 2, marginTop: 20}}
+              style={{ zIndex: 2, marginTop: 20 }}
             >
               <Provider
                 selectedProvider={selectedProvider}
@@ -71,16 +62,23 @@ const PaymentDetails = (props) => {
               />
             </div>
           )}
-          {/* by default Start*/}
-          { !selectedProvider && (
-            // <EmptyComponent/>
+
+          {/* by default for rate display, start*/}
+          {!selectedProvider &&
+            (parsed.crypto_currency === "VLX_USDV" ? (
+              <UtorgPaymentDetails
+                selectedProvider={selectedProvider}
+                {...props}
+              />
+            ) : (
               <SimplexPaymentDetails
                 selectedProvider={selectedProvider}
                 {...props}
               />
-          )}
-          {/* by default End*/}
-          { selectedProvider === "utorg" && (
+            ))}
+          {/* by default for rate display, end*/}
+
+          {selectedProvider === "utorg" && (
             <UtorgPaymentDetails
               selectedProvider={selectedProvider}
               redirectTo={props.history.push}
@@ -89,23 +87,21 @@ const PaymentDetails = (props) => {
             />
           )}
 
-          { selectedProvider === "simplex" && (
+          {selectedProvider === "simplex" && (
             <SimplexPaymentDetails
               selectedProvider={selectedProvider}
               {...props}
             />
           )}
 
-          { selectedProvider === "transak" && (
+          {selectedProvider === "transak" && (
             <TransakPaymentDetails
               selectedProvider={selectedProvider}
               {...props}
             />
           )}
         </>
-        )
-     }
-
+      )}
     </>
   );
 };
