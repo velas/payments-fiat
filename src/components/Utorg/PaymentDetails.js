@@ -7,7 +7,6 @@ import {
   DropdownButton,
   Dropdown,
 } from "react-bootstrap";
-import { motion } from "framer-motion";
 import axios from "axios";
 import {
   UTORG_PAYMENT_URIS,
@@ -20,7 +19,6 @@ import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
-import { BsInfoCircle } from "react-icons/bs";
 import { isValidAddress } from "../../utils/address-validation";
 import { title_info, body_utorg } from "../InfoMsg";
 import { isAndroid, isIOS } from "react-device-detect";
