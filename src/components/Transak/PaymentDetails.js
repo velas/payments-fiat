@@ -2,7 +2,7 @@ import React, {
   useState,
   useMemo,
   useRef,
-  useEffect
+  useEffect,
 } from "react";
 import {
   Form,
@@ -13,11 +13,8 @@ import {
   Dropdown,
 } from "react-bootstrap";
 import { motion } from "framer-motion";
-import axios from "axios";
 import {
-  SIMPLEX_PAYMENT_URIS,
   BASE_API_URL,
-  SIMPLEX_DOMAIN,
   TICKER_URL,
   TICKER_URL_FIXER,
   TRANSAK_API_KEY,
@@ -26,6 +23,7 @@ import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
+import transakSDK from "@transak/transak-sdk";
 import useGeoLocation from "react-ipgeolocation";
 import { isValidAddress } from "../../utils/address-validation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
@@ -40,15 +38,11 @@ const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 
 const parsed = queryString.parse(global.location.search);
 const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
-// const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
+const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
 const CRYPTO_CURRENCIES_kv = {
   "vlx": "VLX(EVM)",
-  "vlx_native":"VLX(NATIVE)",
+  "vlx_native": "VLX(NATIVE)",
 }
-const SUPPORTED_CURRENCIES = [
-  "EUR",
-  "USD",
-];
 
 ///delete when mob wallet update is released
 const valid_mobile = parsed.address && isIOS || isAndroid;
@@ -59,8 +53,11 @@ const valid_mobile_parameters = valid_address_evm === '0x' ? "vlx" : "vlx_native
 const DEFAULT_CRYPTO_CURRENCY = valid_mobile ? valid_mobile_parameters : parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
 ///
 
+const SUPPORTED_CURRENCIES = ["EUR","USD"];
 const parsed_crypto_is_valid = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`];
 // const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+
+
 
 const CurrencyRow = ({
   onChangeAmount,
@@ -106,8 +103,7 @@ const CurrencyRow = ({
             })
           }
           {
-            (cryptos || []).map( it => {
-              const name = CRYPTO_CURRENCIES_kv[`${it}`]
+            (cryptos || []).map( it => {const name = CRYPTO_CURRENCIES_kv[`${it}`]
               return (
                 <Dropdown.Item
                   key={name}
@@ -128,16 +124,6 @@ const CurrencyRow = ({
 };
 const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
-  const checkout_url = `${
-    global.location.origin
-  }/provider/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-    parsed.env
-  )}`;
-  const error_url = `${
-    global.location.origin
-  }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-    parsed.env
-  )}`;
   const [tickerData, setTickerData] = useState({});
   const [tickerFiatData, setTickerFiatData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -160,9 +146,7 @@ const PaymentDetails = (props) => {
   const checkCountry = checkArray(countries_low_fee, location.country);
   const checkCountry1 = checkArray1(countries_high_fee, location.country);
 
-  const hasUrlProvider =
-    global && global.location && global.location.pathname &&
-    (global.location.pathname || "").split("/provider/").length > 1;
+  const hasUrlProvider = global && global.location && global.location.pathname && (global.location.pathname || "").split("/provider/").length > 1;
 
   const fetchData = async () => {
     //VLX
@@ -171,7 +155,7 @@ const PaymentDetails = (props) => {
       const rates = await result.json();
 
       // Add rate for usdv token
-      // rates.vlx_usdv_price = '1.13';
+      rates.vlx_usdv_price = '1.13';
       setTickerData(rates);
     } catch (err) {
       setPageIsLoading(false);
@@ -185,8 +169,7 @@ const PaymentDetails = (props) => {
     //Fiat
     try {
       const fiatData = await fetch(TICKER_URL_FIXER);
-      const result_eur = await fiatData.json();
-      setTickerFiatData(result_eur);
+      setTickerFiatData(await fiatData.json());
     } catch (err) {
       setPageIsLoading(false);
       Swal.fire({
@@ -223,9 +206,9 @@ const PaymentDetails = (props) => {
   const [amountTo, setAmountTo] = useState(0);
   const [address, setAddress] = useState("");
   let [selectedFiat, setSelectedFiat] = useState("USD");
+  const [widget, setWidget] = useState(false);
 
   const checkTransak = selectedProvider === "transak";
-  const checkSimplex = selectedProvider === "simplex";
 
   if (checkTransak) {
     selectedFiat = "EUR"; //default value
@@ -259,7 +242,6 @@ const PaymentDetails = (props) => {
   let min_eur_valid = 0;
 
   const minimalAmounts = {
-    simplex: 50,
     transak: 30,
   };
   const MIN_AMOUNT_USD = minimalAmounts[selectedProvider] || DEFAULT_MIN_AMOUNT_USD;
@@ -328,63 +310,77 @@ const PaymentDetails = (props) => {
 
   const formRef = useRef(null);
 
-  const onSubmit = (event) => {
-    event.returnValue = false;
-    setIsLoading(false);
-    onSubmit_();
-    return false;
+  let transak = new transakSDK({
+    apiKey:
+      TRANSAK_API_KEY[
+        window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
+      ],
+    environment:
+      window.location.host === "buy.velas.com" ? "PRODUCTION" : "STAGING",
+    walletAddress: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
+    themeColor: "#0037c1",
+    fiatCurrency: "EUR",
+    email: "",
+    hostURL: window.location.origin,
+    widgetHeight: "600px",
+    widgetWidth: "100%",
+    hideMenu: true,
+    fiatAmount: fromAmount,
+    defaultPaymentMethod: "credit_debit_card",
+    disablePaymentMethods: "sepa_bank_transfer, gbp_bank_transfer, apple_pay",
+    network: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "velasevm" : "mainnet" : parsed.crypto_currency && valid_address_evm === "0x" ? "velasevm" : "mainnet", //velasevm or mainnet
+    defaultCryptoCurrency: "VLX",
+    cryptoCurrencyCode: "VLX",
+    disableWalletAddressForm: true,
+  });
+
+  const onSubmitTransak = () => {
+    transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
+      setWidget(true);
+    });
+    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
+      setWidget(false);
+    });
+    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
+      transak.close();
+      window.location.href = `${global.location.origin}/provider/transak/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status )}`;
+    });
+    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
+      transak.close();
+      window.location.href = `${
+        global.location.origin
+      }/provider/transak/checkout/${encodeURIComponent(
+        data.status.id
+      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
+        data.status.status
+      )}`;
+    });
+    transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
+      transak.close();
+      window.location.href = `${
+        global.location.origin
+      }/provider/transak/checkout/${encodeURIComponent(
+        data.status.id
+      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
+        data.status.status
+      )}`;
+    });
+    transak.init();
   };
 
-  const onSubmit_ = async () => {
-    setIsLoading(true);
-
-    try {
-      const params = {
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === "0x" ? vlx_evm : "VLX",
-        fiat_currency: selectedFiat || parsed.fiat_currency,
-        crypto_amount: Number(amountCrypto),
-        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-      };
-      // const domain = SIMPLEX_DOMAIN[network];
-      // const quoteResult = await axios.post(`${domain}${BASE_API_URL}/quote`, params);
-      const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
-
-
-      if (quoteResult.data.error) throw new Error(quoteResult.data.error);
-
-      const paramsPayment = {
-        quote_id: quoteResult.data.quote_id,
-        address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-        payment_id: payment_id,
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === "0x" ? vlx_evm : "VLX",
-      };
-
-      // const paymentResult = await axios.post(
-      //   `${domain}${BASE_API_URL}/payment`,
-      //   paramsPayment
-      // );
-      const paymentResult = await axios.post(
-        `${BASE_API_URL}/payment`,
-        paramsPayment
-      );
-      if (paymentResult.data.error) throw new Error(paymentResult.data.error);
-
-      formRef.current.submit();
-    } catch (e) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: e.response?.data || e.message,
-      });
-      setIsLoading(false);
-    }
-  };
 
   const [focusInput, setFocusInput] = useState(false);
   const handleChangeValid = () => {
     setFocusInput(true);
   };
 
+  // const validForm =
+  //   !address ||
+  //   (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
+  //   (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
+  //   (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(EVM)" && address.length < 42) ||
+  //   (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(NATIVE)" && address.length < 44) ||
+  //   (selectedCryptoCurrency === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
     return (
@@ -426,7 +422,7 @@ const PaymentDetails = (props) => {
       />
     );
 
-  // const action = selectedProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
+  const action = "";
   const addressCut = (parsed.address || address).substring(0, 8) + "..." + (parsed.address || address).substring(35);
 
   return (
@@ -434,14 +430,9 @@ const PaymentDetails = (props) => {
       <Form
         className="form-step-2 input-form mt-3"
         method="POST"
-        ref={formRef}
-        onSubmit={onSubmit}
-        // action={action}
-        action={
-          SIMPLEX_PAYMENT_URIS[
-            window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
-          ]
-        }
+        ref={ formRef }
+        onSubmit={ onSubmitTransak }
+        action={action}
       >
         <div
           className="col-md-10 offset-md-1"
@@ -457,8 +448,7 @@ const PaymentDetails = (props) => {
                   selectedRow={selectedFiat}
                   setSelectedRow={setSelectedFiat}
                   currencies={SUPPORTED_CURRENCIES}
-                  // disabled={checkTransak}
-                  disabled={!selectedProvider}
+                  disabled={checkTransak}
                 />
               </span>
               <span id="input-amount">
@@ -515,21 +505,14 @@ const PaymentDetails = (props) => {
               </>
             )}
           </Form.Group>
-
           <Button
             className="submit-button2"
             variant="primary"
-            onClick={onSubmit}
-            disabled={valid_btn}
+            onClick={ onSubmitTransak }
+            disabled={ valid_btn }
           >
-            {isLoading ? "Loading..." : "Buy"}
+            {isLoading || widget ? "Loading..." : "Buy"}
           </Button>
-          <input type="hidden" name="version" value="1" />
-          <input type="hidden" name="partner" value={PARTNER_NAME} />
-          <input type="hidden" name="payment_flow_type" value="wallet" />
-          <input type="hidden" name="return_url_success" value={checkout_url} />
-          <input type="hidden" name="return_url_fail" value={error_url} />
-          <input type="hidden" name="payment_id" value={payment_id} />
         </div>
       </Form>
     </>
