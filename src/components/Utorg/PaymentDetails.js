@@ -186,12 +186,13 @@ const PaymentDetails = (props) => {
       const convertParams = {
         "fromCurrency" : from_currency,
         "toCurrency" : to_currency,
-        "paymentAmount" : 1
+        "paymentAmount" : 100
       };
 
       const convertResult = await makeQuery({ url: UTORG_CONVERT_URL, params: convertParams, forceMainnet: true });
       if (convertResult && convertResult.data && convertResult.data.data) {
         setCurrentRate(convertResult.data.data);
+        console.log('convertResult.data.data', convertResult.data.data)
       }
     } catch (err) {
       setPageIsLoading(false);
@@ -324,7 +325,8 @@ const PaymentDetails = (props) => {
     //const crypto_fiat_rate = crypto_usd_rate * toUsd(fiatRate);
     //console.log({crypto_usd_rate, crypto_fiat_rate, fiatRate})
     //const FIAT_PER_CRYPTO = selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
-    const FIAT_PER_CRYPTO = 1 / currentRate;
+    // const FIAT_PER_CRYPTO = 1 / currentRate;
+    const FIAT_PER_CRYPTO = 1 / (currentRate / 100);
 
     if (amountInFromCurrency) {
       //Receive input
