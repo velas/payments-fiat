@@ -53,7 +53,7 @@ jobs:
         id: deploy
         env:
           REGISTRY: ${{ secrets.REGISTRY_HOST }}/velas
-          REPOSITORY: velas-synapse
+          REPOSITORY: payments-fiat
           IMAGE_TAG: ${{github.sha}}
           SOPS_AGE_KEY: ${{ secrets.INFRA_AGE }}
         run: |
