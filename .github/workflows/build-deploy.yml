@@ -49,12 +49,14 @@ jobs:
           context: "testnet-mia"
       - name: Sops Binary Installer
         uses: mdgreenwald/mozilla-sops-action@v1.1.0
+      - uses: adnsio/setup-age-action@v1.2.0
       - name: Deploy via helmfile
         id: deploy
         env:
           REGISTRY: ${{ secrets.REGISTRY_HOST }}/velas
           REPOSITORY: velas-synapse
           IMAGE_TAG: ${{github.sha}}
+          SOPS_AGE_KEY: ${{ secrets.INFRA_AGE }}
         run: |
           helm plugin install https://github.com/jkroepke/helm-secrets --version v3.11.0 || true
           helm plugin install https://github.com/databus23/helm-diff || true
