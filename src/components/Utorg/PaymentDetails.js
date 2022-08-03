@@ -59,8 +59,9 @@ const network = parsed.env ?
   parsed.env === "wallet_testnet" ? "testnet" : "mainnet"
   : "mainnet";
 
-///delete when mob wallet update is released
-const valid_mobile = parsed.address && isIOS || isAndroid;
+///default crypto validation for old and latest version of mobile wallet
+const OLD_PARAMETER_CRYPTO = 'VLX';
+const valid_mobile = parsed.address && parsed.crypto_currency === OLD_PARAMETER_CRYPTO && isIOS || isAndroid;
 let valid_address_evm = queryString.parse(parsed.address);
 const stringified_valid = queryString.stringify(valid_address_evm);
 valid_address_evm = stringified_valid.substr(0, 2);
