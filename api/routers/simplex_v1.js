@@ -35,8 +35,7 @@ apiv1.post('/quote', async (req, res) => {
       "requested_currency": crypto_currency,
       "requested_amount": crypto_amount,
       "wallet_id": 'velas',
-      "client_ip": ip,
-      "payment_methods" : ["credit_card"]
+      "client_ip": ip
     };
 
     const headers = {
