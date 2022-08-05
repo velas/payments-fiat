@@ -44,10 +44,9 @@ valid_address_evm =
   };
   const options = [
     {
-      value: "simplex",
-      label: "Simplex (Visa/MC)",
-      disabled: hasUsdvUrl,
-      icon: <IconSimplex width='20' height='20' opacity={hasUsdvUrl}/>
+      value: "utorg",
+      label: "Utorg (Visa/MC)",
+      icon: <IconUtorg width='20' height='20'/>
     },
     {
       value: "transak",
@@ -56,9 +55,10 @@ valid_address_evm =
       icon: <IconTransak width='20' height='20' opacity={hasUsdvUrl}/>
     },
     {
-      value: "utorg",
-      label: "Utorg (Visa/MC)",
-      icon: <IconUtorg width='20' height='20'/>
+      value: "simplex",
+      label: "Simplex (Visa/MC)",
+      disabled: hasUsdvUrl,
+      icon: <IconSimplex width='20' height='20' opacity={hasUsdvUrl}/>
     },
   ];
 
