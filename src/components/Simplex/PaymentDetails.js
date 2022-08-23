@@ -391,7 +391,7 @@ const PaymentDetails = (props) => {
     return (
       <>
         <Form.Label className="left-side-p">{displayCryptoCurrency} address</Form.Label>
-        <a href={VELAS_WALLET_DOMAIN} className="active link_btn" target="_blank" rel="noreferrer">
+        <a href={VELAS_WALLET_DOMAIN} className="active link_btn" target="_blank" rel="noopener noreferrer nofollow">
           Don't have one?
         </a>
         <InputGroup className="mb-3">
