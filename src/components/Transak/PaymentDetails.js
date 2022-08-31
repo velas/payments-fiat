@@ -55,7 +55,7 @@ const valid_mobile_parameters = valid_address_evm === '0x' ? "vlx" : "vlx_native
 const DEFAULT_CRYPTO_CURRENCY = valid_mobile ? valid_mobile_parameters : parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
 ///
 
-const SUPPORTED_CURRENCIES = ["EUR","USD"];
+const SUPPORTED_CURRENCIES = ["EUR","USD", "BRL"];
 const parsed_crypto_is_valid = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`];
 // const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
 
@@ -207,13 +207,15 @@ const PaymentDetails = (props) => {
   const [amountFrom, setAmountFrom] = useState(0);
   const [amountTo, setAmountTo] = useState(0);
   const [address, setAddress] = useState("");
-  let [selectedFiat, setSelectedFiat] = useState("USD");
-  const [widget, setWidget] = useState(false);
+  let [selectedFiat, setSelectedFiat] = useState("EUR");
 
-  const checkTransak = selectedProvider === "transak";
-
-  if (checkTransak) {
-    selectedFiat = "EUR"; //default value
+  if (selectedFiat === "USD") {
+    Swal.fire({
+      icon: "info",
+      title: "Oops...",
+      html: `<p className="info-style">Sorry, but USD is currently not available. <br>Expect it soon.</br></p>`,
+    });
+    setSelectedFiat('EUR')
   }
 
   if (selectedProvider === "transak" && location.country && !checkCountry && !checkCountry1) {
@@ -320,7 +322,7 @@ const PaymentDetails = (props) => {
       ],
       walletAddress: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
       themeColor: "#0037c1",
-      fiatCurrency: "EUR",
+      fiatCurrency: selectedFiat || parsed.fiat_currency,
       hostURL: window.location.origin,
       hideMenu: true,
       fiatAmount: fromAmount,
@@ -407,7 +409,7 @@ const PaymentDetails = (props) => {
                   selectedRow={selectedFiat}
                   setSelectedRow={setSelectedFiat}
                   currencies={SUPPORTED_CURRENCIES}
-                  disabled={checkTransak}
+                  disabled={!selectedProvider}
                 />
               </span>
               <span id="input-amount">
