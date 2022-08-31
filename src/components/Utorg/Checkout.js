@@ -26,7 +26,7 @@ const Checkout = (props) => {
       case "payment_approved":
         return "Payment Approved!";
       case "error":
-        return "Payment failed!"
+        return "Payment Failed!"
       default:
         return null;
     }

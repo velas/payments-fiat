@@ -12,22 +12,23 @@ import {
   DropdownButton,
   Dropdown,
 } from "react-bootstrap";
-import { motion } from "framer-motion";
 import {
-  BASE_API_URL,
   TICKER_URL,
   TICKER_URL_FIXER,
   TRANSAK_API_KEY,
+  TRANSAK_REDIRECT_URIS,
+  TRANSAK_DOMAIN
 } from "../../utils/constants";
 import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 import EmptyView from "../EmptyView";
-import transakSDK from "@transak/transak-sdk";
 import useGeoLocation from "react-ipgeolocation";
 import { isValidAddress } from "../../utils/address-validation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
 import { isAndroid, isIOS } from "react-device-detect";
+import axios from "axios";
+
 
 const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
@@ -311,62 +312,28 @@ const PaymentDetails = (props) => {
 
   const formRef = useRef(null);
 
-  let transak = new transakSDK({
-    apiKey:
+  const createTransakUrl = () => {
+    const queryParams = new URLSearchParams({
+      apiKey:
       TRANSAK_API_KEY[
         window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
       ],
-    environment:
-      window.location.host === "buy.velas.com" ? "PRODUCTION" : "STAGING",
-    walletAddress: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
-    themeColor: "#0037c1",
-    fiatCurrency: "EUR",
-    email: "",
-    hostURL: window.location.origin,
-    widgetHeight: "600px",
-    widgetWidth: "100%",
-    hideMenu: true,
-    fiatAmount: fromAmount,
-    defaultPaymentMethod: "credit_debit_card",
-    disablePaymentMethods: "sepa_bank_transfer, gbp_bank_transfer, apple_pay",
-    network: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "velasevm" : "mainnet" : parsed.crypto_currency && valid_address_evm === "0x" ? "velasevm" : "mainnet", //velasevm or mainnet
-    defaultCryptoCurrency: "VLX",
-    cryptoCurrencyCode: "VLX",
-    disableWalletAddressForm: true,
-  });
-
-  const onSubmitTransak = () => {
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_OPEN, (data) => {
-      setWidget(true);
+      walletAddress: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
+      themeColor: "#0037c1",
+      fiatCurrency: "EUR",
+      hostURL: window.location.origin,
+      hideMenu: true,
+      fiatAmount: fromAmount,
+      defaultPaymentMethod: "credit_debit_card",
+      network: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "velasevm" : "mainnet" : parsed.crypto_currency && valid_address_evm === "0x" ? "velasevm" : "mainnet", //velasevm or mainnet
+      defaultCryptoCurrency: "VLX",
+      cryptoCurrencyCode: "VLX",
+      disableWalletAddressForm: true,
+      redirectURL: TRANSAK_REDIRECT_URIS[
+        window.location.host === "buy.velas.com" ? "mainnet" : "testnet"
+      ],
     });
-    transak.on(transak.EVENTS.TRANSAK_WIDGET_CLOSE, (data) => {
-      setWidget(false);
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_SUCCESSFUL, (data) => {
-      transak.close();
-      window.location.href = `${global.location.origin}/provider/transak/checkout/${encodeURIComponent(data.status.id)}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(data.status.status )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_FAILED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/transak/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.on(transak.EVENTS.TRANSAK_ORDER_CANCELLED, (data) => {
-      transak.close();
-      window.location.href = `${
-        global.location.origin
-      }/provider/transak/checkout/${encodeURIComponent(
-        data.status.id
-      )}/${encodeURIComponent(parsed.env)}/${encodeURIComponent(
-        data.status.status
-      )}`;
-    });
-    transak.init();
+    return `${TRANSAK_DOMAIN[window.location.host === "buy.velas.com" ? "mainnet" : "testnet"]}/?${queryParams}`;
   };
 
 
@@ -374,14 +341,6 @@ const PaymentDetails = (props) => {
   const handleChangeValid = () => {
     setFocusInput(true);
   };
-
-  // const validForm =
-  //   !address ||
-  //   (selectedCryptoCurrency === "VLX(EVM)" && valid_address_evm !== "0x") ||
-  //   (selectedCryptoCurrency === "VLX(NATIVE)" && valid_address_evm === "0x") ||
-  //   (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(EVM)" && address.length < 42) ||
-  //   (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "VLX(NATIVE)" && address.length < 44) ||
-  //   (selectedCryptoCurrency === "VLX(USDV)" && valid_address_evm !== "0x");
 
   const inputAddress = () => {
     return (
@@ -432,7 +391,6 @@ const PaymentDetails = (props) => {
         className="form-step-2 input-form mt-3"
         method="POST"
         ref={ formRef }
-        onSubmit={ onSubmitTransak }
         action={action}
       >
         <div
@@ -506,14 +464,21 @@ const PaymentDetails = (props) => {
               </>
             )}
           </Form.Group>
-          <Button
-            className="submit-button2"
-            variant="primary"
-            onClick={ onSubmitTransak }
-            disabled={ valid_btn }
+
+          <a
+            className="btn_link_buy"
+            href={createTransakUrl()}
+            target="_self"
+            rel="noopener noreferrer nofollow"
           >
-            {isLoading || widget ? "Loading..." : "Buy"}
-          </Button>
+            <Button
+              className="submit-button2"
+              variant="primary"
+              disabled={ valid_btn }
+            >
+              {isLoading ? "Loading..." : "Buy"}
+            </Button>
+          </a>
         </div>
       </Form>
     </>

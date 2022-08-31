@@ -1,60 +1,53 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-import io from "socket.io-client";
 import { REDIRECT_URIS } from "../../utils/constants";
 import Copy from "../../images/copy.svg"
 import { isAndroid, isIOS } from "react-device-detect";
 import AppleIcon from '../../images/apple.svg';
 import GoogleIcon from '../../images/android.svg';
+import queryString from "query-string";
+import Pusher from 'pusher-js';
 
-const [payment_id, env, status_transak] = global.location.pathname.split("/").slice(4);
+const parsed = queryString.parse(global.location.search);
 
-const socket = io("/", {
-  query: {
-    query: "v1/simplex/status",
-    payment_id: payment_id,
-  },
-});
+const TRANSAK_ORDER_ID = parsed.orderId;
+
 const TransakCheckout = (props) => {
   const checkStatus = (status) => {
     switch (status) {
       case "waiting":
         return "Waiting..";
-      case "payment_request_submitted":
-        return "Payment Submitted!";
-      case "payment_simplexcc_approved":
-        return "Payment Approved!";
+      case "ORDER_PROCESSING":
+        return "Processing..";
+      case "ORDER_FAILED":
+        return "Payment Failed!";
+      case "ORDER_COMPLETED":
+        return "Payment Completed!";
       default:
         return null;
     }
   };
-  const statusColor = (status) => {
-    switch (status) {
-      case "waiting":
-        return "orange";
-      default:
-        return "#0bffbf";
-    }
-  };
+  
   const [status, setStatus] = useState("waiting");
-  useEffect(() => {
-    const onPaymentUpdate = (event) => {
-      setStatus(event.name);
-      socket.emit("processed", { event_id: event.event_id });
-    };
-    socket.on("update", onPaymentUpdate);
-    return () => {
-      socket.off("update", onPaymentUpdate);
-    };
-  }, []);
+
+// WebSocket
+  let pusher = new Pusher('1d9ffac87de599c61283', {cluster: 'ap2'});
+  let orderId = TRANSAK_ORDER_ID;
+  pusher.subscribe(orderId);
+  pusher.bind_global((eventId) => {
+    // console.log('eventId', eventId);
+    setStatus(eventId);
+  });
+
+  
   const copyPaymentId = () => {
-    navigator.clipboard.writeText(payment_id)
+    navigator.clipboard.writeText(TRANSAK_ORDER_ID)
     Swal.fire({
       icon: "success",
       title: "Copied",
-      text: payment_id,
+      text: TRANSAK_ORDER_ID,
     });
   }
 
@@ -65,7 +58,7 @@ const TransakCheckout = (props) => {
     } else if (isIOS) {
       window.location.replace("com.velas.walletmobile://");
     } else {
-      window.location.replace(env === 'undefined' ? REDIRECT_URIS.wallet_mainnet : REDIRECT_URIS[env]);
+      window.location.replace(REDIRECT_URIS.wallet_mainnet);
     }
   }
   const validMobile = isIOS || isAndroid;
@@ -83,7 +76,7 @@ const TransakCheckout = (props) => {
         >
           <Form.Group>
             <div className="block-txt">
-              <p className="row-txt status" style={{color: statusColor(status)}}>{!status_transak ? checkStatus(status) : status_transak}</p>
+              <p className="row-txt status" >{checkStatus(status)}</p>
               <p className="row-txt">
                 Go back to the wallet to check your balance!
               </p>
@@ -91,7 +84,7 @@ const TransakCheckout = (props) => {
             <div className="block-txt">
               <p className="row-txt">Your payment id:</p>
               <p className="row-txt payment_id" onClick={copyPaymentId}>
-                {payment_id} 
+                {TRANSAK_ORDER_ID} 
                 <img 
                   src={Copy} 
                   alt="Copy icon"

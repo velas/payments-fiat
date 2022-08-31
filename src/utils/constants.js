@@ -34,3 +34,13 @@ export const TRANSAK_API_KEY = {
   mainnet: '72a39429-d0d4-48d4-942a-f80dc9deed57',
   testnet: 'ed24950e-bde8-44b0-b328-e918d1c1ccb0',
 }
+
+export const TRANSAK_DOMAIN = {
+  mainnet: 'https://global.transak.com',
+  testnet: 'https://staging-global.transak.com',
+}
+
+export const TRANSAK_REDIRECT_URIS = {
+  mainnet: 'https://buy.velas.com/provider/transak/checkout',
+  testnet: 'https://fiat-payments.testnet.velas.com/provider/transak/checkout',
+}
