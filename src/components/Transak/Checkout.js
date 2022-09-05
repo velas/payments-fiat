@@ -13,14 +13,15 @@ import Pusher from 'pusher-js';
 const parsed = queryString.parse(global.location.search);
 
 const TRANSAK_ORDER_ID = parsed.orderId;
+const TRANSAK_STATUS_URL = parsed.status;
 
 const TransakCheckout = (props) => {
   const checkStatus = (status) => {
     switch (status) {
       case "waiting":
-        return "Waiting..";
+        return TRANSAK_STATUS_URL;
       case "ORDER_PROCESSING":
-        return "Processing..";
+        return "We are processing your order";
       case "ORDER_FAILED":
         return "Payment Failed!";
       case "ORDER_COMPLETED":
