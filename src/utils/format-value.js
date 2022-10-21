@@ -9,5 +9,12 @@ const formatValue = (n) => {
 const wrapNumber = (n) => {
   return n.replace(",", ".").replace(/[^0-9\.]/g, "");
 };
+const toFixed = function(num, n) {
+  var spl = num.toString().split('.');
+  if ( spl.length > 1 ) {
+      return spl[0]+'.'+spl[1].substr(0,n);
+  }
+  return spl[0];
+}
 
-export { formatBalance, formatValue, wrapNumber };
+export { formatBalance, formatValue, wrapNumber, toFixed };

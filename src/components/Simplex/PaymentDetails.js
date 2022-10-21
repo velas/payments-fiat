@@ -30,13 +30,13 @@ import useGeoLocation from "react-ipgeolocation";
 import { isValidAddress } from "../../utils/address-validation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
 import { isAndroid, isIOS } from "react-device-detect";
+import { toFixed } from "../../utils/format-value";
 
 const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
 const DEFAULT_MIN_AMOUNT_USD = 30;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
-const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 
 const parsed = queryString.parse(global.location.search);
 const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
@@ -50,6 +50,8 @@ const SUPPORTED_CURRENCIES = [
   "USD",
 ];
 
+
+console.log('parsed.address', parsed.address)
 ///default crypto validation for old and latest version of mobile wallet
 const OLD_PARAMETER_CRYPTO = 'VLX';
 const valid_mobile = parsed.address && parsed.crypto_currency === OLD_PARAMETER_CRYPTO && isIOS || isAndroid;
@@ -128,6 +130,7 @@ const CurrencyRow = ({
   );
 };
 const PaymentDetails = (props) => {
+  const DEFAULT_RECEIVE_CRYPTO_AMOUNT = props.defaultAmount;
   const payment_id = useMemo(uuidv4, []);
   const checkout_url = `${
     global.location.origin
@@ -218,13 +221,12 @@ const PaymentDetails = (props) => {
     localStorage.removeItem("storageProvider");
   }, []);
 
-
   const [amount, setAmount] = useState(DEFAULT_RECEIVE_CRYPTO_AMOUNT);
+
   const [amountFrom, setAmountFrom] = useState(0);
   const [amountTo, setAmountTo] = useState(0);
   const [address, setAddress] = useState("");
   let [selectedFiat, setSelectedFiat] = useState("USD");
-
   const checkTransak = selectedProvider === "transak";
   const checkSimplex = selectedProvider === "simplex";
 
@@ -242,6 +244,13 @@ const PaymentDetails = (props) => {
 
   const handleChange = (e) => {
     setAddress(e.target.value);
+    if (!selectedProvider) {
+      Swal.fire({
+        icon: "info",
+        title: "Oops...",
+        html: `<p className="info-style">Please select a provider.</p>`,
+      });
+    }
   };
 
   let valid_address_evm = queryString.parse(parsed.address || address);
@@ -311,6 +320,8 @@ const PaymentDetails = (props) => {
     min_usd_valid = amountCrypto * crypto_usd_rate < MIN_AMOUNT_USD;
     min_eur_valid =
       (amountCrypto * crypto_usd_rate) / rate_euro < MIN_AMOUNT_USD / rate_euro;
+    
+    sessionStorage.setItem('min_amount', Number(amountCrypto))
   }
 
   const handleFromAmountChange = (e) => {
@@ -338,6 +349,16 @@ const PaymentDetails = (props) => {
 
   const onSubmit_ = async () => {
     setIsLoading(true);
+    
+      const checkCurrency = {
+        vlx_native: "VLX_NATIVE",
+        vlx: "VLX_EVM",
+      };
+      const params = new URLSearchParams(global.location.search);
+      params.set('address', address || parsed.address);
+      params.set('crypto_currency', checkCurrency[`${selectedCryptoCurrency}`]);
+      params.set('amount', Number(amountCrypto));
+      window.history.replaceState({}, '', `${global.location.pathname}?${params}`);
 
     try {
       const params = {
@@ -360,10 +381,6 @@ const PaymentDetails = (props) => {
         crypto_currency: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === "0x" ? vlx_evm : "VLX",
       };
 
-      // const paymentResult = await axios.post(
-      //   `${domain}${BASE_API_URL}/payment`,
-      //   paramsPayment
-      // );
       const paymentResult = await axios.post(
         `${BASE_API_URL}/payment`,
         paramsPayment
@@ -379,6 +396,9 @@ const PaymentDetails = (props) => {
       });
       setIsLoading(false);
     }
+    sessionStorage.setItem('loaded', 'yes')
+
+    setIsLoading(false);
   };
 
   const [focusInput, setFocusInput] = useState(false);
@@ -452,7 +472,7 @@ const PaymentDetails = (props) => {
               <span className="fiat-amount" id="input-amount">
                 <CurrencyRow
                   onChangeAmount={handleFromAmountChange}
-                  amount={fromAmount}
+                  amount={toFixed(fromAmount, 2)}
                   placeholder="0.00"
                   label={"Pay"}
                   selectedRow={selectedFiat}
@@ -465,7 +485,7 @@ const PaymentDetails = (props) => {
               <span id="input-amount">
                 <CurrencyRow
                   onChangeAmount={handleToAmountChange}
-                  amount={toAmount}
+                  amount={toFixed(toAmount, 2)}
                   placeholder="0.00"
                   label={"Receive"}
                   selectedRow={CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`]}

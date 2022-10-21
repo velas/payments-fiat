@@ -23,6 +23,7 @@ import { isValidAddress } from "../../utils/address-validation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
 import { isAndroid, isIOS } from "react-device-detect";
 import axios from "axios";
+import { toFixed } from "../../utils/format-value";
 
 
 const vlx_evm = "VLX-EVM";
@@ -30,7 +31,6 @@ const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
 const DEFAULT_MIN_AMOUNT_USD = 30;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
-const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 
 const parsed = queryString.parse(global.location.search);
 const ALL_REQUIRED_PARAMS_MISSED =
@@ -126,6 +126,7 @@ const CurrencyRow = ({
   );
 };
 const PaymentDetails = (props) => {
+  const DEFAULT_RECEIVE_CRYPTO_AMOUNT = props.defaultAmount;
   const payment_id = useMemo(uuidv4, []);
   const [tickerData, setTickerData] = useState({});
   const [tickerFiatData, setTickerFiatData] = useState({});
@@ -314,6 +315,8 @@ const PaymentDetails = (props) => {
     min_usd_valid = amountCrypto * crypto_usd_rate < MIN_AMOUNT_USD;
     min_eur_valid =
       (amountCrypto * crypto_usd_rate) / rate_euro < MIN_AMOUNT_USD / rate_euro;
+    
+    sessionStorage.setItem('min_amount', Number(amountCrypto))
   }
 
   const handleFromAmountChange = (e) => {
@@ -331,6 +334,19 @@ const PaymentDetails = (props) => {
   };
 
   const formRef = useRef(null);
+
+  const addUrlParams = () => {
+      const checkCurrency = {
+        vlx_native: "VLX_NATIVE",
+        vlx: "VLX_EVM",
+      };
+      const params = new URLSearchParams(global.location.search);
+      params.set('address', address || parsed.address);
+      params.set('crypto_currency', checkCurrency[`${selectedCryptoCurrency}`]);
+      params.set('amount', toAmount);
+      window.history.replaceState({}, '', `${global.location.pathname}?${params}`);
+      sessionStorage.setItem('loaded', 'yes')
+  }
 
   const createTransakUrl = () => {
     const queryParams = new URLSearchParams({
@@ -408,7 +424,10 @@ const PaymentDetails = (props) => {
     (ALL_REQUIRED_PARAMS_MISSED &&
       selectedCryptoCurrency === "vlx_native" &&
       address.length < 44) ||
-    (ALL_REQUIRED_PARAMS_MISSED && !selectedProvider);
+    (ALL_REQUIRED_PARAMS_MISSED && !selectedProvider)
+    || location.country &&
+    !checkCountry &&
+    !checkCountry1;
 
   if (
     Object.keys(tickerData).length === 0 ||
@@ -429,6 +448,7 @@ const PaymentDetails = (props) => {
         method="POST"
         ref={ formRef }
         action={action}
+        onSubmit={addUrlParams}
       >
         <div className="col-md-10 offset-md-1">
           <Form.Group>
@@ -436,7 +456,7 @@ const PaymentDetails = (props) => {
               <span className="fiat-amount" id="input-amount">
                 <CurrencyRow
                   onChangeAmount={handleFromAmountChange}
-                  amount={fromAmount}
+                  amount={toFixed(fromAmount, 2)}
                   placeholder="0.00"
                   label={"Pay"}
                   selectedRow={selectedFiat}
@@ -448,7 +468,7 @@ const PaymentDetails = (props) => {
               <span id="input-amount">
                 <CurrencyRow
                   onChangeAmount={handleToAmountChange}
-                  amount={toAmount}
+                  amount={toFixed(toAmount, 2)}
                   placeholder="0.00"
                   label={"Receive"}
                   selectedRow={
@@ -512,6 +532,7 @@ const PaymentDetails = (props) => {
               className="submit-button2"
               variant="primary"
               disabled={ valid_btn }
+              onClick={addUrlParams}
             >
               {isLoading ? "Loading..." : "Buy"}
             </Button>

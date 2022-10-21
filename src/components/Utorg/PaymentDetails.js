@@ -22,12 +22,13 @@ import EmptyView from "../EmptyView";
 import { isValidAddress } from "../../utils/address-validation";
 import { title_info, body_utorg } from "../InfoMsg";
 import { isAndroid, isIOS } from "react-device-detect";
+import { toFixed } from "../../utils/format-value";
 
 const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
 const DEFAULT_MIN_AMOUNT_USD = 50;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
-const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
+// const DEFAULT_RECEIVE_CRYPTO_AMOUNT = 300;
 const SUPPORTED_CURRENCIES = [
   "AUD",
   "BRL",
@@ -146,6 +147,8 @@ const CurrencyRow = ({
   );
 };
 const PaymentDetails = (props) => {
+  const DEFAULT_RECEIVE_CRYPTO_AMOUNT = props.defaultAmount;
+
   //console.log("Utorg [PaymentDetails] props", props);
   const payment_id = useMemo(uuidv4, []);
   const checkout_url = `${
@@ -172,6 +175,7 @@ const PaymentDetails = (props) => {
   );
   const [currentRate, setCurrentRate] = useState(null); //currentRate means 1 fiat to crypto
 
+
   const hasUrlProvider =
     global &&
     global.location &&
@@ -186,9 +190,10 @@ const PaymentDetails = (props) => {
     };
     const from_currency = params && params.fiat ? params.fiat : selectedFiat;
     const to_currency =
-      params && params.cryptoCurrency
-        ? currs[`${params.cryptoCurrency}`]
-        : currs[`${selectedCryptoCurrency}`];
+    params && params.cryptoCurrency
+    ? currs[`${params.cryptoCurrency}`]
+    : currs[`${selectedCryptoCurrency}`];
+
     //FETCH UTORG RATES
     try {
       const convertParams = {
@@ -204,7 +209,7 @@ const PaymentDetails = (props) => {
       });
       if (convertResult && convertResult.data && convertResult.data.data) {
         setCurrentRate(convertResult.data.data);
-        console.log("convertResult.data.data", convertResult.data.data);
+        // console.log("convertResult.data.data", convertResult.data.data);
       }
     } catch (err) {
       setPageIsLoading(false);
@@ -221,6 +226,7 @@ const PaymentDetails = (props) => {
     try {
       const result = await fetch(TICKER_URL);
       const rates = await result.json();
+
 
       // Add rate for usdv token
       rates.vlx_usdv_price = "1.13";
@@ -362,6 +368,8 @@ const PaymentDetails = (props) => {
 
     amountLessThanMin = fromAmount < minAmount;
     amountMoreThanMax = fromAmount > maxAmount;
+    sessionStorage.setItem('min_amount', Number(toAmount))
+
   }
 
   const handleFromAmountChange = (e) => {
@@ -398,7 +406,21 @@ const PaymentDetails = (props) => {
     return quoteResult;
   };
 
+  const newUrlParams = () => {
+    const checkCurrency = {
+      vlx_native: "VLX_NATIVE",
+      vlx_usdv: "VLX_USDV",
+      vlx: "VLX_EVM",
+    };
+    const params = new URLSearchParams(global.location.search);
+    params.set('address', address || parsed.address);
+    params.set('crypto_currency', checkCurrency[`${selectedCryptoCurrency}`]);
+    params.set('amount', toAmount);
+    window.history.replaceState({}, '', `${global.location.pathname}?${params}`);
+  }
+
   const onSubmitUtorg = async (e) => {
+    
     e.preventDefault();
     const paymentCurrency = (
       selectedFiat || parsed.fiat_currency
@@ -432,7 +454,6 @@ const PaymentDetails = (props) => {
       props.referrer.length > 0 &&
       (props.referrer.indexOf("://127.0.0.1") > -1 ||
         props.referrer.indexOf("://localhost") > -1);
-
     const referrerUrl = referredFromLocalHost
       ? `${props.referrer}main-index.html`
       : props.referrer;
@@ -440,8 +461,12 @@ const PaymentDetails = (props) => {
     const successUrl = referrerIsEmpty
       ? `${global.location.origin}/provider/utorg`
       : referrerUrl;
-    const failUrl = `${global.location.origin}/provider/utorg`;
-
+    const _checkCurrency = {
+      VLX: 'VLX_NATIVE',
+      USDVEL: 'VLX_USDV',
+      VLXETH: 'VLX_EVM',
+    };
+    const failUrl = `${global.location.origin}/?address=${_address}&amount=${toAmount}&crypto_currency=${_checkCurrency[`${currency}`]}`;
     //debugger;
     const params = {
       type: "FIAT_TO_CRYPTO",
@@ -484,12 +509,18 @@ const PaymentDetails = (props) => {
       if (!url) return;
       //window.location.replace(url);
       const orderId = id;
+      
+      sessionStorage.setItem('loaded', 'yes')
+      newUrlParams();
 
       //Open in the same tab
-      window.location.replace(url);
+      // window.location.replace(url);
+
+      //Open in the same tab, without replace url
+      window.open(url, "_self", 'noopener,noreferrer');
 
       // Open new tab with generated link
-      //window.open(url, "_blank") ;
+      // window.open(url, "_blank") ;
 
       //Open Checkout page and waiting for postback response.
       //      props.redirectTo({
@@ -527,6 +558,8 @@ const PaymentDetails = (props) => {
         html: errMsg,
       });
     }
+    
+
   };
 
   const [focusInput, setFocusInput] = useState(false);
@@ -624,7 +657,7 @@ const PaymentDetails = (props) => {
               <span className="fiat-amount" id="input-amount">
                 <CurrencyRow
                   onChangeAmount={handleFromAmountChange}
-                  amount={fromAmount}
+                  amount={toFixed(fromAmount, 2)}
                   placeholder="0.00"
                   label={"Pay"}
                   selectedRow={selectedFiat}
@@ -636,7 +669,7 @@ const PaymentDetails = (props) => {
               <span id="input-amount">
                 <CurrencyRow
                   onChangeAmount={handleToAmountChange}
-                  amount={toAmount}
+                  amount={toFixed(toAmount, 2)}
                   placeholder="0.00"
                   label={"Receive"}
                   selectedRow={

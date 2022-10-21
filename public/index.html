@@ -1,40 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="shortcut icon" type="image/x-icon" href="%PUBLIC_URL%/images/velas-icon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Buy Velas coin (VLX) - Purchase crypto with a credit card or debit card now">
-    <meta name="keywords" content="buy velas, credit card, debit card, vlx, cryptocurrency, wallet, cryptocurrency wallet, wallet secure, web wallet, ai, artificial intelligence, dapp, blockchain">
-    <!-- <link rel="manifest" href="%PUBLIC_URL%/manifest.json" /> -->
-    <title>Buy VLX | Velas</title>
-    <!-- Matomo -->
-    <script>
-      var _paq = window._paq = window._paq || [];
-      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-      _paq.push(['trackPageView']);
-      _paq.push(['enableLinkTracking']);
-      (function() {
-        var u="//matomo.velas.com/";
-        _paq.push(['setTrackerUrl', u+'matomo.php']);
-        _paq.push(['setSiteId', '9']);
-        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-      })();
-    </script>
-    <!-- End Matomo Code -->
-    <!-- Matomo Tag Manager -->
-    <script>
-      var _mtm = window._mtm = window._mtm || [];
-      _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
-      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-      g.async=true; g.src='https://matomo.velas.com/js/container_DlbJweuZ.js'; s.parentNode.insertBefore(g,s);
-    </script>
-    <!-- End Matomo Tag Manager -->
-  </head>
-  <body>
-    <!-- <noscript>You need to enable JavaScript to run this app.</noscript> -->
-    <div id="root"></div>
-  </body>
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="shortcut icon" type="image/x-icon" href="%PUBLIC_URL%/images/velas-icon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Buy Velas coin (VLX) - Purchase crypto with a credit card or debit card now">
+  <meta name="keywords"
+    content="buy velas, credit card, debit card, vlx, cryptocurrency, wallet, cryptocurrency wallet, wallet secure, web wallet, ai, artificial intelligence, dapp, blockchain">
+  <!-- <link rel="manifest" href="%PUBLIC_URL%/manifest.json" /> -->
+  <title>Buy VLX | Velas</title>
+  <!-- Matomo -->
+  <script>
+    var _paq = window._paq = window._paq || [];
+    /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function () {
+      var u = "//matomo.velas.com/";
+      _paq.push(['setTrackerUrl', u + 'matomo.php']);
+      _paq.push(['setSiteId', '9']);
+      var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+      g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
+    })();
+  </script>
+  <!-- End Matomo Code -->
+  <!-- Matomo Tag Manager -->
+  <script>
+    var _mtm = window._mtm = window._mtm || [];
+    _mtm.push({ 'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start' });
+    var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+    g.async = true; g.src = 'https://matomo.velas.com/js/container_DlbJweuZ.js'; s.parentNode.insertBefore(g, s);
+  </script>
+  <script>
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        return false;
+      } else {
+        if(sessionStorage.loaded) {
+        location.reload();
+        }
+      }
+    });
+  </script>
+  <!-- End Matomo Tag Manager -->
+</head>
+
+<body>
+  <!-- <noscript>You need to enable JavaScript to run this app.</noscript> -->
+  <div id="root"></div>
+</body>
+
 </html>
