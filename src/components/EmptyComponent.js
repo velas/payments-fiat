@@ -13,7 +13,6 @@ import React, { useState } from "react";
   const CRYPTO_CURRENCIES_kv = {
     "vlx": "VLX(EVM)",
     "vlx_native":"VLX(NATIVE)",
-    "vlx_usdv": "VLX(USDV)",
   }
   const SUPPORTED_CURRENCIES = [
     "EUR",

@@ -174,8 +174,6 @@ const PaymentDetails = (props) => {
       const result = await fetch(TICKER_URL);
       const rates = await result.json();
 
-      // Add rate for usdv token
-      // rates.vlx_usdv_price = '1.13';
       setTickerData(rates);
     } catch (err) {
       setPageIsLoading(false);

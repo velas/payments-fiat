@@ -49,7 +49,6 @@ const SUPPORTED_CURRENCIES = [
 const CRYPTO_CURRENCIES_kv = {
   vlx: "VLX(EVM)",
   vlx_native: "VLX(NATIVE)",
-  vlx_usdv: "VLX(USDV)",
 };
 
 const parsed = queryString.parse(global.location.search);
@@ -185,7 +184,6 @@ const PaymentDetails = (props) => {
   async function fetchCryptoRate(params) {
     const currs = {
       vlx_native: "VLX",
-      vlx_usdv: "USDVEL",
       vlx: "VLXETH",
     };
     const from_currency = params && params.fiat ? params.fiat : selectedFiat;
@@ -227,9 +225,6 @@ const PaymentDetails = (props) => {
       const result = await fetch(TICKER_URL);
       const rates = await result.json();
 
-
-      // Add rate for usdv token
-      rates.vlx_usdv_price = "1.13";
       setTickerData(rates);
     } catch (err) {
       setPageIsLoading(false);
@@ -409,7 +404,6 @@ const PaymentDetails = (props) => {
   const newUrlParams = () => {
     const checkCurrency = {
       vlx_native: "VLX_NATIVE",
-      vlx_usdv: "VLX_USDV",
       vlx: "VLX_EVM",
     };
     const params = new URLSearchParams(global.location.search);
@@ -430,7 +424,6 @@ const PaymentDetails = (props) => {
     const env = parsed.env || "wallet_mainnet";
     const currs = {
       vlx_native: "VLX",
-      vlx_usdv: "USDVEL",
       vlx: "VLXETH",
     };
     const currency = currs[selectedCryptoCurrency];
@@ -463,7 +456,6 @@ const PaymentDetails = (props) => {
       : referrerUrl;
     const _checkCurrency = {
       VLX: 'VLX_NATIVE',
-      USDVEL: 'VLX_USDV',
       VLXETH: 'VLX_EVM',
     };
     const failUrl = `${global.location.origin}/?address=${_address}&amount=${toAmount}&crypto_currency=${_checkCurrency[`${currency}`]}`;
@@ -619,8 +611,7 @@ const PaymentDetails = (props) => {
     (ALL_REQUIRED_PARAMS_MISSED &&
       selectedCryptoCurrency === "vlx_native" &&
       address.length < 44) ||
-    !selectedProvider ||
-    (selectedCryptoCurrency === "vlx_usdv" && valid_address_evm !== "0x");
+    !selectedProvider
 
   if (
     Object.keys(tickerData).length === 0 ||

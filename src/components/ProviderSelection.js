@@ -24,10 +24,8 @@ valid_address_evm =
     const CRYPTO_CURRENCIES_kv = {
       "vlx": "VLX(EVM)",
       "vlx_native":"VLX(NATIVE)",
-      "vlx_usdv": "VLX(USDV)"
     }
   const CHECK_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
-  const hasUsdvUrl = CHECK_CRYPTO_CURRENCY === 'vlx_usdv';
 
   const { selectedProvider, setSelectedProvider } = props;
   const onInfo = () => {
@@ -51,14 +49,12 @@ valid_address_evm =
     {
       value: "transak",
       label: "Transak (Visa/MC)",
-      disabled: hasUsdvUrl,
-      icon: <IconTransak width='20' height='20' opacity={hasUsdvUrl}/>
+      icon: <IconTransak width='20' height='20'/>
     },
     {
       value: "simplex",
       label: "Simplex (Visa/MC)",
-      disabled: hasUsdvUrl,
-      icon: <IconSimplex width='20' height='20' opacity={hasUsdvUrl}/>
+      icon: <IconSimplex width='20' height='20'/>
     },
   ];
 

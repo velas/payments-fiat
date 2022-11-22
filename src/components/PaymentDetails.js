@@ -63,7 +63,6 @@ const PaymentDetails = (props) => {
 
   const currs = {
     VLX_NATIVE: "VLX",
-    VLX_USDV: "USDVEL",
     VLX_EVM: "VLXETH",
   };
   const _currs = currs[parsed.crypto_currency] || 'VLXETH';
@@ -74,7 +73,6 @@ const PaymentDetails = (props) => {
       const result = await fetch(TICKER_URL);
       const rates = await result.json();
 
-      // Add rate for usdv token
       setTickerData(rates);
     } catch (err) {
       setPageIsLoading(false);
@@ -220,19 +218,12 @@ const PaymentDetails = (props) => {
 
           {/* by default for rate display, start*/}
           {!selectedProvider &&
-            (parsed.crypto_currency === "VLX_USDV" ? (
-              <UtorgPaymentDetails
-                selectedProvider={selectedProvider}
-                defaultAmount={DEFAULT_RECEIVE_CRYPTO_AMOUNT}
-                {...props}
-              />
-            ) : (
               <SimplexPaymentDetails
                 selectedProvider={selectedProvider}
                 defaultAmount={DEFAULT_RECEIVE_CRYPTO_AMOUNT}
                 {...props}
               />
-            ))}
+            }
           {/* by default for rate display, end*/}
 
           {selectedProvider === "utorg" && (

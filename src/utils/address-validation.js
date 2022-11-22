@@ -7,7 +7,7 @@ export const isValidAddress = function ({ address, token }) {
   if (token === "vlx_native") {
     return isValidNativeAddress(address);
   }
-  if (["vlx", "vlx_usdv"].indexOf(token) > -1) {
+  if (["vlx"].indexOf(token) > -1) {
     return isValidEVMAddress(address);
   }
 };
