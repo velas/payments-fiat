@@ -23,6 +23,7 @@ import { isValidAddress } from "../../utils/address-validation";
 import { title_info, body_utorg } from "../InfoMsg";
 import { isAndroid, isIOS } from "react-device-detect";
 import { toFixed } from "../../utils/format-value";
+import CurrencyIcon from "../CurrencyIcon";
 
 const PARTNER_NAME = "velas";
 const VELAS_WALLET_DOMAIN = "https://wallet.velas.com/";
@@ -47,8 +48,8 @@ const SUPPORTED_CURRENCIES = [
 ];
 
 const CRYPTO_CURRENCIES_kv = {
-  vlx: "VLX(EVM)",
-  vlx_native: "VLX(NATIVE)",
+  vlx: "EVM",
+  vlx_native: "NATIVE",
 };
 
 const parsed = queryString.parse(global.location.search);
@@ -107,9 +108,29 @@ const CurrencyRow = ({
           onChange={onChangeAmount}
           placeholder={placeholder}
           type="number"
+          className="amount-form-control"
         />
         <DropdownButton
-          title={selectedRow}
+          title={
+            <div className="dropdown-row">
+              <CurrencyIcon
+                currencyCode={selectedRow}
+                className="icon-currency-dropdown"
+              />
+              <span>{selectedRow}</span>
+              <svg
+                height="20"
+                width="20"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+                focusable="false"
+                className="css-tj5bde-Svg"
+                style={{ marginTop: -3, marginLeft: 3 }}
+              >
+                <path d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"></path>
+              </svg>
+            </div>
+          }
           id="dropdown-fiat"
           disabled={disabled}
         >
@@ -122,7 +143,13 @@ const CurrencyRow = ({
                 active={selectedRow === it}
                 onSelect={() => setSelectedRow(it)}
               >
-                {it}
+                <div className="dropdown-row">
+                  <CurrencyIcon
+                    currencyCode={it}
+                    className="icon-currency-dropdown"
+                  />
+                  {it}
+                </div>
               </Dropdown.Item>
             );
           })}
@@ -136,7 +163,13 @@ const CurrencyRow = ({
                 active={selectedRow === name}
                 onSelect={() => setSelectedRow(it)}
               >
-                {name}
+                <div className="dropdown-row">
+                  <CurrencyIcon
+                    currencyCode={name}
+                    className="icon-currency-dropdown"
+                  />
+                  {name}
+                </div>
               </Dropdown.Item>
             );
           })}
@@ -174,7 +207,6 @@ const PaymentDetails = (props) => {
   );
   const [currentRate, setCurrentRate] = useState(null); //currentRate means 1 fiat to crypto
 
-
   const hasUrlProvider =
     global &&
     global.location &&
@@ -188,9 +220,9 @@ const PaymentDetails = (props) => {
     };
     const from_currency = params && params.fiat ? params.fiat : selectedFiat;
     const to_currency =
-    params && params.cryptoCurrency
-    ? currs[`${params.cryptoCurrency}`]
-    : currs[`${selectedCryptoCurrency}`];
+      params && params.cryptoCurrency
+        ? currs[`${params.cryptoCurrency}`]
+        : currs[`${selectedCryptoCurrency}`];
 
     //FETCH UTORG RATES
     try {
@@ -363,8 +395,7 @@ const PaymentDetails = (props) => {
 
     amountLessThanMin = fromAmount < minAmount;
     amountMoreThanMax = fromAmount > maxAmount;
-    sessionStorage.setItem('min_amount', Number(toAmount))
-
+    sessionStorage.setItem("min_amount", Number(toAmount));
   }
 
   const handleFromAmountChange = (e) => {
@@ -407,14 +438,17 @@ const PaymentDetails = (props) => {
       vlx: "VLX_EVM",
     };
     const params = new URLSearchParams(global.location.search);
-    params.set('address', address || parsed.address);
-    params.set('crypto_currency', checkCurrency[`${selectedCryptoCurrency}`]);
-    params.set('amount', toAmount);
-    window.history.replaceState({}, '', `${global.location.pathname}?${params}`);
-  }
+    params.set("address", address || parsed.address);
+    params.set("crypto_currency", checkCurrency[`${selectedCryptoCurrency}`]);
+    params.set("amount", toAmount);
+    window.history.replaceState(
+      {},
+      "",
+      `${global.location.pathname}?${params}`
+    );
+  };
 
   const onSubmitUtorg = async (e) => {
-    
     e.preventDefault();
     const paymentCurrency = (
       selectedFiat || parsed.fiat_currency
@@ -455,10 +489,14 @@ const PaymentDetails = (props) => {
       ? `${global.location.origin}/provider/utorg`
       : referrerUrl;
     const _checkCurrency = {
-      VLX: 'VLX_NATIVE',
-      VLXETH: 'VLX_EVM',
+      VLX: "VLX_NATIVE",
+      VLXETH: "VLX_EVM",
     };
-    const failUrl = `${global.location.origin}/?address=${_address}&amount=${toAmount}&crypto_currency=${_checkCurrency[`${currency}`]}`;
+    const failUrl = `${
+      global.location.origin
+    }/?address=${_address}&amount=${toAmount}&crypto_currency=${
+      _checkCurrency[`${currency}`]
+    }`;
     //debugger;
     const params = {
       type: "FIAT_TO_CRYPTO",
@@ -501,15 +539,15 @@ const PaymentDetails = (props) => {
       if (!url) return;
       //window.location.replace(url);
       const orderId = id;
-      
-      sessionStorage.setItem('loaded', 'yes')
+
+      sessionStorage.setItem("loaded", "yes");
       newUrlParams();
 
       //Open in the same tab
       // window.location.replace(url);
 
       //Open in the same tab, without replace url
-      window.open(url, "_self", 'noopener,noreferrer');
+      window.open(url, "_self", "noopener,noreferrer");
 
       // Open new tab with generated link
       // window.open(url, "_blank") ;
@@ -550,8 +588,6 @@ const PaymentDetails = (props) => {
         html: errMsg,
       });
     }
-    
-
   };
 
   const [focusInput, setFocusInput] = useState(false);
@@ -563,7 +599,7 @@ const PaymentDetails = (props) => {
     return (
       <>
         <Form.Label className="left-side-p">
-          {displayCryptoCurrency} address
+          VLX ({displayCryptoCurrency}) address
         </Form.Label>
         <a
           href={VELAS_WALLET_DOMAIN}
@@ -573,12 +609,12 @@ const PaymentDetails = (props) => {
         >
           Don't have one?
         </a>
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-10">
           <FormControl
             value={address}
             onChange={handleChange}
             onFocus={handleChangeValid}
-            placeholder="Enter wallet address"
+            placeholder={`Your ${displayCryptoCurrency} wallet`}
             isInvalid={
               !isValidAddress({ address, token: selectedCryptoCurrency })
             }
@@ -611,7 +647,7 @@ const PaymentDetails = (props) => {
     (ALL_REQUIRED_PARAMS_MISSED &&
       selectedCryptoCurrency === "vlx_native" &&
       address.length < 44) ||
-    !selectedProvider
+    !selectedProvider;
 
   if (
     Object.keys(tickerData).length === 0 ||
@@ -637,7 +673,7 @@ const PaymentDetails = (props) => {
   return (
     <>
       <Form
-        className="form-step-2 pay-form input-form mt-3"
+        className="form-step-2 input-form mt-3"
         method="POST"
         ref={formRef}
         action={action}
@@ -650,7 +686,7 @@ const PaymentDetails = (props) => {
                   onChangeAmount={handleFromAmountChange}
                   amount={toFixed(fromAmount, 2)}
                   placeholder="0.00"
-                  label={"Pay"}
+                  label={"I Want to Spend"}
                   selectedRow={selectedFiat}
                   setSelectedRow={handleSelectFiat}
                   currencies={SUPPORTED_CURRENCIES}
@@ -662,7 +698,7 @@ const PaymentDetails = (props) => {
                   onChangeAmount={handleToAmountChange}
                   amount={toFixed(toAmount, 2)}
                   placeholder="0.00"
-                  label={"Receive"}
+                  label={"I Will Receive"}
                   selectedRow={
                     CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`]
                   }
@@ -677,27 +713,27 @@ const PaymentDetails = (props) => {
 
             {selectedFiat && (
               <>
-                <div className="row_notice_sub min-purchase-amount">
+                <div className="row_notice_sub">
                   <p className="left-side-p">Minimum purchase amount:</p>
                   {selectedProvider ? (
-                    <p className={amountLessThanMin ? "red" : null}>
+                    <p className={amountLessThanMin ? "red" : "black-14"}>
                       {" "}
                       {_minAmount} {selectedFiat || parsed.fiat_currency}
                     </p>
                   ) : (
-                    <p>...</p>
+                    <p className="black-14">...</p>
                   )}
                 </div>
                 {selectedProvider && (
-                  <div className="row_notice_sub max-purchase-amount">
+                  <div className="row_notice_sub">
                     <p className="left-side-p">Maximum purchase amount:</p>
                     {selectedProvider ? (
-                      <p className={amountMoreThanMax ? "red" : null}>
+                      <p className={amountMoreThanMax ? "red" : "black-14"}>
                         {" "}
                         {_maxAmount} {selectedFiat || parsed.fiat_currency}
                       </p>
                     ) : (
-                      <p>...</p>
+                      <p className="black-14">...</p>
                     )}
                   </div>
                 )}
@@ -705,19 +741,30 @@ const PaymentDetails = (props) => {
                 {parsed.address && (
                   <div className="row_notice">
                     <p className="left-side-p">Your address:</p>
-                    <p title={address}>{addressCut}</p>
+                    <p title={address} className="black-14">
+                      {addressCut}
+                    </p>
                   </div>
                 )}
               </>
             )}
           </Form.Group>
-
+          <div>
+            {tickerData.vlx_price && (
+              <div className="left-side-p mt-30 mb-10">
+                Reference Price:{" "}
+                <span className="black-14">
+                  1 VLX ≈ {parseFloat(tickerData.vlx_price).toFixed(4)} USD
+                </span>
+              </div>
+            )}
+          </div>
           <Button
-            variant="primary"
+            variant="primary buy-button"
             onClick={onSubmitUtorg}
             disabled={disableButton}
           >
-            {"Buy"}
+            {`Buy VLX (${displayCryptoCurrency})`}
           </Button>
           <input type="hidden" name="version" value="1" />
           <input type="hidden" name="partner" value={PARTNER_NAME} />

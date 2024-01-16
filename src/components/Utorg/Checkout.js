@@ -186,7 +186,7 @@ const Checkout = (props) => {
             </p>
           </div>
         </Form.Group>
-        <Button variant="primary" type="button" onClick={goBack}>
+        <Button variant="primary buy-button" type="button" onClick={goBack}>
           Go Back
         </Button>
       </motion.div>

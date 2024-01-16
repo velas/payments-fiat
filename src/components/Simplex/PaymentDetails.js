@@ -1,9 +1,4 @@
-import React, {
-  useState,
-  useMemo,
-  useRef,
-  useEffect
-} from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Form,
   Button,
@@ -31,6 +26,8 @@ import { isValidAddress } from "../../utils/address-validation";
 import { countries_low_fee, countries_high_fee } from "../../utils/countries";
 import { isAndroid, isIOS } from "react-device-detect";
 import { toFixed } from "../../utils/format-value";
+import CurrencyIcon from "../CurrencyIcon";
+
 
 const vlx_evm = "VLX-EVM";
 const PARTNER_NAME = "velas";
@@ -39,30 +36,38 @@ const DEFAULT_MIN_AMOUNT_USD = 30;
 const DEFAULT_MAX_AMOUNT_USD = 20000;
 
 const parsed = queryString.parse(global.location.search);
-const ALL_REQUIRED_PARAMS_MISSED = !parsed.address && !parsed.crypto_currency && !parsed.env;
+const ALL_REQUIRED_PARAMS_MISSED =
+  !parsed.address && !parsed.crypto_currency && !parsed.env;
 // const network = parsed.env === "wallet_testnet" ? "testnet" : "mainnet";
 const CRYPTO_CURRENCIES_kv = {
-  "vlx": "VLX(EVM)",
-  "vlx_native":"VLX(NATIVE)",
-}
-const SUPPORTED_CURRENCIES = [
-  "EUR",
-  "USD",
-];
+  vlx: "EVM",
+  vlx_native: "NATIVE",
+};
+const SUPPORTED_CURRENCIES = ["EUR", "USD"];
 
-
-console.log('parsed.address', parsed.address)
+// console.log("parsed.address", parsed.address);
 ///default crypto validation for old and latest version of mobile wallet
-const OLD_PARAMETER_CRYPTO = 'VLX';
-const valid_mobile = parsed.address && parsed.crypto_currency === OLD_PARAMETER_CRYPTO && isIOS || isAndroid;
+const OLD_PARAMETER_CRYPTO = "VLX";
+const valid_mobile =
+  (parsed.address &&
+    parsed.crypto_currency === OLD_PARAMETER_CRYPTO &&
+    isIOS) ||
+  isAndroid;
 let valid_address_evm = queryString.parse(parsed.address);
 const stringified_valid = queryString.stringify(valid_address_evm);
 valid_address_evm = stringified_valid.substr(0, 2);
-const valid_mobile_parameters = valid_address_evm === '0x' ? "vlx" : "vlx_native";
-const DEFAULT_CRYPTO_CURRENCY = valid_mobile ? valid_mobile_parameters : parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
+const valid_mobile_parameters =
+  valid_address_evm === "0x" ? "vlx" : "vlx_native";
+const DEFAULT_CRYPTO_CURRENCY = valid_mobile
+  ? valid_mobile_parameters
+  : parsed.crypto_currency &&
+    CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency.toLowerCase()}`]
+  ? parsed.crypto_currency.toLowerCase()
+  : "vlx";
 ///
 
-const parsed_crypto_is_valid = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`];
+const parsed_crypto_is_valid =
+  parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`];
 // const DEFAULT_CRYPTO_CURRENCY = parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${(parsed.crypto_currency).toLowerCase()}`] ? (parsed.crypto_currency).toLowerCase() : 'vlx';
 
 const CurrencyRow = ({
@@ -78,6 +83,7 @@ const CurrencyRow = ({
   disabledItem,
 }) => {
   const cryptos = cryptoCurrencies ? Object.keys(cryptoCurrencies) : [];
+
   return (
     <>
       <Form.Label className="left-side-p">{label}</Form.Label>
@@ -87,43 +93,62 @@ const CurrencyRow = ({
           onChange={onChangeAmount}
           placeholder={placeholder}
           type="number"
+          className="amount-form-control"
         />
         <DropdownButton
-          title={selectedRow}
+          title={
+            <div className='dropdown-row'>
+              <CurrencyIcon currencyCode={selectedRow} className="icon-currency-dropdown" />
+              <span>{selectedRow}</span>
+              <svg
+                height="20"
+                width="20"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+                focusable="false"
+                className="css-tj5bde-Svg"
+                style={{ marginTop: -3, marginLeft: 3 }}
+              >
+                <path d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"></path>
+              </svg>
+            </div>
+          }
           id="dropdown-fiat"
           disabled={disabled}
         >
-          {
-            (currencies || []).map( it => {
-              return (
-                <Dropdown.Item
-                  key={it}
-                  style={{ fontSize: 12 }}
-                  href="#"
-                  active={selectedRow === it}
-                  onSelect={() => setSelectedRow(it)}
-                >
+          {(currencies || []).map((it) => {
+            return (
+              <Dropdown.Item
+                key={it}
+                style={{ fontSize: 12 }}
+                href="#"
+                active={selectedRow === it}
+                onSelect={() => setSelectedRow(it)}
+              >
+                <div className='dropdown-row'>
+                  <CurrencyIcon currencyCode={it} className="icon-currency-dropdown" />
                   {it}
-                </Dropdown.Item>
-              )
-            })
-          }
-          {
-            (cryptos || []).map( it => {
-              const name = CRYPTO_CURRENCIES_kv[`${it}`]
-              return (
-                <Dropdown.Item
-                  key={name}
-                  style={{ fontSize: 12 }}
-                  href="#"
-                  active={selectedRow === name}
-                  onSelect={() => setSelectedRow(it)}
-                >
+                </div>
+              </Dropdown.Item>
+            );
+          })}
+          {(cryptos || []).map((it) => {
+            const name = CRYPTO_CURRENCIES_kv[`${it}`];
+            return (
+              <Dropdown.Item
+                key={name}
+                style={{ fontSize: 12 }}
+                href="#"
+                active={selectedRow === name}
+                onSelect={() => setSelectedRow(it)}
+              >
+                <div className='dropdown-row'>
+                  <CurrencyIcon currencyCode={name} className="icon-currency-dropdown" />
                   {name}
-                </Dropdown.Item>
-              )
-            })
-          }
+                </div>
+              </Dropdown.Item>
+            );
+          })}
         </DropdownButton>
       </InputGroup>
     </>
@@ -134,15 +159,16 @@ const PaymentDetails = (props) => {
   const payment_id = useMemo(uuidv4, []);
   const checkout_url = `${
     global.location.origin
-  }/provider/simplex/checkout/${encodeURIComponent(payment_id)}/${encodeURIComponent(
-    parsed.env
-  )}`;
+  }/provider/simplex/checkout/${encodeURIComponent(
+    payment_id
+  )}/${encodeURIComponent(parsed.env)}`;
   const error_url = `${
     global.location.origin
   }/provider/error/${encodeURIComponent(payment_id)}/${encodeURIComponent(
     parsed.env
   )}`;
   const [tickerData, setTickerData] = useState({});
+
   const [tickerFiatData, setTickerFiatData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [amountInFromCurrency, setAmountInFromCurrency] = React.useState(true);
@@ -165,7 +191,9 @@ const PaymentDetails = (props) => {
   const checkCountry1 = checkArray1(countries_high_fee, location.country);
 
   const hasUrlProvider =
-    global && global.location && global.location.pathname &&
+    global &&
+    global.location &&
+    global.location.pathname &&
     (global.location.pathname || "").split("/provider/").length > 1;
 
   const fetchData = async () => {
@@ -198,18 +226,18 @@ const PaymentDetails = (props) => {
       });
     }
     setPageIsLoading(false);
-  }
+  };
 
   useEffect(() => {
     if (props.selectedProvider) {
-      setSelectedProvider(props.selectedProvider)
+      setSelectedProvider(props.selectedProvider);
     } else {
       const pathsName = hasUrlProvider
-        ? ((global.location.pathname).split("/provider/")[1] || "").split("/")
-        : [] ;
+        ? (global.location.pathname.split("/provider/")[1] || "").split("/")
+        : [];
 
       if (pathsName[0]) {
-        setSelectedProvider(pathsName[0])
+        setSelectedProvider(pathsName[0]);
       }
     }
 
@@ -232,7 +260,12 @@ const PaymentDetails = (props) => {
     selectedFiat = "EUR"; //default value
   }
 
-  if (selectedProvider === "transak" && location.country && !checkCountry && !checkCountry1) {
+  if (
+    selectedProvider === "transak" &&
+    location.country &&
+    !checkCountry &&
+    !checkCountry1
+  ) {
     Swal.fire({
       icon: "info",
       title: "Oops...",
@@ -246,7 +279,7 @@ const PaymentDetails = (props) => {
       Swal.fire({
         icon: "info",
         title: "Oops...",
-        html: `<p className="info-style">Please select a provider.</p>`,
+        html: `<p className="info-style">Please select a provider!!</p>`,
       });
     }
   };
@@ -255,9 +288,16 @@ const PaymentDetails = (props) => {
   const stringified_valid = queryString.stringify(valid_address_evm);
   valid_address_evm = stringified_valid.substr(0, 2);
 
-  const crypto_currency = (parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`] ? parsed.crypto_currency : 'vlx').toLowerCase();
-  const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState(DEFAULT_CRYPTO_CURRENCY);
-  const displayCryptoCurrency = CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`];
+  const crypto_currency = (
+    parsed.crypto_currency && CRYPTO_CURRENCIES_kv[`${parsed.crypto_currency}`]
+      ? parsed.crypto_currency
+      : "vlx"
+  ).toLowerCase();
+  const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState(
+    DEFAULT_CRYPTO_CURRENCY
+  );
+  const displayCryptoCurrency =
+    CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`];
 
   let validate_amount_min_eur = 0;
   let validate_amount_max_eur = 0; //not included, do it
@@ -270,27 +310,29 @@ const PaymentDetails = (props) => {
     simplex: 50,
     transak: 30,
   };
-  const MIN_AMOUNT_USD = minimalAmounts[selectedProvider] || DEFAULT_MIN_AMOUNT_USD;
+  const MIN_AMOUNT_USD =
+    minimalAmounts[selectedProvider] || DEFAULT_MIN_AMOUNT_USD;
   const MAX_AMOUNT_USD = DEFAULT_MAX_AMOUNT_USD;
 
   const toUsd = (amount) => {
     return amount / (tickerFiatData["USD"] || 1);
-  }
+  };
 
   if (tickerData && tickerFiatData) {
     const usd_amount_of_1_Euro = tickerFiatData["USD"];
     const fiatRate = tickerFiatData[`${selectedFiat}`] || 0;
-    const cryptoPriceKey = crypto_currency === "vlx" ? "price_usd" : `${crypto_currency}_price`;
+    const cryptoPriceKey =
+      crypto_currency === "vlx" ? "price_usd" : `${crypto_currency}_price`;
     const crypto_usd_rate = tickerData[`${cryptoPriceKey}`] || 0;
     const crypto_fiat_rate = crypto_usd_rate * toUsd(fiatRate);
-    const FIAT_PER_CRYPTO = selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
-
+    const FIAT_PER_CRYPTO =
+      selectedFiat === "EUR" ? toUsd(crypto_usd_rate) : crypto_fiat_rate;
 
     if (tickerFiatData) {
       const rate_eur_usd = tickerFiatData["USD"]; // coefficient eur/usd (Fixer)
       if (rate_eur_usd) {
         validate_amount_min_eur = toUsd(MIN_AMOUNT_USD * fiatRate);
-        validate_amount_max_eur = toUsd(MAX_AMOUNT_USD * fiatRate);  // not included, do it
+        validate_amount_max_eur = toUsd(MAX_AMOUNT_USD * fiatRate); // not included, do it
         rate_euro = rate_eur_usd;
       }
     }
@@ -318,8 +360,8 @@ const PaymentDetails = (props) => {
     min_usd_valid = amountCrypto * crypto_usd_rate < MIN_AMOUNT_USD;
     min_eur_valid =
       (amountCrypto * crypto_usd_rate) / rate_euro < MIN_AMOUNT_USD / rate_euro;
-    
-    sessionStorage.setItem('min_amount', Number(amountCrypto))
+
+    sessionStorage.setItem("min_amount", Number(amountCrypto));
   }
 
   const handleFromAmountChange = (e) => {
@@ -347,20 +389,30 @@ const PaymentDetails = (props) => {
 
   const onSubmit_ = async () => {
     setIsLoading(true);
-    
-      const checkCurrency = {
-        vlx_native: "VLX_NATIVE",
-        vlx: "VLX_EVM",
-      };
-      const params = new URLSearchParams(global.location.search);
-      params.set('address', address || parsed.address);
-      params.set('crypto_currency', checkCurrency[`${selectedCryptoCurrency}`]);
-      params.set('amount', Number(amountCrypto));
-      window.history.replaceState({}, '', `${global.location.pathname}?${params}`);
+
+    const checkCurrency = {
+      vlx_native: "VLX_NATIVE",
+      vlx: "VLX_EVM",
+    };
+    const params = new URLSearchParams(global.location.search);
+    params.set("address", address || parsed.address);
+    params.set("crypto_currency", checkCurrency[`${selectedCryptoCurrency}`]);
+    params.set("amount", Number(amountCrypto));
+    window.history.replaceState(
+      {},
+      "",
+      `${global.location.pathname}?${params}`
+    );
 
     try {
       const params = {
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === "0x" ? vlx_evm : "VLX",
+        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
+          ? selectedCryptoCurrency === "vlx"
+            ? "VLX-EVM"
+            : "VLX"
+          : parsed.crypto_currency && valid_address_evm === "0x"
+          ? vlx_evm
+          : "VLX",
         fiat_currency: selectedFiat || parsed.fiat_currency,
         crypto_amount: Number(amountCrypto),
         address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
@@ -369,14 +421,19 @@ const PaymentDetails = (props) => {
       // const quoteResult = await axios.post(`${domain}${BASE_API_URL}/quote`, params);
       const quoteResult = await axios.post(`${BASE_API_URL}/quote`, params);
 
-
       if (quoteResult.data.error) throw new Error(quoteResult.data.error);
 
       const paramsPayment = {
         quote_id: quoteResult.data.quote_id,
         address: ALL_REQUIRED_PARAMS_MISSED ? address : parsed.address,
         payment_id: payment_id,
-        crypto_currency: ALL_REQUIRED_PARAMS_MISSED ? selectedCryptoCurrency === "vlx" ? "VLX-EVM" : "VLX" : parsed.crypto_currency && valid_address_evm === "0x" ? vlx_evm : "VLX",
+        crypto_currency: ALL_REQUIRED_PARAMS_MISSED
+          ? selectedCryptoCurrency === "vlx"
+            ? "VLX-EVM"
+            : "VLX"
+          : parsed.crypto_currency && valid_address_evm === "0x"
+          ? vlx_evm
+          : "VLX",
       };
 
       const paymentResult = await axios.post(
@@ -394,7 +451,7 @@ const PaymentDetails = (props) => {
       });
       setIsLoading(false);
     }
-    sessionStorage.setItem('loaded', 'yes')
+    sessionStorage.setItem("loaded", "yes");
 
     setIsLoading(false);
   };
@@ -404,21 +461,29 @@ const PaymentDetails = (props) => {
     setFocusInput(true);
   };
 
-
   const inputAddress = () => {
     return (
       <>
-        <Form.Label className="left-side-p">{displayCryptoCurrency} address</Form.Label>
-        <a href={VELAS_WALLET_DOMAIN} className="active link_btn" target="_blank" rel="noopener noreferrer nofollow">
+        <Form.Label className="left-side-p">
+          VLX ({displayCryptoCurrency}) address
+        </Form.Label>
+        <a
+          href={VELAS_WALLET_DOMAIN}
+          className="active link_btn"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
           Don't have one?
         </a>
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-10">
           <FormControl
             value={address}
             onChange={handleChange}
             onFocus={handleChangeValid}
-            placeholder="Enter wallet address"
-            isInvalid={!isValidAddress({ address, token: selectedCryptoCurrency })}
+            placeholder={`Your ${displayCryptoCurrency} wallet`}
+            isInvalid={
+              !isValidAddress({ address, token: selectedCryptoCurrency })
+            }
             maxLength={selectedCryptoCurrency === "VLX(EVM)" ? 42 : 44}
           />
         </InputGroup>
@@ -428,25 +493,34 @@ const PaymentDetails = (props) => {
 
   const valid_btn =
     amountCrypto <= 0 ||
-    !isValidAddress({ address: parsed.address || address, token: selectedCryptoCurrency }) ||
+    !isValidAddress({
+      address: parsed.address || address,
+      token: selectedCryptoCurrency,
+    }) ||
     (ALL_REQUIRED_PARAMS_MISSED && !address) ||
     (selectedCryptoCurrency === "vlx" && valid_address_evm !== "0x") ||
     (selectedCryptoCurrency === "vlx_native" && valid_address_evm === "0x") ||
     min_usd_valid ||
     min_eur_valid ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "vlx" && address.length < 42) ||
-    (ALL_REQUIRED_PARAMS_MISSED && selectedCryptoCurrency === "vlx_native" && address.length < 44) ||
+    (ALL_REQUIRED_PARAMS_MISSED &&
+      selectedCryptoCurrency === "vlx" &&
+      address.length < 42) ||
+    (ALL_REQUIRED_PARAMS_MISSED &&
+      selectedCryptoCurrency === "vlx_native" &&
+      address.length < 44) ||
     (ALL_REQUIRED_PARAMS_MISSED && !selectedProvider);
 
-  if (Object.keys(tickerData).length === 0 || Object.keys(tickerFiatData).length === 0)
-    return (
-      <EmptyView
-        pageIsLoading={pageIsLoading}
-      />
-    );
+  if (
+    Object.keys(tickerData).length === 0 ||
+    Object.keys(tickerFiatData).length === 0
+  )
+    return <EmptyView pageIsLoading={pageIsLoading} />;
 
   // const action = selectedProvider === "simplex" ? SIMPLEX_PAYMENT_URIS[`${network}`] : "";
-  const addressCut = (parsed.address || address).substring(0, 8) + "..." + (parsed.address || address).substring(35);
+  const addressCut =
+    (parsed.address || address).substring(0, 8) +
+    "..." +
+    (parsed.address || address).substring(35);
 
   return (
     <>
@@ -462,9 +536,7 @@ const PaymentDetails = (props) => {
           ]
         }
       >
-        <div
-          className="col-md-10 offset-md-1"
-        >
+        <div className="col-md-10 offset-md-1">
           <Form.Group>
             <div id="input-block">
               <span className="fiat-amount" id="input-amount">
@@ -472,7 +544,7 @@ const PaymentDetails = (props) => {
                   onChangeAmount={handleFromAmountChange}
                   amount={toFixed(fromAmount, 2)}
                   placeholder="0.00"
-                  label={"Pay"}
+                  label={"I Want to Spend"}
                   selectedRow={selectedFiat}
                   setSelectedRow={setSelectedFiat}
                   currencies={SUPPORTED_CURRENCIES}
@@ -485,8 +557,10 @@ const PaymentDetails = (props) => {
                   onChangeAmount={handleToAmountChange}
                   amount={toFixed(toAmount, 2)}
                   placeholder="0.00"
-                  label={"Receive"}
-                  selectedRow={CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`]}
+                  label={"I Will Receive"}
+                  selectedRow={
+                    CRYPTO_CURRENCIES_kv[`${selectedCryptoCurrency}`]
+                  }
                   setSelectedRow={setSelectedCryptoCurrency}
                   cryptoCurrencies={CRYPTO_CURRENCIES_kv}
                   disabled={parsed.crypto_currency != null}
@@ -507,10 +581,10 @@ const PaymentDetails = (props) => {
                           ? selectedFiat === "USD"
                             ? min_usd_valid
                               ? "red"
-                              : null
+                              : "black-14"
                             : min_eur_valid
                             ? "red"
-                            : null
+                            : 'black-14'
                           : null
                       }
                     >
@@ -522,26 +596,35 @@ const PaymentDetails = (props) => {
                       {selectedFiat || parsed.fiat_currency}
                     </p>
                   ) : (
-                    <p>...</p>
+                    <p className="black-14">...</p>
                   )}
                 </div>
-                { parsed.address && (
+                {parsed.address && (
                   <div className="row_notice">
                     <p className="left-side-p">Your address:</p>
-                    <p title={address}>{addressCut}</p>
+                    <p title={address} className="black-14">{addressCut}</p>
                   </div>
                 )}
               </>
             )}
           </Form.Group>
-
+          <div>
+            {tickerData.vlx_price && (
+              <div className="left-side-p mt-30 mb-10">
+                Reference Price:{" "}
+                <span className="black-14">
+                  1 VLX ≈ {parseFloat(tickerData.vlx_price).toFixed(4)} USD
+                </span>
+              </div>
+            )}
+          </div>
           <Button
             className="submit-button2"
-            variant="primary"
+            variant="primary buy-button"
             onClick={onSubmit}
             disabled={valid_btn}
           >
-            {isLoading ? "Loading..." : "Buy"}
+            {isLoading ? "Loading..." : `Buy VLX (${displayCryptoCurrency})`}
           </Button>
           <input type="hidden" name="version" value="1" />
           <input type="hidden" name="partner" value={PARTNER_NAME} />
