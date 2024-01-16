@@ -101,7 +101,7 @@ const Checkout = (props) => {
               </p>
             </div>
           </Form.Group>
-          <Button variant="primary" type='button' onClick={goBack} id='btn-go-back'>
+          <Button variant="primary buy-button" type='button' onClick={goBack} id='btn-go-back'>
             Back to {validMobile ? "App" : "Wallet"}
           </Button>
           {validMobile &&

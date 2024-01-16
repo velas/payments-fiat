@@ -6,7 +6,9 @@ const EmptyView = (props) => {
       {props.pageIsLoading ? (
         <div className="loader">Loading...</div>
       ) : (
-        <div style={{marginTop: 30}}><p className="row-txt">Oops, something went wrong!!</p></div>
+        <div>
+          <p className="row-txt">Oops, something went wrong!!</p>
+        </div>
       )}
     </div>
   );

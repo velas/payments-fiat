@@ -1,17 +1,28 @@
-import React from 'react';
-import Progress from './Progress';
+import React, { useState, useEffect } from 'react';
+import logoImage from "../images/logo.svg";
 
+const Header = (props) => {
+  const [headerBackground, setHeaderBackground] = useState(false);
 
-const Header = (props) => (
-  <>
-  <div className='header_style'>
-    <h1>Buy VLX</h1>
-  </div>
-  <div className="width-progress" style={props.style}>
-    <Progress/>
-  </div>
-  </>
-  
-);
+  const listenScrollEvent = () => {
+    if (window.scrollY > 20) {
+      setHeaderBackground(true);
+    } else {
+      setHeaderBackground(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", listenScrollEvent);
+
+    return () => window.removeEventListener("scroll", listenScrollEvent);
+  }, []);
+
+  return (
+    <div className={`header-style ${headerBackground ? 'scrolled' : ''}`}>
+      <img src={logoImage} alt="Logo" className="header-logo" />
+    </div>
+  );
+};
 
 export default Header;
