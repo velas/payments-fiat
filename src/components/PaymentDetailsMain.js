@@ -28,10 +28,12 @@ const PaymentDetailsMain = (props) => {
   const [currentRate, setCurrentRate] = useState(null); //currentRate means 1 fiat to crypto
   const _currentRate = 1 / (currentRate / 100);
   const [showProvider, setShowProvider] = useState(false);
-  
+  // console.log('showProvider',showProvider)
+  // console.log('selectedProvider',selectedProvider)
+  // console.log('currentRate',currentRate)
   useEffect(() => {
     if (
-      currentRate &&
+      // currentRate &&
       Object.keys(tickerData).length > 0 &&
       Object.keys(tickerFiatData).length > 0
     ) {
@@ -41,7 +43,7 @@ const PaymentDetailsMain = (props) => {
   
       return () => clearTimeout(timer);
     }
-  }, [currentRate, tickerData, tickerFiatData, selectedProvider]);
+  }, [tickerData, tickerFiatData, selectedProvider]); //add currentRate
 
   const DEFAULT_RECEIVE_CRYPTO_AMOUNT = parsed.amount ? parsed.amount : 300;
 
@@ -112,54 +114,57 @@ const PaymentDetailsMain = (props) => {
     }
 
     // currentRate and minAmount
-    try {
-      const currencyResult = await makeQuery({
-        url: "api/merchant/v1/settings/currency",
-      });
-      if (currencyResult && currencyResult.data && currencyResult.data.data) {
-        const data = currencyResult.data.data;
-        const currData = {};
-        data.forEach((it) => {
-          currData[it.currency] = { min: it.depositMin, max: it.depositMax };
-        });
 
-        if (currData["USD"]) {
-          const { min, max } = currData["USD"];
-          setMinAmount(min);
-        }
-      }
-    } catch (err) {
-      setPageIsLoading(false);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
-      });
-    }
+    // uncomment when Utorg will restore our account👇👇👇!!
 
-    try {
-      const convertParams = {
-        fromCurrency: "USD",
-        toCurrency: _currs,
-        paymentAmount: 100,
-      };
-
-      const convertResult = await makeQuery({
-        url: UTORG_CONVERT_URL,
-        params: convertParams,
-        forceMainnet: true,
-      });
-      if (convertResult && convertResult.data && convertResult.data.data) {
-        setCurrentRate(convertResult.data.data);
-      }
-    } catch (err) {
-      setPageIsLoading(false);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
-      });
-    }
+      // try {
+      //   const currencyResult = await makeQuery({
+      //     url: "api/merchant/v1/settings/currency",
+      //   });
+      //   if (currencyResult && currencyResult.data && currencyResult.data.data) {
+      //     const data = currencyResult.data.data;
+      //     const currData = {};
+      //     data.forEach((it) => {
+      //       currData[it.currency] = { min: it.depositMin, max: it.depositMax };
+      //     });
+  
+      //     if (currData["USD"]) {
+      //       const { min, max } = currData["USD"];
+      //       setMinAmount(min);
+      //     }
+      //   }
+      // } catch (err) {
+      //   setPageIsLoading(false);
+      //   Swal.fire({
+      //     icon: "error",
+      //     title: "Oops...",
+      //     html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
+      //   });
+      // }
+  
+      // try {
+      //   const convertParams = {
+      //     fromCurrency: "USD",
+      //     toCurrency: _currs,
+      //     paymentAmount: 100,
+      //   };
+  
+      //   const convertResult = await makeQuery({
+      //     url: UTORG_CONVERT_URL,
+      //     params: convertParams,
+      //     forceMainnet: true,
+      //   });
+      //   if (convertResult && convertResult.data && convertResult.data.data) {
+      //     setCurrentRate(convertResult.data.data);
+      //   }
+      // } catch (err) {
+      //   setPageIsLoading(false);
+      //   Swal.fire({
+      //     icon: "error",
+      //     title: "Oops...",
+      //     html: `<p className="info-style">Sorry, unexpected error occurred. ${err}`,
+      //   });
+      // }
   };
 
   useEffect(() => {
@@ -237,7 +242,9 @@ const PaymentDetailsMain = (props) => {
           )}
           {/* by default for rate display, end*/}
 
-          {selectedProvider === "utorg" && (
+          {/* // uncomment when Utorg will restore our account👇👇👇!! */}
+
+          {/* {selectedProvider === "utorg" && (
             <UtorgPaymentDetails
               selectedProvider={selectedProvider}
               redirectTo={props.history.push}
@@ -249,7 +256,7 @@ const PaymentDetailsMain = (props) => {
               }
               {...props}
             />
-          )}
+          )} */}
 
           {selectedProvider === "simplex" && (
             <SimplexPaymentDetails

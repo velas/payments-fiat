@@ -44,11 +44,12 @@ export const Provider = (props) => {
     utorg: body_utorg,
   };
   const options = [
-    {
-      value: "utorg",
-      label: "Utorg",
-      icon: <IconUtorg width="20" height="20" />,
-    },
+    // {
+    //   value: "utorg",
+    //   label: "Utorg",
+    //   icon: <IconUtorg width="20" height="20" />,
+    //   disabled: true,
+    // },
     {
       value: "transak",
       label: "Transak",
@@ -58,7 +59,7 @@ export const Provider = (props) => {
       value: "simplex",
       label: "Simplex",
       icon: <IconSimplex width="20" height="20" />,
-      disabled: true,
+      // disabled: true,
     },
   ];
 
@@ -114,7 +115,7 @@ export const Provider = (props) => {
           placeholder="Select a provider"
           isOptionDisabled={(option) => option.disabled}
           getOptionLabel={(e) => (
-            <div style={{ display: "flex", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", cursor: 'pointer'  }}>
               {e.icon}
               <span
                 className="list-select"
