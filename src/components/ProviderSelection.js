@@ -31,6 +31,13 @@ export const Provider = (props) => {
       : "vlx";
 
   const { selectedProvider, setSelectedProvider } = props;
+
+  React.useEffect(() => {
+    if (!selectedProvider) {
+      setSelectedProvider("transak");
+    }
+  }, [selectedProvider, setSelectedProvider]);
+
   const onInfo = () => {
     Swal.fire({
       icon: "info",
@@ -44,12 +51,12 @@ export const Provider = (props) => {
     utorg: body_utorg,
   };
   const options = [
-    // {
-    //   value: "utorg",
-    //   label: "Utorg",
-    //   icon: <IconUtorg width="20" height="20" />,
-    //   disabled: true,
-    // },
+    {
+      value: "utorg",
+      label: "Utorg",
+      icon: <IconUtorg width="20" height="20" />,
+      disabled: true,
+    },
     {
       value: "transak",
       label: "Transak",
@@ -59,7 +66,7 @@ export const Provider = (props) => {
       value: "simplex",
       label: "Simplex",
       icon: <IconSimplex width="20" height="20" />,
-      // disabled: true,
+      disabled: true,
     },
   ];
 
@@ -108,21 +115,38 @@ export const Provider = (props) => {
         <Select
           // menuIsOpen
           styles={customStyles}
-          defaultValue={selectedProvider}
-          isDisabled={props.default && true}
+          // defaultValue={selectedProvider}
+          // isDisabled={props.default && true}
+          value={options.find((option) => option.value === selectedProvider)}
           onChange={onProviderSelect}
           options={options}
           placeholder="Select a provider"
           isOptionDisabled={(option) => option.disabled}
           getOptionLabel={(e) => (
-            <div style={{ display: "flex", alignItems: "center", cursor: 'pointer'  }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                cursor: e.disabled ? "not-allowed" : "pointer",
+              }}
+            >
               {e.icon}
               <span
                 className="list-select"
-                style={{ fontSize: 16, marginTop: 2 }}
+                style={{
+                  fontSize: 16,
+                  marginTop: 2,
+                  marginLeft: 8,
+                  color: e.disabled ? "rgba(0, 0, 0, 0.5)" : "inherit",
+                }}
               >
                 {e.label}
               </span>
+              {e.disabled && (
+                <span style={{ fontSize: 10, color: "#fff", background: '#7c98de', borderRadius: 10, paddingInline: 5, marginLeft: 8, marginTop: 2 }}>
+                  soon
+                </span>
+              )}
             </div>
           )}
         />

@@ -52,7 +52,7 @@ const PaymentDetailsMain = (props) => {
     sessionStorage.setItem("min_amount", DEFAULT_RECEIVE_CRYPTO_AMOUNT);
   }, true);
 
-  console.log("parsed.amount", parsed.amount);
+  // console.log("parsed.amount", parsed.amount);
   const network = parsed.env
     ? parsed.env === "wallet_testnet"
       ? "testnet"
@@ -234,11 +234,16 @@ const PaymentDetailsMain = (props) => {
 
           {/* by default for rate display, start*/}
           {!selectedProvider && (
-            <SimplexPaymentDetails
-              selectedProvider={selectedProvider}
-              defaultAmount={DEFAULT_RECEIVE_CRYPTO_AMOUNT}
-              {...props}
-            />
+            <TransakPaymentDetails
+            selectedProvider={selectedProvider}
+            defaultAmount={
+              sessionStorage.getItem("min_amount") <
+              MIN_AMOUNT_USD / crypto_usd_rate
+                ? MIN_AMOUNT_USD / crypto_usd_rate
+                : sessionStorage.getItem("min_amount") || parsed.amount || 0
+            }
+            {...props}
+          />
           )}
           {/* by default for rate display, end*/}
 
@@ -258,7 +263,7 @@ const PaymentDetailsMain = (props) => {
             />
           )} */}
 
-          {selectedProvider === "simplex" && (
+          {/* {selectedProvider === "simplex" && (
             <SimplexPaymentDetails
               selectedProvider={selectedProvider}
               defaultAmount={
@@ -269,7 +274,7 @@ const PaymentDetailsMain = (props) => {
               }
               {...props}
             />
-          )}
+          )} */}
 
           {selectedProvider === "transak" && (
             <TransakPaymentDetails
