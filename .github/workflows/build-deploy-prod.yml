@@ -16,6 +16,12 @@ jobs:
       image_tag: ${{ steps.build.outputs.image_tag }}
     steps:
       - uses: actions/checkout@v2
+      - name: Check Docker version
+        run: docker --version
+      - name: Check disk space
+        run: df -h
+      - name: Clean up Docker system
+        run: docker system prune -af
       - name: Build, tag, and push image 
         id: build
         env:
@@ -23,7 +29,7 @@ jobs:
           REPOSITORY: ${{ env.APP_REPO }}
           IMAGE_TAG: ${{github.sha}}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --no-cache  .
+          docker build --memory=2g -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --no-cache .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
   deploy:
     name: Deploy via Helmfile
@@ -46,7 +52,3 @@ jobs:
         run: |
           cd deploy
           helmfile -e ${HELM_ENV} -l namespace=${NAMESPACE},name=${{ env.APP_NAME }} apply  --set image.tag=$IMAGE_TAG,image.repository=$REGISTRY/$REPOSITORY --skip-deps
-
-
-
-  
