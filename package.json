@@ -8,9 +8,9 @@
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "@transak/transak-sdk": "^1.0.31",
+    "BigInt": "^5.5.3",
     "axios": "0.21.1",
     "babel-preset-react-app": "^10.0.1",
-    "BigInt": "^5.5.3",
     "body-parser": "^1.19.0",
     "bootstrap": "4.6.0",
     "bs58": "^5.0.0",
@@ -50,6 +50,9 @@
     "server": "node server",
     "start": "concurrently \"yarn client\" \"yarn server\"",
     "prod": "node server-built"
+  },
+  "resolutions": {
+    "@babel/core": "^7.16.0"
   },
   "eslintConfig": {
     "extends": [
